@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>الكسارات</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css?family=Cairo:400,700,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/modern-theme.css">
+    <link rel="stylesheet" href="css/crushers.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+
+<body>
+    <div id="sidebar-placeholder"></div>
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">إدارة الكسارات</h1>
+            <button class="btn btn-primary" id="addCrusherBtn">
+                <span>➕</span> إضافة كسارة جديدة
+            </button>
+        </div>
+        
+        <div class="content-section">
+            <div id="crushersContainer" class="crushers-grid"></div>
+        </div>
+    </div>
+
+    <!-- Add Crusher Modal -->
+    <div id="addCrusherModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>إضافة كسارة جديدة</h2>
+                <button class="modal-close" data-action="close-modal" data-target="addCrusherModal">&times;</button>
+            </div>
+            <form id="addCrusherForm">
+                <div class="form-group">
+                    <label for="crusherName">اسم الكسارة *</label>
+                    <input type="text" id="crusherName" name="name" autocomplete="organization" required>
+                </div>
+                
+                <div class="form-section">
+                    <h3>أسعار المواد (جنيه/م³)</h3>
+                    <div class="price-grid">
+                        <div class="form-group">
+                            <label for="sandPrice">رمل</label>
+                            <input type="number" id="sandPrice" name="sand_price" step="0.01" min="0" placeholder="0.00" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="aggregate1Price">سن 1</label>
+                            <input type="number" id="aggregate1Price" name="aggregate1_price" step="0.01" min="0" placeholder="0.00" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="aggregate2Price">سن 2</label>
+                            <input type="number" id="aggregate2Price" name="aggregate2_price" step="0.01" min="0" placeholder="0.00" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="aggregate3Price">سن 3</label>
+                            <input type="number" id="aggregate3Price" name="aggregate3_price" step="0.01" min="0" placeholder="0.00" autocomplete="off">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" data-action="close-modal" data-target="addCrusherModal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">إضافة الكسارة</button>
+                </div>
+                <div id="addCrusherMessage"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Prices Modal -->
+    <div id="editPricesModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>تعديل أسعار المواد</h2>
+                <button class="modal-close" data-action="close-modal" data-target="editPricesModal">&times;</button>
+            </div>
+            <div class="warning-box">
+                <div class="warning-icon">⚠️</div>
+                <div class="warning-text">
+                    <strong>تنبيه مهم:</strong> تعديل الأسعار سيؤثر فقط على التسليمات الجديدة. 
+                    جميع التسليمات السابقة ستحتفظ بالأسعار التاريخية المحفوظة وقت إنشائها.
+                </div>
+            </div>
+            <form id="editPricesForm">
+                <input type="hidden" id="editCrusherId">
+                <div class="form-section">
+                    <h3 id="editCrusherName">أسعار المواد (جنيه/م³)</h3>
+                    <div class="price-grid">
+                        <div class="form-group">
+                            <label for="editSandPrice">رمل</label>
+                            <input type="number" id="editSandPrice" name="sand_price" step="0.01" min="0" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="editAggregate1Price">سن 1</label>
+                            <input type="number" id="editAggregate1Price" name="aggregate1_price" step="0.01" min="0" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="editAggregate2Price">سن 2</label>
+                            <input type="number" id="editAggregate2Price" name="aggregate2_price" step="0.01" min="0" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="editAggregate3Price">سن 3</label>
+                            <input type="number" id="editAggregate3Price" name="aggregate3_price" step="0.01" min="0" autocomplete="off">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" data-action="close-modal" data-target="editPricesModal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+                </div>
+                <div id="editPricesMessage"></div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/csp-fix.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/crushers.js"></script>
+</body>
+
+</html>

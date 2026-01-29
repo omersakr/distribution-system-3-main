@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>العملاء</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/modern-theme.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+
+<body>
+    <div id="sidebar-placeholder"></div>
+    
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">إدارة العملاء</h1>
+            <button class="btn btn-primary" id="addClientBtn">
+                <span>➕</span> إضافة عميل جديد
+            </button>
+        </div>
+        
+        <div class="content-section">
+            <div class="search-controls">
+                <div class="search-box">
+                    <input type="text" id="clientSearch" class="form-input" placeholder="ابحث عن عميل...">
+                    <button id="searchBtn" class="btn btn-secondary">🔍 بحث</button>
+                </div>
+            </div>
+            
+            <div id="clientsContainer" class="clients-grid"></div>
+            <div id="paginationContainer"></div>
+        </div>
+    </div>
+
+    <!-- Add Client Modal -->
+    <div id="addClientModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>إضافة عميل جديد</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="addClientForm">
+                <div class="form-group">
+                    <label for="clientName">اسم العميل *</label>
+                    <input type="text" id="clientName" name="name" required autocomplete="name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="clientPhone">رقم الهاتف</label>
+                    <input type="tel" id="clientPhone" name="phone" placeholder="اختياري" autocomplete="tel">
+                </div>
+                
+                <div class="form-group">
+                    <label for="openingBalance">الرصيد الافتتاحي (جنيه)</label>
+                    <input type="text" id="openingBalance" name="opening_balance" placeholder="0.00" autocomplete="off">
+                    <small class="form-help">موجب = العميل يدين لنا، سالب = نحن ندين للعميل</small>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">إضافة العميل</button>
+                </div>
+                <div id="addClientMessage"></div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/csp-fix.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/clients.js"></script>
+</body>
+
+</html>

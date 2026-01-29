@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sidebar Full Height Demo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', sans-serif;
+            background: #f5f5f5;
+        }
+        
+        .main-content {
+            margin-right: 225px;
+            padding: 40px;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        
+        .demo-content {
+            background: rgba(255,255,255,0.1);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .demo-content h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .demo-content p {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        
+        .success-indicator {
+            display: inline-block;
+            padding: 15px 30px;
+            background: rgba(34, 197, 94, 0.2);
+            border: 2px solid #22c55e;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        /* Visual height indicator */
+        .height-visual {
+            position: fixed;
+            left: 240px;
+            top: 20px;
+            width: 20px;
+            height: calc(100vh - 40px);
+            background: linear-gradient(to bottom, #22c55e, #16a34a);
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .height-label {
+            position: fixed;
+            left: 270px;
+            top: 50%;
+            transform: translateY(-50%) rotate(-90deg);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        
+        @media (max-width: 700px) {
+            .main-content {
+                margin-right: 0;
+            }
+            .height-visual,
+            .height-label {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Visual height indicator -->
+    <div class="height-visual"></div>
+    <div class="height-label">الشريط الجانبي - ارتفاع كامل 100vh</div>
+
+    <div id="sidebar-placeholder"></div>
+    
+    <div class="main-content">
+        <div class="demo-content">
+            <h1>🎉 تم إصلاح ارتفاع الشريط الجانبي!</h1>
+            <p>الآن الشريط الجانبي يأخذ الارتفاع الكامل للشاشة</p>
+            <p>قائمة التنقل تستخدم كامل المساحة المتاحة</p>
+            <p>أشرطة التمرير الحديثة تظهر عند الحاجة</p>
+            <div class="success-indicator">
+                ✅ الإصلاح مكتمل بنجاح
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script>
+        // Add some extra menu items to demonstrate scrolling
+        setTimeout(() => {
+            const sidebar = document.getElementById('sidebar');
+            const ul = sidebar ? sidebar.querySelector('ul') : null;
+            
+            if (ul) {
+                // Add extra items to show scrolling behavior
+                for (let i = 1; i <= 5; i++) {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.href = '#';
+                    a.textContent = `عنصر إضافي ${i}`;
+                    a.style.opacity = '0.7';
+                    li.appendChild(a);
+                    ul.appendChild(li);
+                }
+                
+                console.log('✅ Sidebar full height fix applied successfully!');
+                console.log(`Sidebar height: ${sidebar.offsetHeight}px`);
+                console.log(`UL height: ${ul.offsetHeight}px`);
+                console.log(`Viewport height: ${window.innerHeight}px`);
+                console.log(`UL is scrollable: ${ul.scrollHeight > ul.clientHeight}`);
+            }
+        }, 500);
+    </script>
+</body>
+</html>

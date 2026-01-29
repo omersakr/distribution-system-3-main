@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>تفاصيل الموظف</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/modern-theme.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <style>
+        .main-content {
+            margin-right: 225px;
+            padding: var(--space-8);
+            transition: margin-right 0.25s;
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                margin-right: 190px;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .main-content {
+                margin-right: 0;
+                padding: var(--space-4);
+            }
+        }
+
+        .page-header {
+            margin-bottom: var(--space-8);
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: var(--space-2);
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-800) 100%);
+            color: white;
+            border-radius: var(--radius-xl);
+            padding: var(--space-8);
+            margin-bottom: var(--space-8);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-6);
+            margin-top: var(--space-6);
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: var(--space-2);
+        }
+
+        .summary-label {
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+
+        .section {
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
+            margin-bottom: var(--space-6);
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: var(--space-6);
+            border-bottom: 1px solid var(--gray-200);
+            background: var(--gray-50);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin: 0;
+        }
+
+        .section-content {
+            padding: var(--space-6);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="sidebar-placeholder"></div>
+    
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title" id="employeeName">تفاصيل الموظف</h1>
+            <button class="btn btn-secondary" onclick="history.back()">
+                <span>←</span> العودة
+            </button>
+        </div>
+
+        <!-- Financial Summary Card -->
+        <div class="summary-card">
+            <h2>الملخص المالي</h2>
+            <div class="summary-grid" id="financialSummary">
+                <!-- Financial summary will be populated here -->
+            </div>
+        </div>
+
+        <!-- Employee Info Section -->
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">معلومات الموظف</h3>
+                <button class="btn btn-primary" id="editEmployeeBtn">
+                    <span>✏️</span> تعديل الموظف
+                </button>
+            </div>
+            <div class="section-content">
+                <div class="info-grid" id="employeeInfo">
+                    <!-- Employee info will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Section -->
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">سجلات الحضور والغياب</h3>
+                <button class="btn btn-primary" id="addAttendanceBtn">
+                    <span>➕</span> إضافة سجل شهري
+                </button>
+            </div>
+            <div class="section-content">
+                <div class="table-container">
+                    <table class="data-table" id="attendanceTable">
+                        <thead>
+                            <tr>
+                                <th>الشهر</th>
+                                <th>السنة</th>
+                                <th>أيام الشهر</th>
+                                <th>أيام العمل</th>
+                                <th>أيام الغياب</th>
+                                <th>نوع التسجيل</th>
+                                <th>ملاحظات</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceTableBody">
+                            <!-- Attendance records will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Adjustments Section -->
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">التسويات</h3>
+                <button class="btn btn-primary" id="addAdjustmentBtn">
+                    <span>➕</span> إضافة تسوية
+                </button>
+            </div>
+            <div class="section-content">
+                <div class="table-container">
+                    <table class="data-table" id="adjustmentsTable">
+                        <thead>
+                            <tr>
+                                <th>المبلغ</th>
+                                <th>النوع</th>
+                                <th>التفاصيل</th>
+                                <th>السبب</th>
+                                <th>التاريخ</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adjustmentsTableBody">
+                            <!-- Adjustments will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payments Section -->
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">المدفوعات</h3>
+                <button class="btn btn-primary" id="addPaymentBtn">
+                    <span>➕</span> إضافة دفعة
+                </button>
+            </div>
+            <div class="section-content">
+                <div class="table-container">
+                    <table class="data-table" id="paymentsTable">
+                        <thead>
+                            <tr>
+                                <th>المبلغ</th>
+                                <th>طريقة الدفع</th>
+                                <th>التفاصيل</th>
+                                <th>ملاحظات</th>
+                                <th>تاريخ الدفع</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentsTableBody">
+                            <!-- Payments will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Modal -->
+    <div id="attendanceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="attendanceModalTitle">إضافة سجل شهري</h2>
+                <span class="close" onclick="closeAttendanceModal()">&times;</span>
+            </div>
+            <form id="attendanceForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="attendanceMonth">الشهر *</label>
+                        <select id="attendanceMonth" name="month" required>
+                            <option value="">اختر الشهر</option>
+                            <option value="1">يناير</option>
+                            <option value="2">فبراير</option>
+                            <option value="3">مارس</option>
+                            <option value="4">أبريل</option>
+                            <option value="5">مايو</option>
+                            <option value="6">يونيو</option>
+                            <option value="7">يوليو</option>
+                            <option value="8">أغسطس</option>
+                            <option value="9">سبتمبر</option>
+                            <option value="10">أكتوبر</option>
+                            <option value="11">نوفمبر</option>
+                            <option value="12">ديسمبر</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="attendanceYear">السنة *</label>
+                        <input type="number" id="attendanceYear" name="year" min="2020" max="2030" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>نوع التسجيل *</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="record_type" value="attendance" id="recordTypeAttendance" required>
+                            تسجيل أيام الحضور
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="record_type" value="absence" id="recordTypeAbsence" required>
+                            تسجيل أيام الغياب
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group" id="attendanceDaysGroup" style="display: none;">
+                    <label for="attendanceDays">أيام الحضور</label>
+                    <input type="number" id="attendanceDays" name="attendance_days" min="0">
+                    <small class="form-help">عدد الأيام التي حضر فيها الموظف</small>
+                </div>
+                <div class="form-group" id="absenceDaysGroup" style="display: none;">
+                    <label for="absenceDays">أيام الغياب</label>
+                    <input type="number" id="absenceDays" name="absence_days" min="0">
+                    <small class="form-help">عدد الأيام التي غاب فيها الموظف</small>
+                </div>
+                <div class="form-group">
+                    <label for="attendanceNotes">ملاحظات</label>
+                    <textarea id="attendanceNotes" name="notes" rows="3" placeholder="أي ملاحظات إضافية عن هذا الشهر"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">حفظ</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeAttendanceModal()">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Adjustment Modal -->
+    <div id="adjustmentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="adjustmentModalTitle">إضافة تسوية</h2>
+                <span class="close" onclick="closeAdjustmentModal()">&times;</span>
+            </div>
+            <form id="adjustmentForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="adjustmentAmount">المبلغ *</label>
+                        <input type="number" id="adjustmentAmount" name="amount" step="0.01" required>
+                        <small>المبالغ الموجبة تزيد من استحقاق الموظف، والسالبة تقلل منه</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="adjustmentMethod">طريقة الدفع</label>
+                        <input type="text" id="adjustmentMethod" name="method" placeholder="نقدي، تحويل، إلخ">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="adjustmentDetails">التفاصيل</label>
+                    <input type="text" id="adjustmentDetails" name="details">
+                </div>
+                <div class="form-group">
+                    <label for="adjustmentReason">السبب *</label>
+                    <textarea id="adjustmentReason" name="reason" rows="3" required></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">حفظ</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeAdjustmentModal()">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="paymentModalTitle">إضافة دفعة</h2>
+                <span class="close" onclick="closePaymentModal()">&times;</span>
+            </div>
+            <form id="paymentForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="paymentAmount">المبلغ *</label>
+                        <input type="number" id="paymentAmount" name="amount" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="paymentMethod">طريقة الدفع</label>
+                        <input type="text" id="paymentMethod" name="method" placeholder="نقدي، تحويل، إلخ">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="paymentDetails">التفاصيل</label>
+                        <input type="text" id="paymentDetails" name="details">
+                    </div>
+                    <div class="form-group">
+                        <label for="paidAt">تاريخ الدفع</label>
+                        <input type="date" id="paidAt" name="paid_at">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="paymentNote">ملاحظات</label>
+                    <textarea id="paymentNote" name="note" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="paymentImage">صورة الإيصال</label>
+                    <input type="file" id="paymentImage" accept="image/*">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">حفظ</button>
+                    <button type="button" class="btn btn-secondary" onclick="closePaymentModal()">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Employee Modal -->
+    <div id="editEmployeeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>تعديل معلومات الموظف</h2>
+                <span class="close" onclick="closeEditEmployeeModal()">&times;</span>
+            </div>
+            <form id="editEmployeeForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editEmployeeName">اسم الموظف *</label>
+                        <input type="text" id="editEmployeeName" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editJobTitle">المسمى الوظيفي</label>
+                        <input type="text" id="editJobTitle" name="job_title">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editPhoneNumber">رقم الهاتف</label>
+                        <input type="tel" id="editPhoneNumber" name="phone_number">
+                    </div>
+                    <div class="form-group">
+                        <label for="editBaseSalary">الراتب الأساسي</label>
+                        <input type="number" id="editBaseSalary" name="base_salary" step="0.01" min="0">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editStartWorkingDate">تاريخ بداية العمل</label>
+                        <input type="date" id="editStartWorkingDate" name="start_working_date">
+                    </div>
+                    <div class="form-group">
+                        <label for="editStatus">الحالة</label>
+                        <select id="editStatus" name="status">
+                            <option value="Active">نشط</option>
+                            <option value="Inactive">غير نشط</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editAssignedProjects">المشاريع المخصصة</label>
+                    <div class="project-assignment">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="editAllProjects" name="all_projects">
+                            جميع المشاريع
+                        </label>
+                        <div id="editProjectsList" class="projects-list" style="display: none;">
+                            <!-- Projects will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editNotes">ملاحظات</label>
+                    <textarea id="editNotes" name="notes" rows="3"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeEditEmployeeModal()">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/csp-fix.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/employee-details.js"></script>
+</body>
+
+</html>

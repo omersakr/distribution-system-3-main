@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>إدخال تسليم جديد</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css?family=Cairo:400,700,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="/css/new-entry.css">
+    <link rel="stylesheet" href="/css/sidebar.css">
+</head>
+
+<body>
+    <div id="sidebar-placeholder"></div>
+    <div class="main-content">
+        <div class="page-header">إدخال تسليم جديد</div>
+        <div class="new-entry-form-container">
+            <div class="form-header">
+                <button type="button" id="refreshBtn" class="refresh-btn">تحديث البيانات</button>
+            </div>
+            <form id="newEntryForm" autocomplete="off" novalidate>
+                <div id="formError" class="form-error"></div>
+
+                <div class="form-group">
+                    <label for="client"><span class="required">*</span>العميل</label>
+                    <select id="client" required>
+                        <option value="">اختر العميل</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>نوع المورد <span class="required">*</span></label>
+                    <div class="supplier-type-options">
+                        <label class="radio-label">
+                            <input type="radio" name="supplierType" id="supplierTypeCrusher" value="crusher" checked />
+                            كسارة
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="supplierType" id="supplierTypeSupplier" value="supplier" /> مورد
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="crusherGroup">
+                    <label for="crusher"><span class="required">*</span>الكسارة</label>
+                    <select id="crusher" required>
+                        <option value="">اختر الكسارة</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="supplierGroup" style="display: none;">
+                    <label for="supplier"><span class="required">*</span>المورد</label>
+                    <select id="supplier">
+                        <option value="">اختر المورد</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="material"><span class="required">*</span>نوع المادة</label>
+                    <select id="material" required>
+                        <option value="">اختر النوع</option>
+                        <option value="رمل">رمل</option>
+                        <option value="سن 1">سن 1</option>
+                        <option value="سن 2">سن 2</option>
+                        <option value="سن 3">سن 3</option>
+                        <option value="سن 6 بودرة">سن 6 بودرة</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="voucher"><span class="required">*</span>رقم البون</label>
+                    <input type="text" id="voucher" required maxlength="32" />
+                </div>
+
+                <div class="form-group">
+                    <label for="wheelContractor">مقاول النقل</label>
+                    <select id="wheelContractor">
+                        <option value="">اختر المقاول</option>
+                    </select>
+                    <small style="color: #666; font-size: 0.9em; margin-top: 5px; display: block;">
+                        مطلوب للكسارات، اختياري للموردين
+                    </small>
+                </div>
+
+                <div class="form-group flex-row">
+                    <div style="flex:1;">
+                        <label for="driver"><span class="required">*</span>اسم السائق</label>
+                        <input type="text" id="driver" required maxlength="48" />
+                    </div>
+                    <div style="flex:1;">
+                        <label for="carHead"><span class="required">*</span>رقم الرأس</label>
+                        <input type="text" id="carHead" required maxlength="28" />
+                    </div>
+                    <div style="flex:1;">
+                        <label for="carTail"><span class="required">*</span>رقم المقطورة</label>
+                        <input type="text" id="carTail" required maxlength="28" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="carVolume"><span class="required">*</span>تكعيب السيارة (م³)</label>
+                    <input type="number" id="carVolume" min="0.01" step="0.01" required />
+                </div>
+
+                <div class="form-group">
+                    <div class="discount-options">
+                        <label class="radio-label">
+                            <input type="radio" name="discount" id="discountYes" value="yes" /> خصم
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="discount" id="discountNo" value="no" checked /> بدون خصم
+                        </label>
+                    </div>
+                    <div class="form-group special-deduct" id="deductAmountField" style="display:none;
+                        background: linear-gradient(92deg, #e1ecf7 65%, #b6dbef 100%);
+                        border: 2.5px dashed #247ae0;
+                        border-radius: 10px;
+                        padding: 20px 15px 8px 15px;
+                        margin: 12px 0 15px 0;
+                        box-shadow: 0 4px 12px #247ae020;
+                        text-align: right;
+                        position: relative;">
+                        <label for="deductAmount"
+                            style="font-weight:800;font-size:1.11rem;color:#17406b;margin-bottom:11px;display:block;">
+                            <span class="required" style="color:#c0392b;font-weight:900;">*</span>
+                            قيمة الخصم (م³)
+                            <span
+                                style="background:#fff8e1;color:#b27b21;padding:2px 8px 2px 8px;border-radius:13px;font-size:0.93em;margin-right:7px;">خاص</span>
+                        </label>
+                        <input type="number" id="deductAmount" min="0" step="0.01" style="background: #fffde9; border: 1.7px solid #e2be71; border-radius:7px;
+                               font-weight:700; color:#bb8300; font-size:1.13em; width: 60%;
+                               box-shadow: 0 2px 7px #fffdd430; outline: none; padding:7px 16px;" />
+                        <span
+                            style="position:absolute;left:13px;top:14px;color:#b6dbef;font-size:1.1rem;font-weight:700;">
+                            م³
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-group flex-row">
+                    <div style="flex:1;">
+                        <label for="quantity"><span class="required">*</span>كمية الحمولة (م³)</label>
+                        <input type="number" id="quantity" min="0.01" step="0.01" required />
+                    </div>
+                    <div style="flex:1;">
+                        <label for="price"><span class="required">*</span>السعر لكل م³ (للعميل)</label>
+                        <input type="number" id="price" min="0" step="0.01" required />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div id="crusherPriceDisplay"
+                        style="background: #f0f8ff; border: 2px solid #4a90e2; border-radius: 8px; padding: 15px; margin: 10px 0; display: none;">
+                        <label style="font-weight: bold; color: #2c5aa0; margin-bottom: 8px; display: block;">
+                            سعر الكسارة للمادة المختارة:
+                        </label>
+                        <div id="crusherPriceValue" style="font-size: 1.2em; font-weight: bold; color: #1e4d72;">
+                            غير محدد
+                        </div>
+                        <small style="color: #666; font-style: italic;">
+                            هذا السعر سيتم حفظه مع التسليم للحفاظ على الأسعار التاريخية
+                        </small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="contractorCharge">مستحق مقاول النقل لكل م³</label>
+                    <input type="number" id="contractorCharge" min="0" step="0.01" />
+                    <small style="color: #666; font-size: 0.9em; margin-top: 5px; display: block;">
+                        اختياري - يمكن استخدامه مع الكسارات والموردين
+                    </small>
+                </div>
+
+                <button type="submit" class="save-btn">حفظ البيانات</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/env.js"></script>
+    <script src="/js/csp-fix.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/sidebar.js"></script>
+    <script src="/js/new-entry.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</body>
+
+</html>

@@ -1,0 +1,6 @@
+mixin kpiCard(label, value, colorClass)
+  .bg-white.border.border-blue-100.rounded-xl.shadow-sm.p-6.flex.flex-col
+    .text-3xl.font-bold.mb-2(class=colorClass dir="ltr")
+      = value != null ? value : '—'
+    .text-gray-600.font-medium
+      = label

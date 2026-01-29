@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سلة المحذوفات - نظام التوزيع</title>
+    <link rel="stylesheet" href="css/modern-theme.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <style>
+        .main-content {
+            margin-right: 225px;
+            padding: var(--space-8);
+            transition: margin-right 0.25s;
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                margin-right: 190px;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .main-content {
+                margin-right: 0;
+                padding: var(--space-4);
+            }
+        }
+
+        .filters-section {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            margin-bottom: var(--space-6);
+            box-shadow: var(--shadow);
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-4);
+            margin-bottom: var(--space-4);
+        }
+
+        .recycle-table {
+            background: white;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .recycle-entry {
+            padding: var(--space-4);
+            border-bottom: 1px solid var(--gray-200);
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: var(--space-4);
+            align-items: center;
+        }
+
+        .recycle-entry:last-child {
+            border-bottom: none;
+        }
+
+        .recycle-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            background: var(--danger-100);
+            color: var(--danger-700);
+            flex-shrink: 0;
+        }
+
+        .recycle-content {
+            flex: 1;
+        }
+
+        .recycle-title {
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: var(--space-1);
+        }
+
+        .recycle-details {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            margin-bottom: var(--space-2);
+        }
+
+        .recycle-meta {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+        }
+
+        .recycle-actions {
+            display: flex;
+            gap: var(--space-2);
+            flex-shrink: 0;
+        }
+
+        .restore-btn {
+            background: var(--success-600);
+            color: white;
+            border: none;
+            padding: var(--space-2) var(--space-3);
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+        .restore-btn:hover {
+            background: var(--success-700);
+        }
+
+        .delete-btn {
+            background: var(--danger-600);
+            color: white;
+            border: none;
+            padding: var(--space-2) var(--space-3);
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+        .delete-btn:hover {
+            background: var(--danger-700);
+        }
+
+        .loading {
+            text-align: center;
+            padding: var(--space-8);
+            color: var(--gray-500);
+        }
+
+        .error {
+            text-align: center;
+            padding: var(--space-8);
+            color: var(--danger-600);
+            background: var(--danger-50);
+            border-radius: var(--radius);
+            border: 1px solid var(--danger-200);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: var(--space-8);
+            color: var(--gray-500);
+        }
+
+        .empty-state .icon {
+            font-size: 4rem;
+            margin-bottom: var(--space-4);
+        }
+
+        .bulk-actions {
+            display: flex;
+            gap: var(--space-3);
+            margin-bottom: var(--space-4);
+        }
+
+        .bulk-actions button {
+            padding: var(--space-2) var(--space-4);
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .bulk-restore {
+            background: var(--success-600);
+            color: white;
+        }
+
+        .bulk-delete {
+            background: var(--danger-600);
+            color: white;
+        }
+
+        .bulk-actions button:hover {
+            opacity: 0.9;
+        }
+
+        .bulk-actions button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-placeholder"></div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">سلة المحذوفات</h1>
+            <p class="page-subtitle">استعادة أو حذف العناصر المحذوفة نهائياً</p>
+        </div>
+
+        <div class="filters-section">
+            <h3>تصفية العناصر المحذوفة</h3>
+            <div class="filters-grid">
+                <div class="form-group">
+                    <label>نوع العنصر</label>
+                    <select id="entityFilter">
+                        <option value="">جميع الأنواع</option>
+                        <option value="clients">العملاء</option>
+                        <option value="crushers">الكسارات</option>
+                        <option value="contractors">المقاولين</option>
+                        <option value="employees">الموظفين</option>
+                        <option value="deliveries">التسليمات</option>
+                        <option value="administration">الإدارة</option>
+                        <option value="suppliers">الموردين</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>من تاريخ الحذف</label>
+                    <input type="date" id="dateFromFilter">
+                </div>
+                <div class="form-group">
+                    <label>إلى تاريخ الحذف</label>
+                    <input type="date" id="dateToFilter">
+                </div>
+            </div>
+            <div>
+                <button class="btn btn-primary" onclick="loadDeletedItems()">تطبيق التصفية</button>
+                <button class="btn btn-outline-secondary" onclick="clearFilters()">مسح التصفية</button>
+            </div>
+        </div>
+
+        <div class="recycle-table">
+            <div class="card-header">
+                <h3 class="card-title">العناصر المحذوفة</h3>
+                <div id="itemCount" class="text-muted"></div>
+            </div>
+            
+            <div class="bulk-actions" id="bulkActions" style="display: none; padding: var(--space-4);" data-role="manager">
+                <button class="bulk-restore" onclick="bulkRestore()">استعادة المحدد</button>
+                <button class="bulk-delete" onclick="bulkDelete()">حذف نهائي للمحدد</button>
+                <span id="selectedCount" class="text-muted"></span>
+            </div>
+
+            <div id="deletedItems">
+                <div class="loading">جاري تحميل العناصر المحذوفة...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script>
+        const API_BASE = (function () {
+            if (window.__API_BASE__) return window.__API_BASE__;
+            try {
+                const origin = window.location.origin;
+                if (!origin || origin === 'null') return 'http://localhost:5000/api';
+                return origin.replace(/\/$/, '') + '/api';
+            } catch (e) {
+                return 'http://localhost:5000/api';
+            }
+        })();
+
+        let selectedItems = new Set();
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toLocaleString('ar-EG', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function getEntityIcon(entityType) {
+            const icons = {
+                'clients': '👥',
+                'crushers': '🏭',
+                'contractors': '🚛',
+                'employees': '👤',
+                'deliveries': '📦',
+                'administration': '🏢',
+                'suppliers': '🏪'
+            };
+            return icons[entityType] || '📄';
+        }
+
+        function getEntityText(entityType) {
+            const texts = {
+                'clients': 'عميل',
+                'crushers': 'كسارة',
+                'contractors': 'مقاول',
+                'employees': 'موظف',
+                'deliveries': 'تسليم',
+                'administration': 'إدارة',
+                'suppliers': 'مورد'
+            };
+            return texts[entityType] || entityType;
+        }
+
+        async function loadDeletedItems() {
+            try {
+                const filters = {
+                    entity_type: document.getElementById('entityFilter').value,
+                    date_from: document.getElementById('dateFromFilter').value,
+                    date_to: document.getElementById('dateToFilter').value
+                };
+
+                // Remove empty filters
+                Object.keys(filters).forEach(key => {
+                    if (!filters[key]) delete filters[key];
+                });
+
+                const queryString = new URLSearchParams(filters).toString();
+                const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/recycle-bin?${queryString}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                renderDeletedItems(data.items || []);
+                
+                document.getElementById('itemCount').textContent = 
+                    `إجمالي العناصر المحذوفة: ${data.items?.length || 0}`;
+
+            } catch (error) {
+                console.error('Error loading deleted items:', error);
+                document.getElementById('deletedItems').innerHTML = 
+                    `<div class="error">خطأ في تحميل العناصر المحذوفة: ${error.message}</div>`;
+            }
+        }
+
+        function renderDeletedItems(items) {
+            const container = document.getElementById('deletedItems');
+            
+            if (!items || items.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">🗑️</div>
+                        <h3>سلة المحذوفات فارغة</h3>
+                        <p>لا توجد عناصر محذوفة للعرض</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const canRestore = authManager.hasRole('manager');
+            
+            container.innerHTML = items.map(item => `
+                <div class="recycle-entry">
+                    ${canRestore ? `
+                        <input type="checkbox" 
+                               onchange="toggleSelection('${item.entity_type}', '${item.id}')"
+                               style="margin-left: 10px;">
+                    ` : ''}
+                    <div class="recycle-icon">
+                        ${getEntityIcon(item.entity_type)}
+                    </div>
+                    <div class="recycle-content">
+                        <div class="recycle-title">
+                            ${getEntityText(item.entity_type)}: ${item.name || item.title || `معرف ${item.id}`}
+                        </div>
+                        <div class="recycle-details">
+                            ${item.description || 'لا توجد تفاصيل إضافية'}
+                        </div>
+                        <div class="recycle-meta">
+                            تم الحذف في: ${formatDate(item.deleted_at)}
+                        </div>
+                    </div>
+                    <div class="recycle-actions">
+                        ${canRestore ? `
+                            <button class="restore-btn" onclick="restoreItem('${item.entity_type}', '${item.id}')">
+                                استعادة
+                            </button>
+                            <button class="delete-btn" onclick="permanentDelete('${item.entity_type}', '${item.id}')">
+                                حذف نهائي
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+
+            // Show bulk actions if user can restore
+            if (canRestore && items.length > 0) {
+                document.getElementById('bulkActions').style.display = 'flex';
+            }
+        }
+
+        function toggleSelection(entityType, id) {
+            const key = `${entityType}:${id}`;
+            if (selectedItems.has(key)) {
+                selectedItems.delete(key);
+            } else {
+                selectedItems.add(key);
+            }
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            const count = selectedItems.size;
+            const countEl = document.getElementById('selectedCount');
+            if (countEl) {
+                countEl.textContent = count > 0 ? `محدد: ${count} عنصر` : '';
+            }
+        }
+
+        async function restoreItem(entityType, id) {
+            if (!confirm('هل أنت متأكد من استعادة هذا العنصر؟')) {
+                return;
+            }
+
+            try {
+                const response = await authManager.makeAuthenticatedRequest(
+                    `${API_BASE}/recycle-bin/${entityType}/${id}/restore`, 
+                    { method: 'POST' }
+                );
+                
+                if (!response.ok) {
+                    throw new Error('فشل في استعادة العنصر');
+                }
+
+                alert('تم استعادة العنصر بنجاح');
+                loadDeletedItems();
+
+            } catch (error) {
+                console.error('Error restoring item:', error);
+                alert('خطأ في استعادة العنصر: ' + error.message);
+            }
+        }
+
+        async function permanentDelete(entityType, id) {
+            if (!confirm('تحذير: سيتم حذف هذا العنصر نهائياً ولن يمكن استعادته. هل أنت متأكد؟')) {
+                return;
+            }
+
+            try {
+                const response = await authManager.makeAuthenticatedRequest(
+                    `${API_BASE}/recycle-bin/${entityType}/${id}/permanent`, 
+                    { method: 'DELETE' }
+                );
+                
+                if (!response.ok) {
+                    throw new Error('فشل في الحذف النهائي');
+                }
+
+                alert('تم الحذف النهائي بنجاح');
+                loadDeletedItems();
+
+            } catch (error) {
+                console.error('Error permanently deleting item:', error);
+                alert('خطأ في الحذف النهائي: ' + error.message);
+            }
+        }
+
+        async function bulkRestore() {
+            if (selectedItems.size === 0) {
+                alert('يرجى تحديد عناصر للاستعادة');
+                return;
+            }
+
+            if (!confirm(`هل أنت متأكد من استعادة ${selectedItems.size} عنصر؟`)) {
+                return;
+            }
+
+            try {
+                const items = Array.from(selectedItems).map(key => {
+                    const [entityType, id] = key.split(':');
+                    return { entityType, id };
+                });
+
+                const response = await authManager.makeAuthenticatedRequest(
+                    `${API_BASE}/recycle-bin/bulk-restore`, 
+                    { 
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ items })
+                    }
+                );
+                
+                if (!response.ok) {
+                    throw new Error('فشل في الاستعادة المجمعة');
+                }
+
+                alert('تم استعادة العناصر بنجاح');
+                selectedItems.clear();
+                loadDeletedItems();
+
+            } catch (error) {
+                console.error('Error bulk restoring:', error);
+                alert('خطأ في الاستعادة المجمعة: ' + error.message);
+            }
+        }
+
+        async function bulkDelete() {
+            if (selectedItems.size === 0) {
+                alert('يرجى تحديد عناصر للحذف');
+                return;
+            }
+
+            if (!confirm(`تحذير: سيتم حذف ${selectedItems.size} عنصر نهائياً ولن يمكن استعادتها. هل أنت متأكد؟`)) {
+                return;
+            }
+
+            try {
+                const items = Array.from(selectedItems).map(key => {
+                    const [entityType, id] = key.split(':');
+                    return { entityType, id };
+                });
+
+                const response = await authManager.makeAuthenticatedRequest(
+                    `${API_BASE}/recycle-bin/bulk-delete`, 
+                    { 
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ items })
+                    }
+                );
+                
+                if (!response.ok) {
+                    throw new Error('فشل في الحذف النهائي المجمع');
+                }
+
+                alert('تم الحذف النهائي للعناصر بنجاح');
+                selectedItems.clear();
+                loadDeletedItems();
+
+            } catch (error) {
+                console.error('Error bulk deleting:', error);
+                alert('خطأ في الحذف النهائي المجمع: ' + error.message);
+            }
+        }
+
+        function clearFilters() {
+            document.getElementById('entityFilter').value = '';
+            document.getElementById('dateFromFilter').value = '';
+            document.getElementById('dateToFilter').value = '';
+            loadDeletedItems();
+        }
+
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            if (authManager.checkAuth()) {
+                loadDeletedItems();
+            }
+        });
+    </script>
+</body>
+</html>

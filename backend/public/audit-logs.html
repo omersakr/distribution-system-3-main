@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سجل العمليات - نظام التوزيع</title>
+    <link rel="stylesheet" href="css/modern-theme.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <style>
+        .main-content {
+            margin-right: 225px;
+            padding: var(--space-8);
+            transition: margin-right 0.25s;
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                margin-right: 190px;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .main-content {
+                margin-right: 0;
+                padding: var(--space-4);
+            }
+        }
+
+        .filters-section {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            margin-bottom: var(--space-6);
+            box-shadow: var(--shadow);
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-4);
+            margin-bottom: var(--space-4);
+        }
+
+        .audit-table {
+            background: white;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .audit-entry {
+            padding: var(--space-4);
+            border-bottom: 1px solid var(--gray-200);
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: var(--space-4);
+            align-items: start;
+        }
+
+        .audit-entry:last-child {
+            border-bottom: none;
+        }
+
+        .audit-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .audit-icon.create { background: var(--success-100); color: var(--success-700); }
+        .audit-icon.update { background: var(--warning-100); color: var(--warning-700); }
+        .audit-icon.delete { background: var(--danger-100); color: var(--danger-700); }
+        .audit-icon.login { background: var(--primary-100); color: var(--primary-700); }
+        .audit-icon.logout { background: var(--gray-100); color: var(--gray-700); }
+        .audit-icon.blocked_attempt { background: var(--danger-100); color: var(--danger-700); }
+
+        .audit-content {
+            flex: 1;
+        }
+
+        .audit-title {
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: var(--space-1);
+        }
+
+        .audit-details {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            margin-bottom: var(--space-2);
+        }
+
+        .audit-meta {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+        }
+
+        .audit-timestamp {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            text-align: left;
+        }
+
+        .loading {
+            text-align: center;
+            padding: var(--space-8);
+            color: var(--gray-500);
+        }
+
+        .error {
+            text-align: center;
+            padding: var(--space-8);
+            color: var(--danger-600);
+            background: var(--danger-50);
+            border-radius: var(--radius);
+            border: 1px solid var(--danger-200);
+        }
+
+        .export-btn {
+            background: var(--success-600);
+            color: white;
+            border: none;
+            padding: var(--space-3) var(--space-4);
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .export-btn:hover {
+            background: var(--success-700);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: var(--space-2);
+            margin-top: var(--space-6);
+        }
+
+        .pagination button {
+            padding: var(--space-2) var(--space-3);
+            border: 1px solid var(--gray-300);
+            background: white;
+            cursor: pointer;
+            border-radius: var(--radius);
+        }
+
+        .pagination button:hover {
+            background: var(--gray-50);
+        }
+
+        .pagination button.active {
+            background: var(--primary-600);
+            color: white;
+            border-color: var(--primary-600);
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-placeholder"></div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">سجل العمليات</h1>
+            <p class="page-subtitle">تتبع جميع العمليات والأنشطة في النظام</p>
+        </div>
+
+        <div class="filters-section">
+            <h3>تصفية السجلات</h3>
+            <div class="filters-grid">
+                <div class="form-group">
+                    <label>نوع العملية</label>
+                    <select id="actionFilter">
+                        <option value="">جميع العمليات</option>
+                        <option value="create">إنشاء</option>
+                        <option value="update">تحديث</option>
+                        <option value="delete">حذف</option>
+                        <option value="login">تسجيل دخول</option>
+                        <option value="logout">تسجيل خروج</option>
+                        <option value="blocked_attempt">محاولة محظورة</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>نوع الكيان</label>
+                    <select id="entityFilter">
+                        <option value="">جميع الكيانات</option>
+                        <option value="Client">العملاء</option>
+                        <option value="Crusher">الكسارات</option>
+                        <option value="Contractor">المقاولين</option>
+                        <option value="Employee">الموظفين</option>
+                        <option value="Delivery">التسليمات</option>
+                        <option value="User">المستخدمين</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>المستخدم</label>
+                    <select id="userFilter">
+                        <option value="">جميع المستخدمين</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>من تاريخ</label>
+                    <input type="date" id="dateFromFilter">
+                </div>
+                <div class="form-group">
+                    <label>إلى تاريخ</label>
+                    <input type="date" id="dateToFilter">
+                </div>
+            </div>
+            <div style="display: flex; gap: var(--space-3); justify-content: space-between; align-items: center;">
+                <div>
+                    <button class="btn btn-primary" onclick="loadAuditLogs()">تطبيق التصفية</button>
+                    <button class="btn btn-outline-secondary" onclick="clearFilters()">مسح التصفية</button>
+                </div>
+                <button class="export-btn" onclick="exportAuditLogs()">تصدير السجلات</button>
+            </div>
+        </div>
+
+        <div class="audit-table">
+            <div class="card-header">
+                <h3 class="card-title">سجل العمليات</h3>
+                <div id="auditCount" class="text-muted"></div>
+            </div>
+            <div id="auditLogs">
+                <div class="loading">جاري تحميل سجل العمليات...</div>
+            </div>
+        </div>
+
+        <div class="pagination" id="pagination" style="display: none;">
+            <button id="prevPage" onclick="changePage(-1)">السابق</button>
+            <span id="pageInfo">صفحة 1 من 1</span>
+            <button id="nextPage" onclick="changePage(1)">التالي</button>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script>
+        const API_BASE = (function () {
+            if (window.__API_BASE__) return window.__API_BASE__;
+            try {
+                const origin = window.location.origin;
+                if (!origin || origin === 'null') return 'http://localhost:5000/api';
+                return origin.replace(/\/$/, '') + '/api';
+            } catch (e) {
+                return 'http://localhost:5000/api';
+            }
+        })();
+
+        let currentPage = 1;
+        let totalPages = 1;
+        const pageSize = 20;
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toLocaleString('ar-EG', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function getActionIcon(actionType) {
+            const icons = {
+                'create': '➕',
+                'update': '✏️',
+                'delete': '🗑️',
+                'login': '🔑',
+                'logout': '🚪',
+                'blocked_attempt': '🚫',
+                'restore': '♻️',
+                'permanent_delete': '💀'
+            };
+            return icons[actionType] || '📝';
+        }
+
+        function getActionText(actionType) {
+            const texts = {
+                'create': 'إنشاء',
+                'update': 'تحديث',
+                'delete': 'حذف',
+                'login': 'تسجيل دخول',
+                'logout': 'تسجيل خروج',
+                'blocked_attempt': 'محاولة محظورة',
+                'restore': 'استعادة',
+                'permanent_delete': 'حذف نهائي'
+            };
+            return texts[actionType] || actionType;
+        }
+
+        function getEntityText(entityType) {
+            const texts = {
+                'Client': 'عميل',
+                'Crusher': 'كسارة',
+                'Contractor': 'مقاول',
+                'Employee': 'موظف',
+                'Delivery': 'تسليم',
+                'User': 'مستخدم',
+                'Administration': 'إدارة',
+                'Supplier': 'مورد'
+            };
+            return texts[entityType] || entityType;
+        }
+
+        async function loadAuditLogs() {
+            try {
+                const filters = {
+                    page: currentPage,
+                    limit: pageSize,
+                    action_type: document.getElementById('actionFilter').value,
+                    entity_type: document.getElementById('entityFilter').value,
+                    user_id: document.getElementById('userFilter').value,
+                    date_from: document.getElementById('dateFromFilter').value,
+                    date_to: document.getElementById('dateToFilter').value
+                };
+
+                // Remove empty filters
+                Object.keys(filters).forEach(key => {
+                    if (!filters[key]) delete filters[key];
+                });
+
+                const queryString = new URLSearchParams(filters).toString();
+                const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/audit-logs?${queryString}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                renderAuditLogs(data.logs || []);
+                updatePagination(data.pagination || { page: 1, pages: 1, total: 0 });
+                
+                document.getElementById('auditCount').textContent = 
+                    `إجمالي السجلات: ${data.pagination?.total || 0}`;
+
+            } catch (error) {
+                console.error('Error loading audit logs:', error);
+                document.getElementById('auditLogs').innerHTML = 
+                    `<div class="error">خطأ في تحميل سجل العمليات: ${error.message}</div>`;
+            }
+        }
+
+        function renderAuditLogs(logs) {
+            const container = document.getElementById('auditLogs');
+            
+            if (!logs || logs.length === 0) {
+                container.innerHTML = '<div class="loading">لا توجد سجلات للعرض</div>';
+                return;
+            }
+
+            container.innerHTML = logs.map(log => `
+                <div class="audit-entry">
+                    <div class="audit-icon ${log.action_type}">
+                        ${getActionIcon(log.action_type)}
+                    </div>
+                    <div class="audit-content">
+                        <div class="audit-title">
+                            ${getActionText(log.action_type)} ${getEntityText(log.entity_type)}
+                        </div>
+                        <div class="audit-details">
+                            المستخدم: ${log.user_role === 'manager' ? 'المدير' : 
+                                      log.user_role === 'accountant' ? 'المحاسب' : 
+                                      log.user_role === 'system_maintenance' ? 'صيانة النظام' : log.user_role}
+                            ${log.entity_id ? ` | معرف الكيان: ${log.entity_id}` : ''}
+                        </div>
+                        <div class="audit-meta">
+                            ${log.ip_address ? `IP: ${log.ip_address}` : ''}
+                            ${log.old_values || log.new_values ? ' | تم تسجيل التفاصيل' : ''}
+                        </div>
+                    </div>
+                    <div class="audit-timestamp">
+                        ${formatDate(log.timestamp)}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updatePagination(pagination) {
+            currentPage = pagination.page || 1;
+            totalPages = pagination.pages || 1;
+            
+            const paginationEl = document.getElementById('pagination');
+            const prevBtn = document.getElementById('prevPage');
+            const nextBtn = document.getElementById('nextPage');
+            const pageInfo = document.getElementById('pageInfo');
+            
+            if (totalPages > 1) {
+                paginationEl.style.display = 'flex';
+                prevBtn.disabled = currentPage <= 1;
+                nextBtn.disabled = currentPage >= totalPages;
+                pageInfo.textContent = `صفحة ${currentPage} من ${totalPages}`;
+            } else {
+                paginationEl.style.display = 'none';
+            }
+        }
+
+        function changePage(direction) {
+            const newPage = currentPage + direction;
+            if (newPage >= 1 && newPage <= totalPages) {
+                currentPage = newPage;
+                loadAuditLogs();
+            }
+        }
+
+        function clearFilters() {
+            document.getElementById('actionFilter').value = '';
+            document.getElementById('entityFilter').value = '';
+            document.getElementById('userFilter').value = '';
+            document.getElementById('dateFromFilter').value = '';
+            document.getElementById('dateToFilter').value = '';
+            currentPage = 1;
+            loadAuditLogs();
+        }
+
+        async function exportAuditLogs() {
+            try {
+                const filters = {
+                    action_type: document.getElementById('actionFilter').value,
+                    entity_type: document.getElementById('entityFilter').value,
+                    user_id: document.getElementById('userFilter').value,
+                    date_from: document.getElementById('dateFromFilter').value,
+                    date_to: document.getElementById('dateToFilter').value,
+                    export: 'csv'
+                };
+
+                // Remove empty filters
+                Object.keys(filters).forEach(key => {
+                    if (!filters[key]) delete filters[key];
+                });
+
+                const queryString = new URLSearchParams(filters).toString();
+                const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/audit-logs/export?${queryString}`);
+                
+                if (!response.ok) {
+                    throw new Error('فشل في تصدير السجلات');
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `audit-logs-${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+            } catch (error) {
+                console.error('Error exporting audit logs:', error);
+                alert('خطأ في تصدير السجلات: ' + error.message);
+            }
+        }
+
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            if (authManager.checkAuth()) {
+                loadAuditLogs();
+            }
+        });
+    </script>
+</body>
+</html>

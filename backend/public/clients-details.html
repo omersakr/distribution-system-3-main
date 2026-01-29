@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>تفاصيل العميل</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/modern-theme.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <style>
+        .main-content {
+            margin-right: 225px;
+            padding: var(--space-8);
+            transition: margin-right 0.25s;
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                margin-right: 190px;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .main-content {
+                margin-right: 0;
+                padding: var(--space-4);
+            }
+        }
+
+        .page-header {
+            margin-bottom: var(--space-8);
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: var(--space-2);
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-800) 100%);
+            color: white;
+            border-radius: var(--radius-xl);
+            padding: var(--space-8);
+            margin-bottom: var(--space-8);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-6);
+            margin-top: var(--space-6);
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: var(--space-2);
+        }
+
+        .summary-label {
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+
+        .section {
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
+            margin-bottom: var(--space-6);
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: var(--space-6);
+            border-bottom: 1px solid var(--gray-200);
+            background: var(--gray-50);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin: 0;
+        }
+
+        .section-content {
+            padding: var(--space-6);
+        }
+
+        .materials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-4);
+        }
+
+        .material-card {
+            background: linear-gradient(135deg, var(--success-500) 0%, var(--success-600) 100%);
+            color: white;
+            padding: var(--space-6);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            transition: transform 0.2s ease;
+        }
+
+        .material-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .material-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: var(--space-4);
+        }
+
+        .material-stat {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: var(--space-2);
+            font-size: 0.875rem;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: var(--space-12);
+            color: var(--gray-500);
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: var(--space-4);
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: row;
+            gap: var(--space-4);
+            margin-bottom: var(--space-6);
+            flex-wrap: wrap;
+        }
+
+        .controls .form-input,
+        .controls .form-select {
+            flex: 1 1 150px;
+            min-width: 120px;
+        }
+
+        .balance-positive {
+            color: var(--danger-600) !important;
+        }
+
+        .balance-negative {
+            color: var(--success-600) !important;
+        }
+
+        .text-success {
+            color: var(--success-600) !important;
+        }
+
+        .text-danger {
+            color: var(--danger-600) !important;
+        }
+
+        .loading {
+            text-align: center;
+            padding: var(--space-8);
+            color: var(--gray-500);
+        }
+
+        .btn-sm {
+            padding: var(--space-1) var(--space-2);
+            font-size: 0.75rem;
+            margin: 0 var(--space-1);
+            border-radius: var(--radius-sm);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-sm:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-sm.btn-secondary {
+            background: var(--gray-500);
+            color: white;
+        }
+
+        .btn-sm.btn-secondary:hover {
+            background: var(--gray-600);
+        }
+
+        .btn-sm.btn-danger {
+            background: var(--danger-500);
+            color: white;
+        }
+
+        .btn-sm.btn-danger:hover {
+            background: var(--danger-600);
+        }
+
+        .form-help {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-top: var(--space-1);
+        }
+
+        .image-preview {
+            max-width: 200px;
+            max-height: 150px;
+            border-radius: var(--radius);
+            border: 1px solid var(--gray-300);
+        }
+
+        .image-preview-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .remove-image {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--danger-500);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        /* Adjustment Details Modal Styles */
+        .detail-row {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-row strong {
+            color: #333;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="sidebar-placeholder"></div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <h1 class="page-title" id="clientName">تفاصيل العميل</h1>
+                <button class="btn btn-secondary" id="editClientBtn" style="margin-right: auto;">
+                    ✏️ تعديل البيانات
+                </button>
+            </div>
+        </div>
+
+        <!-- Edit Client Modal -->
+        <div id="editClientModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>تعديل بيانات العميل</h2>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <form id="editClientForm">
+                    <div class="form-group">
+                        <label for="editClientName">اسم العميل *</label>
+                        <input type="text" id="editClientName" name="name" required autocomplete="name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editClientPhone">رقم الهاتف</label>
+                        <input type="tel" id="editClientPhone" name="phone" placeholder="اختياري" autocomplete="tel">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editOpeningBalance">الرصيد الافتتاحي (جنيه)</label>
+                        <input type="text" id="editOpeningBalance" name="opening_balance" placeholder="0.00"
+                            autocomplete="off">
+                        <small class="form-help">موجب = العميل يدين لنا، سالب = نحن ندين للعميل</small>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary">إلغاء</button>
+                        <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+                    </div>
+                    <div id="editClientMessage"></div>
+                </form>
+            </div>
+        </div>
+
+        <div class="summary-card" id="summaryCard">
+            <h2 class="text-xl font-semibold mb-4">الملخص المالي</h2>
+            <div class="summary-grid" id="summaryGrid">
+                <div class="loading">جاري تحميل البيانات...</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">ملخص المواد</h3>
+            </div>
+            <div class="section-content">
+                <div class="materials-grid" id="materialsContainer">
+                    <div class="loading">جاري تحميل المواد...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">التسليمات</h3>
+            </div>
+            <div class="section-content">
+                <div class="controls">
+                    <input type="text" class="form-input search-input" id="deliveriesSearch"
+                        placeholder="ابحث في التسليمات...">
+                    <input type="date" class="form-input" id="deliveriesDateFrom" placeholder="من تاريخ">
+                    <input type="date" class="form-input" id="deliveriesDateTo" placeholder="إلى تاريخ">
+                    <select class="form-select" id="deliveriesSort">
+                        <option value="date-desc">الأحدث أولاً</option>
+                        <option value="date-asc">الأقدم أولاً</option>
+                        <option value="value-desc">الأعلى قيمة</option>
+                        <option value="value-asc">الأقل قيمة</option>
+                    </select>
+                    <button class="btn btn-secondary">مسح الفلاتر</button>
+                </div>
+                <div class="table-container" id="deliveriesContainer">
+                    <div class="loading">جاري تحميل التسليمات...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">المدفوعات</h3>
+                <button class="btn btn-primary" id="addPaymentBtn">+ إضافة دفعة</button>
+            </div>
+            <div class="section-content">
+                <div class="controls">
+                    <input type="text" class="form-input search-input" id="paymentsSearch"
+                        placeholder="ابحث في المدفوعات...">
+                    <input type="date" class="form-input" id="paymentsDateFrom" placeholder="من تاريخ">
+                    <input type="date" class="form-input" id="paymentsDateTo" placeholder="إلى تاريخ">
+                    <select class="form-select" id="paymentsSort">
+                        <option value="date-desc">الأحدث أولاً</option>
+                        <option value="date-asc">الأقدم أولاً</option>
+                        <option value="amount-desc">الأعلى مبلغ</option>
+                        <option value="amount-asc">الأقل مبلغ</option>
+                    </select>
+                    <button class="btn btn-secondary">مسح الفلاتر</button>
+                </div>
+                <div class="table-container" id="paymentsContainer">
+                    <div class="loading">جاري تحميل المدفوعات...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">التسويات والتعديلات</h3>
+                <button class="btn btn-primary" id="addAdjustmentBtn">+ إضافة تسوية</button>
+            </div>
+            <div class="section-content">
+                <div class="controls">
+                    <input type="text" class="form-input search-input" id="adjustmentsSearch"
+                        placeholder="ابحث في التسويات...">
+                    <input type="date" class="form-input" id="adjustmentsDateFrom" placeholder="من تاريخ">
+                    <input type="date" class="form-input" id="adjustmentsDateTo" placeholder="إلى تاريخ">
+                    <select class="form-select" id="adjustmentsSort">
+                        <option value="date-desc">الأحدث أولاً</option>
+                        <option value="date-asc">الأقدم أولاً</option>
+                        <option value="amount-desc">الأعلى مبلغ</option>
+                        <option value="amount-asc">الأقل مبلغ</option>
+                    </select>
+                    <button class="btn btn-secondary">مسح الفلاتر</button>
+                </div>
+                <div class="table-container" id="adjustmentsContainer">
+                    <div class="loading">جاري تحميل التسويات...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">التقارير</h3>
+            </div>
+            <div class="section-content">
+                <div class="reports-grid"
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-4);">
+                    <div class="report-card"
+                        style="background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%); color: white; padding: var(--space-6); border-radius: var(--radius-lg); box-shadow: var(--shadow);">
+                        <h4 style="margin: 0 0 var(--space-4) 0; font-size: 1.125rem;">تقرير التوريدات</h4>
+                        <p style="margin: 0 0 var(--space-4) 0; opacity: 0.9; font-size: 0.875rem;">تقرير مفصل بالكميات
+                            المورده حسب نوع المادة</p>
+                        <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4);">
+                            <input type="date" id="deliveriesFromDate" class="form-input"
+                                style="flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;"
+                                placeholder="من تاريخ">
+                            <input type="date" id="deliveriesToDate" class="form-input"
+                                style="flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;"
+                                placeholder="إلى تاريخ">
+                        </div>
+                        <button id="generateDeliveriesReportBtn" class="btn"
+                            style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); width: 100%;">
+                            إنشاء تقرير التوريدات
+                        </button>
+                    </div>
+
+                    <div class="report-card"
+                        style="background: linear-gradient(135deg, var(--success-500) 0%, var(--success-600) 100%); color: white; padding: var(--space-6); border-radius: var(--radius-lg); box-shadow: var(--shadow);">
+                        <h4 style="margin: 0 0 var(--space-4) 0; font-size: 1.125rem;">كشف حساب العميل</h4>
+                        <p style="margin: 0 0 var(--space-4) 0; opacity: 0.9; font-size: 0.875rem;">كشف حساب شامل
+                            بالتوريدات والمدفوعات والرصيد</p>
+
+                        <div style="margin-bottom: var(--space-4);">
+                            <label
+                                style="display: flex; align-items: center; margin-bottom: var(--space-2); font-size: 0.875rem;">
+                                <input type="checkbox" id="useCustomDateRange" style="margin-left: var(--space-2);"
+                                    onchange="toggleDateRange()">
+                                تحديد فترة زمنية محددة
+                            </label>
+                        </div>
+
+                        <div id="dateRangeInputs" style="display: none; margin-bottom: var(--space-4);">
+                            <div style="display: flex; gap: var(--space-2);">
+                                <input type="date" id="statementFromDate" class="form-input"
+                                    style="flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;"
+                                    placeholder="من تاريخ">
+                                <input type="date" id="statementToDate" class="form-input"
+                                    style="flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;"
+                                    placeholder="إلى تاريخ">
+                            </div>
+                        </div>
+
+                        <button id="generateAccountStatementBtn" class="btn"
+                            style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); width: 100%;">
+                            إنشاء كشف الحساب
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="modal" id="paymentModal">
+        <div class="modal-content">
+            <div class="modal-header">إضافة دفعة جديدة</div>
+            <div id="paymentMessage"></div>
+            <form id="paymentForm">
+                <div class="form-group">
+                    <label class="form-label" for="paymentAmount">المبلغ *</label>
+                    <input type="number" class="form-input" id="paymentAmount" required min="0" step="0.01"
+                        autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="paymentMethod">طريقة الدفع *</label>
+                    <select class="form-select" id="paymentMethod" required autocomplete="off">
+                        <option value="">اختر طريقة الدفع</option>
+                        <option value="نقدي">نقدي</option>
+                        <option value="بنكي">بنكي</option>
+                        <option value="شيك">شيك</option>
+                        <option value="انستاباي">انستاباي</option>
+                        <option value="فودافون كاش">فودافون كاش</option>
+                    </select>
+                </div>
+                <div class="form-group" id="paymentDetailsGroup" style="display: none;">
+                    <label class="form-label" for="paymentDetails">رقم المعاملة / رقم الشيك</label>
+                    <input type="text" class="form-input" id="paymentDetails"
+                        placeholder="أدخل رقم المعاملة أو رقم الشيك" autocomplete="off">
+                </div>
+                <div class="form-group" id="paymentImageGroup" style="display: none;">
+                    <label class="form-label" for="paymentImage">صورة الدفع</label>
+                    <input type="file" class="form-input" id="paymentImage" accept="image/*" autocomplete="off">
+                    <small class="form-help">ارفع صورة الإيصال أو الشيك أو المعاملة البنكية</small>
+                    <div id="paymentImagePreview" style="margin-top: 10px;"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="paymentDate">التاريخ</label>
+                    <input type="date" class="form-input" id="paymentDate" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="paymentNote">ملاحظات</label>
+                    <textarea class="form-textarea" id="paymentNote" autocomplete="off"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">إضافة</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Adjustment Modal -->
+    <div class="modal" id="adjustmentModal">
+        <div class="modal-content">
+            <div class="modal-header">إضافة تسوية جديدة</div>
+            <div id="adjustmentMessage"></div>
+            <form id="adjustmentForm">
+                <div class="form-group">
+                    <label class="form-label" for="adjustmentAmount">المبلغ * (موجب للإضافة، سالب للخصم)</label>
+                    <input type="number" class="form-input" id="adjustmentAmount" required step="0.01">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="adjustmentReason">السبب *</label>
+                    <textarea class="form-textarea" id="adjustmentReason" required
+                        placeholder="اكتب سبب التسوية..."></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">إضافة</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delivery Edit Modal -->
+    <div class="modal" id="deliveryEditModal">
+        <div class="modal-content">
+            <div class="modal-header">تعديل التسليم</div>
+            <div id="deliveryEditMessage"></div>
+            <form id="deliveryEditForm">
+                <div class="form-group">
+                    <label class="form-label" for="editDeliveryMaterial">المادة *</label>
+                    <select class="form-select" id="editDeliveryMaterial" required>
+                        <option value="">اختر المادة</option>
+                        <option value="رمل">رمل</option>
+                        <option value="سن 1">سن 1</option>
+                        <option value="سن 2">سن 2</option>
+                        <option value="سن 3">سن 3</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="editDeliveryVoucher">رقم البون</label>
+                    <input type="text" class="form-input" id="editDeliveryVoucher" placeholder="رقم البون">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="editDeliveryQuantity">الكمية (م³) *</label>
+                    <input type="number" class="form-input" id="editDeliveryQuantity" required min="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="editDeliveryPricePerMeter">سعر المتر *</label>
+                    <input type="number" class="form-input" id="editDeliveryPricePerMeter" required min="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="editDeliveryDriverName">اسم السائق</label>
+                    <input type="text" class="form-input" id="editDeliveryDriverName" placeholder="اسم السائق">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="editDeliveryCarHead">رقم الرأس</label>
+                    <input type="text" class="form-input" id="editDeliveryCarHead" placeholder="رقم رأس السيارة">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="editDeliveryCarTail">رقم المقطورة</label>
+                    <input type="text" class="form-input" id="editDeliveryCarTail" placeholder="رقم المقطورة">
+                </div>
+                <div class="warning-box" style="margin: 15px 0;">
+                    <div class="warning-icon">⚠️</div>
+                    <div>
+                        <strong>تنبيه:</strong> لن يتم تعديل السعر التاريخي للمادة للحفاظ على دقة الحسابات المحاسبية.
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" data-action="close-modal"
+                        data-target="deliveryEditModal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">حفظ التعديل</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Payment Details Modal -->
+    <div class="modal" id="paymentDetailsModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <span>تفاصيل الدفعة</span>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <div id="paymentDetailsContent">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary modal-close">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Adjustment Details Modal -->
+    <div class="modal" id="adjustmentDetailsModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <span>تفاصيل التسوية</span>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <div id="adjustmentDetailsContent">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary modal-close">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div class="modal" id="imageModal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <span>عرض الصورة</span>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" style="text-align: center; padding: 20px;">
+                <img id="modalImage" style="max-width: 100%; max-height: 70vh; border-radius: 8px;" alt="صورة الدفع">
+            </div>
+        </div>
+    </div>
+
+    <script src="js/csp-fix.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/clients-details.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>تفاصيل المشروع المالية</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/modern-theme.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <style>
+        .main-content {
+            margin-right: 225px;
+            padding: var(--space-8);
+            transition: margin-right 0.25s;
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                margin-right: 190px;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .main-content {
+                margin-right: 0;
+                padding: var(--space-4);
+            }
+        }
+
+        .page-header {
+            margin-bottom: var(--space-8);
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: var(--space-2);
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-800) 100%);
+            color: white;
+            border-radius: var(--radius-xl);
+            padding: var(--space-8);
+            margin-bottom: var(--space-8);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-6);
+            margin-top: var(--space-6);
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: var(--space-2);
+        }
+
+        .summary-label {
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+
+        .section {
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
+            margin-bottom: var(--space-6);
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: var(--space-6);
+            border-bottom: 1px solid var(--gray-200);
+            background: var(--gray-50);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin: 0;
+        }
+
+        .section-content {
+            padding: var(--space-6);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="sidebar-placeholder"></div>
+    
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title" id="projectName">تفاصيل المشروع المالية</h1>
+            <button class="btn btn-secondary" onclick="history.back()">
+                <span>←</span> العودة
+            </button>
+        </div>
+
+        <!-- Financial Summary Card -->
+        <div class="summary-card">
+            <h2>الملخص المالي للمشروع</h2>
+            <div class="summary-grid" id="financialSummary">
+                <!-- Financial summary will be populated here -->
+            </div>
+        </div>
+
+        <!-- Client Info Section -->
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">معلومات العميل</h3>
+                <button class="btn btn-primary" onclick="window.location.href='clients-details.html?id=' + currentClientId">
+                    <span>👤</span> إدارة العميل
+                </button>
+            </div>
+            <div class="section-content">
+                <div class="info-grid" id="clientInfo">
+                    <!-- Client info will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Expenses Section -->
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">المصروفات المرتبطة بالمشروع</h3>
+                <button class="btn btn-primary" onclick="window.location.href='expenses.html?project_filter=' + currentClientId">
+                    <span>➕</span> إدارة المصروفات
+                </button>
+            </div>
+            <div class="section-content">
+                <div class="table-container">
+                    <table class="data-table" id="expensesTable">
+                        <thead>
+                            <tr>
+                                <th>المبلغ</th>
+                                <th>الوصف</th>
+                                <th>الفئة</th>
+                                <th>التاريخ</th>
+                                <th>ملاحظات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expensesTableBody">
+                            <!-- Expenses will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Capital Injections Section -->
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">الحقن الرأسمالية</h3>
+                <button class="btn btn-primary" onclick="window.location.href='administration.html'">
+                    <span>💰</span> إدارة رؤوس الأموال
+                </button>
+            </div>
+            <div class="section-content">
+                <div class="table-container">
+                    <table class="data-table" id="capitalInjectionsTable">
+                        <thead>
+                            <tr>
+                                <th>المبلغ</th>
+                                <th>المصدر</th>
+                                <th>التاريخ</th>
+                                <th>ملاحظات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="capitalInjectionsTableBody">
+                            <!-- Capital injections will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Withdrawals Section -->
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">السحوبات</h3>
+                <button class="btn btn-primary" onclick="window.location.href='administration.html'">
+                    <span>💸</span> إدارة السحوبات
+                </button>
+            </div>
+            <div class="section-content">
+                <div class="table-container">
+                    <table class="data-table" id="withdrawalsTable">
+                        <thead>
+                            <tr>
+                                <th>المبلغ</th>
+                                <th>الغرض</th>
+                                <th>التاريخ</th>
+                                <th>ملاحظات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="withdrawalsTableBody">
+                            <!-- Withdrawals will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assigned Employees Section -->
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">الموظفين المخصصين للمشروع</h3>
+                <button class="btn btn-primary" onclick="window.location.href='employees.html'">
+                    <span>👥</span> إدارة الموظفين
+                </button>
+            </div>
+            <div class="section-content">
+                <div class="table-container">
+                    <table class="data-table" id="employeesTable">
+                        <thead>
+                            <tr>
+                                <th>اسم الموظف</th>
+                                <th>المسمى الوظيفي</th>
+                                <th>نوع التخصيص</th>
+                                <th>الراتب الأساسي</th>
+                                <th>الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="employeesTableBody">
+                            <!-- Employees will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/csp-fix.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/project-details.js"></script>
+</body>
+
+</html>

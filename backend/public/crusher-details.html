@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>تفاصيل الكسارة</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/modern-theme.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/crusher-details.css">
+</head>
+
+<body>
+    <div id="sidebar-placeholder"></div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <div class="page-header-flex">
+                <h1 class="page-title" id="crusherName">تفاصيل الكسارة</h1>
+                <button class="btn btn-secondary" id="editCrusherBtn">
+                    ✏️ تعديل البيانات
+                </button>
+            </div>
+        </div>
+
+        <!-- Edit Crusher Modal -->
+        <div id="editCrusherModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>تعديل بيانات الكسارة</h2>
+                    <button class="modal-close" data-action="close-modal"
+                        data-target="editCrusherModal">&times;</button>
+                </div>
+                <form id="editCrusherForm">
+                    <div class="form-group">
+                        <label for="editCrusherName">اسم الكسارة *</label>
+                        <input type="text" id="editCrusherName" name="name" autocomplete="organization" required>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" data-action="close-modal"
+                            data-target="editCrusherModal">إلغاء</button>
+                        <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+                    </div>
+                    <div id="editCrusherMessage"></div>
+                </form>
+            </div>
+        </div>
+
+        <div class="summary-card" id="summaryCard">
+            <h2 class="text-xl font-semibold mb-4">الملخص المالي</h2>
+            <div class="summary-grid" id="summaryGrid">
+                <div class="loading">جاري تحميل البيانات...</div>
+            </div>
+        </div>
+
+        <!-- Material Prices Section -->
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">أسعار المواد</h3>
+                <button class="btn btn-primary" id="editPricesBtn">✏️ تعديل الأسعار</button>
+            </div>
+            <div class="section-content">
+                <div class="warning-box">
+                    <div class="warning-icon">⚠️</div>
+                    <div class="warning-text">
+                        <strong>تنبيه:</strong> هذه الأسعار ستُستخدم للتسليمات الجديدة فقط. التسليمات السابقة تحتفظ
+                        بأسعارها التاريخية.
+                    </div>
+                </div>
+                <div class="prices-display-grid" id="pricesDisplayGrid">
+                    <div class="loading">جاري تحميل الأسعار...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">ملخص المواد</h3>
+            </div>
+            <div class="section-content">
+                <div class="materials-grid" id="materialsContainer">
+                    <div class="loading">جاري تحميل المواد...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">التسليمات</h3>
+            </div>
+            <div class="section-content">
+                <div class="controls">
+                    <input type="text" class="form-input search-input" id="deliveriesSearch"
+                        placeholder="ابحث في التسليمات..." autocomplete="off">
+                    <input type="date" class="form-input" id="deliveriesDateFrom" placeholder="من تاريخ"
+                        autocomplete="off">
+                    <input type="date" class="form-input" id="deliveriesDateTo" placeholder="إلى تاريخ"
+                        autocomplete="off">
+                    <select class="form-select" id="deliveriesSort">
+                        <option value="date-desc">الأحدث أولاً</option>
+                        <option value="date-asc">الأقدم أولاً</option>
+                        <option value="value-desc">الأعلى قيمة</option>
+                        <option value="value-asc">الأقل قيمة</option>
+                    </select>
+                </div>
+                <div class="table-container" id="deliveriesContainer">
+                    <div class="loading">جاري تحميل التسليمات...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">التسويات والمستحقات</h3>
+                <button class="btn btn-primary" id="addAdjustmentBtn">+ إضافة تسوية</button>
+            </div>
+            <div class="section-content">
+                <div class="settlement-summary">
+                    <div class="settlement-grid" id="settlementSummary">
+                        <div class="loading">جاري تحميل ملخص التسويات...</div>
+                    </div>
+                </div>
+                <div class="controls">
+                    <input type="text" class="form-input search-input" id="adjustmentsSearch"
+                        placeholder="ابحث في التسويات...">
+                    <input type="date" class="form-input" id="adjustmentsDateFrom" placeholder="من تاريخ">
+                    <input type="date" class="form-input" id="adjustmentsDateTo" placeholder="إلى تاريخ">
+                    <select class="form-select" id="adjustmentsSort">
+                        <option value="date-desc">الأحدث أولاً</option>
+                        <option value="date-asc">الأقدم أولاً</option>
+                        <option value="amount-desc">الأعلى مبلغ</option>
+                        <option value="amount-asc">الأقل مبلغ</option>
+                    </select>
+                </div>
+                <div class="table-container" id="adjustmentsContainer">
+                    <div class="loading">جاري تحميل التسويات...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">المدفوعات</h3>
+                <button class="btn btn-primary" id="addPaymentBtn">+ إضافة دفعة</button>
+            </div>
+            <div class="section-content">
+                <div class="controls">
+                    <input type="text" class="form-input search-input" id="paymentsSearch"
+                        placeholder="ابحث في المدفوعات...">
+                    <input type="date" class="form-input" id="paymentsDateFrom" placeholder="من تاريخ">
+                    <input type="date" class="form-input" id="paymentsDateTo" placeholder="إلى تاريخ">
+                    <select class="form-select" id="paymentsSort">
+                        <option value="date-desc">الأحدث أولاً</option>
+                        <option value="date-asc">الأقدم أولاً</option>
+                        <option value="amount-desc">الأعلى مبلغ</option>
+                        <option value="amount-asc">الأقل مبلغ</option>
+                    </select>
+                </div>
+                <div class="table-container" id="paymentsContainer">
+                    <div class="loading">جاري تحميل المدفوعات...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">التقارير وكشوف الحساب</h3>
+            </div>
+            <div class="section-content">
+                <div class="reports-grid">
+                    <div class="report-card">
+                        <h4>تقرير التوريدات</h4>
+                        <p>تقرير مفصل بالكميات المورده حسب نوع المادة</p>
+
+                        <div class="date-inputs-row">
+                            <input type="date" id="deliveriesFromDate" class="form-input" placeholder="من تاريخ">
+                            <input type="date" id="deliveriesToDate" class="form-input" placeholder="إلى تاريخ">
+                        </div>
+                        <button id="generateDeliveriesReportBtn" class="btn">
+                            📄 إنشاء تقرير التوريدات
+                        </button>
+                    </div>
+
+                    <div class="report-card success">
+                        <h4>كشف حساب الكسارة</h4>
+                        <p>كشف حساب شامل بالتوريدات والمدفوعات والرصيد</p>
+
+                        <div class="checkbox-container">
+                            <label>
+                                <input type="checkbox" id="useCustomDateRange" onchange="toggleDateInputs()">
+                                استخدام فترة زمنية محددة
+                            </label>
+                            <div id="dateInputs" class="hidden">
+                                <input type="date" id="statementFromDate" class="form-input" placeholder="من تاريخ">
+                                <input type="date" id="statementToDate" class="form-input" placeholder="إلى تاريخ">
+                            </div>
+                        </div>
+
+                        <button id="generateAccountStatementBtn" class="btn">
+                            📊 إنشاء كشف الحساب
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Prices Modal -->
+    <div class="modal" id="editPricesModal">
+        <div class="modal-content">
+            <div class="modal-header">تعديل أسعار المواد</div>
+            <div class="warning-box">
+                <div class="warning-icon">⚠️</div>
+                <div class="warning-text">
+                    <strong>تنبيه مهم:</strong> تعديل الأسعار سيؤثر فقط على التسليمات الجديدة.
+                    جميع التسليمات السابقة ستحتفظ بالأسعار التاريخية المحفوظة وقت إنشائها.
+                </div>
+            </div>
+            <div id="editPricesMessage"></div>
+            <form id="editPricesForm">
+                <div class="prices-edit-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="editSandPrice">رمل (جنيه/م³)</label>
+                        <input type="number" class="form-input" id="editSandPrice" step="0.01" min="0"
+                            placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="editAggregate1Price">سن 1 (جنيه/م³)</label>
+                        <input type="number" class="form-input" id="editAggregate1Price" step="0.01" min="0"
+                            placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="editAggregate2Price">سن 2 (جنيه/م³)</label>
+                        <input type="number" class="form-input" id="editAggregate2Price" step="0.01" min="0"
+                            placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="editAggregate3Price">سن 3 (جنيه/م³)</label>
+                        <input type="number" class="form-input" id="editAggregate3Price" step="0.01" min="0"
+                            placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="editAggregate6PowderPrice">سن 6 بودرة (جنيه/م³)</label>
+                        <input type="number" class="form-input" id="editAggregate6PowderPrice" step="0.01" min="0"
+                            placeholder="0.00">
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" data-action="close-modal"
+                        data-target="editPricesModal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="modal" id="paymentModal">
+        <div class="modal-content">
+            <div class="modal-header">إضافة دفعة جديدة</div>
+            <div id="paymentMessage"></div>
+            <form id="paymentForm">
+                <div class="form-group">
+                    <label class="form-label" for="paymentAmount">المبلغ *</label>
+                    <input type="number" class="form-input" id="paymentAmount" required min="0" step="0.01"
+                        autocomplete="transaction-amount">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="paymentMethod">طريقة الدفع *</label>
+                    <select class="form-select" id="paymentMethod" required>
+                        <option value="">اختر طريقة الدفع</option>
+                        <option value="نقدي">نقدي</option>
+                        <option value="بنكي">بنكي</option>
+                        <option value="شيك">شيك</option>
+                        <option value="انستاباي">انستاباي</option>
+                        <option value="فودافون كاش">فودافون كاش</option>
+                    </select>
+                </div>
+                <div class="form-group hidden" id="paymentDetailsGroup">
+                    <label class="form-label" for="paymentDetails">رقم المعاملة / رقم الشيك</label>
+                    <input type="text" class="form-input" id="paymentDetails"
+                        placeholder="أدخل رقم المعاملة أو رقم الشيك" autocomplete="off">
+                </div>
+                <div class="form-group hidden" id="paymentImageGroup">
+                    <label class="form-label" for="paymentImage">صورة الدفع</label>
+                    <input type="file" class="form-input" id="paymentImage" accept="image/*">
+                    <small class="form-help">ارفع صورة الإيصال أو الشيك أو المعاملة البنكية</small>
+                    <div id="paymentImagePreview"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="paymentDate">التاريخ</label>
+                    <input type="date" class="form-input" id="paymentDate" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="paymentNote">ملاحظات</label>
+                    <textarea class="form-textarea" id="paymentNote"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" data-action="close-modal"
+                        data-target="paymentModal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">إضافة</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Adjustment Modal -->
+    <div class="modal" id="adjustmentModal">
+        <div class="modal-content">
+            <div class="modal-header">إضافة تسوية جديدة</div>
+            <div id="adjustmentMessage"></div>
+            <form id="adjustmentForm">
+                <div class="form-group">
+                    <label class="form-label" for="adjustmentAmount">المبلغ *</label>
+                    <input type="number" class="form-input" id="adjustmentAmount" required step="0.01">
+                    <small class="text-gray-500">موجب: يضاف للمستحقات | سالب: يخصم من المستحقات</small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="adjustmentMethod">طريقة التسوية</label>
+                    <select class="form-select" id="adjustmentMethod">
+                        <option value="">اختر طريقة التسوية</option>
+                        <option value="نقدي">نقدي</option>
+                        <option value="بنكي">بنكي</option>
+                        <option value="شيك">شيك</option>
+                        <option value="انستاباي">انستاباي</option>
+                        <option value="فودافون كاش">فودافون كاش</option>
+                        <option value="تعديل حسابي">تعديل حسابي</option>
+                    </select>
+                </div>
+                <div class="form-group hidden" id="adjustmentDetailsGroup">
+                    <label class="form-label" for="adjustmentDetails">رقم المعاملة / رقم الشيك</label>
+                    <input type="text" class="form-input" id="adjustmentDetails"
+                        placeholder="أدخل رقم المعاملة أو رقم الشيك">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="adjustmentReason">السبب</label>
+                    <textarea class="form-textarea" id="adjustmentReason" placeholder="سبب التسوية..."></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" data-action="close-modal"
+                        data-target="adjustmentModal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">إضافة</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delivery Edit Modal -->
+    <div class="modal" id="deliveryEditModal">
+        <div class="modal-content">
+            <div class="modal-header">تعديل التسليم</div>
+            <div id="deliveryEditMessage"></div>
+            <form id="deliveryEditForm">
+                <div class="form-group">
+                    <label class="form-label" for="editDeliveryMaterial">المادة *</label>
+                    <select class="form-select" id="editDeliveryMaterial" required>
+                        <option value="">اختر المادة</option>
+                        <option value="رمل">رمل</option>
+                        <option value="سن 1">سن 1</option>
+                        <option value="سن 2">سن 2</option>
+                        <option value="سن 3">سن 3</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="editDeliveryVoucher">رقم البون</label>
+                    <input type="text" class="form-input" id="editDeliveryVoucher" placeholder="رقم البون">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="editDeliveryCarVolume">تكعيب السيارة (م³) *</label>
+                    <input type="number" class="form-input" id="editDeliveryCarVolume" required min="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="editDeliveryDiscountVolume">قيمة الخصم (م³)</label>
+                    <input type="number" class="form-input" id="editDeliveryDiscountVolume" min="0" step="0.01"
+                        value="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="editDeliveryDriverName">اسم السائق</label>
+                    <input type="text" class="form-input" id="editDeliveryDriverName" placeholder="اسم السائق">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="editDeliveryCarHead">رقم الرأس</label>
+                    <input type="text" class="form-input" id="editDeliveryCarHead" placeholder="رقم رأس السيارة">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="editDeliveryCarTail">رقم المقطورة</label>
+                    <input type="text" class="form-input" id="editDeliveryCarTail" placeholder="رقم المقطورة">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="editDeliveryContractorCharge">مستحق المقاول لكل متر</label>
+                    <input type="number" class="form-input" id="editDeliveryContractorCharge" min="0" step="0.01">
+                </div>
+                <div class="warning-box" style="margin: 15px 0;">
+                    <div class="warning-icon">⚠️</div>
+                    <div>
+                        <strong>تنبيه:</strong> لن يتم تعديل السعر التاريخي للمادة للحفاظ على دقة الحسابات المحاسبية.
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" data-action="close-modal"
+                        data-target="deliveryEditModal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">حفظ التعديل</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Payment Details Modal -->
+    <div class="modal" id="paymentDetailsModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <span>تفاصيل الدفعة</span>
+                <button class="modal-close" data-action="close-modal" data-target="paymentDetailsModal">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <div id="paymentDetailsContent">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" data-action="close-modal"
+                    data-target="paymentDetailsModal">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Adjustment Details Modal -->
+    <div class="modal" id="adjustmentDetailsModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <span>تفاصيل التسوية</span>
+                <button class="modal-close" data-action="close-modal"
+                    data-target="adjustmentDetailsModal">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <div id="adjustmentDetailsContent">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" data-action="close-modal"
+                    data-target="adjustmentDetailsModal">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div class="modal" id="imageModal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <span>عرض الصورة</span>
+                <button class="modal-close" data-action="close-modal" data-target="imageModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <img id="modalImage" alt="صورة الدفع">
+            </div>
+        </div>
+    </div>
+
+    <script src="js/csp-fix.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/crusher-details.js"></script>
+</body>
+
+</html>

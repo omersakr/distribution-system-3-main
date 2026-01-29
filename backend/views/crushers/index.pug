@@ -1,0 +1,26 @@
+extends ../layout
+
+block content
+  .max-w-7xl.mx-auto
+    .flex.justify-between.items-center.mb-6
+      h1.text-3xl.font-extrabold.text-blue-900= title || 'الكسارات'
+      a#addCrusherBtn.bg-blue-600.text-white.px-6.py-3.rounded-lg.font-semibold.hover_bg-blue-700.transition-colors.shadow-md(href="/crushers/new") + إضافة كسارة
+
+    if crushers && crushers.length > 0
+      .grid.grid-cols-1.md_grid-cols-2.lg_grid-cols-3.gap-6
+        each crusher in crushers
+          .bg-white.border.border-gray-200.rounded-xl.shadow-md.p-6.hover_shadow-xl.hover_border-blue-200.transition-all.duration-200.flex.flex-col.min-h-40
+            .text-xl.font-bold.text-blue-800.mb-2= crusher.name
+            .text-sm.text-gray-600.mb-4 عدد التسليمات: #{crusher.deliveriesCount || 0}
+            .mb-3
+              span.text-gray-700.font-medium إجمالي الكمية الصافية: 
+              span.font-semibold.ml-2= (crusher.totalVolume || 0).toLocaleString('ar-EG', { minimumFractionDigits: 2 }) + ' م³'
+            .mb-3
+              span.text-gray-700.font-medium القيمة: 
+              span.font-semibold.ml-2= (crusher.totalValue || 0).toLocaleString('ar-EG', { style: 'currency', currency: 'EGP' })
+            .mt-auto
+              a.block.text-center.bg-blue-600.text-white.px-6.py-2.rounded-lg.hover_bg-blue-700.transition-colors.no-underline(href=`/crushers/${crusher.id}`) فتح التفاصيل
+    else
+      .bg-white.border.border-gray-200.rounded-xl.shadow-md.p-8.text-center.text-gray-500
+        p.text-lg لا توجد كسارات بعد
+        p.text-sm.mt-2 ابدأ بإضافة كسارة جديدة

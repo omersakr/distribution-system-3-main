@@ -1,0 +1,112 @@
+extends ../layout
+
+block content
+  .max-w-7xl.mx-auto
+    h1.text-3xl.font-extrabold.text-blue-900.mb-6= crusher.name
+
+    .grid(class="grid-cols-1 sm:grid-cols-3 gap-4 mb-6")
+      .bg-white.rounded-xl.shadow-md.p-6.flex.flex-col
+        span.text-gray-600.font-medium إجمالي المطلوب
+        span.text-2xl.font-bold= (totals.totalNeeded || 0).toLocaleString('ar-EG', { style: 'currency', currency: 'EGP' })
+      .bg-white.rounded-xl.shadow-md.p-6.flex.flex-col
+        span.text-gray-600.font-medium إجمالي المدفوع
+        span.text-2xl.font-bold= (totals.totalPaid || 0).toLocaleString('ar-EG', { style: 'currency', currency: 'EGP' })
+      .bg-white.rounded-xl.shadow-md.p-6.flex.flex-col
+        span.text-gray-600.font-medium الصافي #{totals.net < 0 ? '(له)' : '(عليه)'}
+        span.text-2xl.font-bold= Math.abs(totals.net || 0).toLocaleString('ar-EG', { style: 'currency', currency: 'EGP' })
+
+    // Deliveries Table
+    .bg-white.rounded-xl.shadow-md.p-6.mb-6
+      .flex.justify-between.items-center.mb-4
+        h2.text-xl.font-bold.text-blue-800 التسليمات
+        span.text-sm.text-gray-600= `${deliveries.length} تسليمة`
+
+      if deliveries && deliveries.length > 0
+        .overflow-x-auto
+          table.w-full.text-center.border-collapse
+            thead
+              tr.bg-blue-100
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 التاريخ
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 العميل
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 مقاول النقل
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 نوع الحمولة
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 رقم البون
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 كمية
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 خصم
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 صافي
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 سعر المتر
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 الإجمالي
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 السائق
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 الرأس
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 المقطورة
+            tbody
+              each d in deliveries
+                tr.hover_bg-gray-50
+                  td.border.border-gray-200.px-3.py-2= new Date(d.created_at).toLocaleDateString('ar-EG')
+                  td.border.border-gray-200.px-3.py-2= d.client_name || '-'
+                  td.border.border-gray-200.px-3.py-2= d.contractor_name || '-'
+                  td.border.border-gray-200.px-3.py-2= d.material || '-'
+                  td.border.border-gray-200.px-3.py-2= d.voucher || '-'
+                  td.border.border-gray-200.px-3.py-2= Number(d.quantity || 0).toLocaleString('ar-EG', { minimumFractionDigits: 2 })
+                  td.border.border-gray-200.px-3.py-2= Number(d.discount_volume || 0).toLocaleString('ar-EG', { minimumFractionDigits: 2 })
+                  td.border.border-gray-200.px-3.py-2= Number(d.net_quantity || 0).toLocaleString('ar-EG', { minimumFractionDigits: 2 })
+                  td.border.border-gray-200.px-3.py-2= Number(d.price_per_meter || 0).toLocaleString('ar-EG', { style: 'currency', currency: 'EGP', minimumFractionDigits: 2 })
+                  td.border.border-gray-200.px-3.py-2.font-bold= Number(d.total_value || 0).toLocaleString('ar-EG', { style: 'currency', currency: 'EGP', minimumFractionDigits: 2 })
+                  td.border.border-gray-200.px-3.py-2= d.driver_name || '-'
+                  td.border.border-gray-200.px-3.py-2= d.car_head || '-'
+                  td.border.border-gray-200.px-3.py-2= d.car_tail || '-'
+      else
+        p.text-center.text-gray-500.py-4 لا توجد تسليمات
+
+    // Adjustments Table
+    .bg-white.rounded-xl.shadow-md.p-6
+      .flex.justify-between.items-center.mb-4
+        h2.text-xl.font-bold.text-blue-800 التعديلات
+      if adjustments && adjustments.length > 0
+        .overflow-x-auto
+          table.w-full.text-center.border-collapse
+            thead
+              tr.bg-blue-100
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 التاريخ
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 القيمة
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 السبب
+            tbody
+              each a in adjustments
+                tr.hover_bg-gray-50
+                  td.border.border-gray-200.px-3.py-2= new Date(a.created_at).toLocaleDateString('ar-EG')
+                  td.border.border-gray-200.px-3.py-2.font-bold(
+                    class=a.amount > 0 ? 'text-green-600' : 'text-red-600'
+                  )= Number(a.amount || 0).toLocaleString('ar-EG', { style: 'currency', currency: 'EGP', minimumFractionDigits: 2 })
+                  td.border.border-gray-200.px-3.py-2= a.reason || '-'
+      else
+        p.text-center.text-gray-500.py-4 لا توجد تسويات
+
+    // Payments Table
+    .bg-white.rounded-xl.shadow-md.p-6.mb-6
+      .flex.justify-between.items-center.mb-4
+        h2.text-xl.font-bold.text-blue-800 المدفوعات
+      if payments && payments.length > 0
+        .overflow-x-auto
+          table.w-full.text-center.border-collapse
+            thead
+              tr.bg-blue-100
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 التاريخ
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 المبلغ
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 ملاحظة
+            tbody
+              each p in payments
+                tr.hover_bg-gray-50
+                  td.border.border-gray-200.px-3.py-2= new Date(p.paid_at).toLocaleDateString('ar-EG')
+                  td.border.border-gray-200.px-3.py-2.font-bold.text-red-600= Number(p.amount || 0).toLocaleString('ar-EG', { style: 'currency', currency: 'EGP', minimumFractionDigits: 2 })
+                  td.border.border-gray-200.px-3.py-2= p.note || '-'
+      else
+        p.text-center.text-gray-500.py-4 لا توجد مدفوعات
+
+    if materialTotals && materialTotals.length
+      .grid(class="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6 mb-6")
+        each m in materialTotals
+          .bg-white.rounded-xl.shadow-md.p-6.flex.flex-col
+            .text-sm.text-gray-600.mb-2 نوع الحمولة
+            .text-xl.font-bold.mb-2= m.material
+            .text-gray-700.mb-1 كمية: 
+              span.font-semibold.ml-2= (m.totalQty || 0).toLocaleString('ar-EG', { minimumFractionDigits: 2 }) + ' م³'

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Client Details Auth</title>
+</head>
+<body>
+    <h1>Test Client Details Authentication</h1>
+    <div id="result"></div>
+    
+    <script src="backend/public/js/auth.js"></script>
+    <script>
+        async function testClientDetailsAuth() {
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                // First login as manager
+                console.log('Testing manager login...');
+                const loginResponse = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'المدير',
+                        password: 'manager123'
+                    })
+                });
+                
+                if (!loginResponse.ok) {
+                    throw new Error('Login failed');
+                }
+                
+                const loginData = await loginResponse.json();
+                console.log('✅ Login successful:', loginData.data.user.username);
+                
+                // Store token in localStorage (simulate auth.js behavior)
+                localStorage.setItem('authToken', loginData.data.token);
+                localStorage.setItem('userInfo', JSON.stringify(loginData.data.user));
+                
+                // Test client API access
+                const clientsResponse = await authManager.makeAuthenticatedRequest('/api/clients');
+                
+                if (clientsResponse.ok) {
+                    const clientsData = await clientsResponse.json();
+                    console.log('✅ Clients API access successful!');
+                    
+                    if (clientsData.clients && clientsData.clients.length > 0) {
+                        const firstClientId = clientsData.clients[0]._id;
+                        console.log('Testing client details for ID:', firstClientId);
+                        
+                        // Test specific client details
+                        const clientDetailsResponse = await authManager.makeAuthenticatedRequest(`/api/clients/${firstClientId}`);
+                        
+                        if (clientDetailsResponse.ok) {
+                            console.log('✅ Client details API access successful!');
+                            resultDiv.innerHTML = `
+                                <p style="color: green;">✅ All authentication tests passed!</p>
+                                <p>✅ Login successful</p>
+                                <p>✅ Clients list API working</p>
+                                <p>✅ Client details API working</p>
+                                <p>Client details page should now work properly.</p>
+                            `;
+                        } else {
+                            throw new Error('Client details API failed');
+                        }
+                    } else {
+                        resultDiv.innerHTML = `<p style="color: orange;">⚠️ No clients found in database, but authentication is working</p>`;
+                    }
+                } else {
+                    throw new Error('Clients API access failed');
+                }
+                
+            } catch (error) {
+                console.error('Test error:', error);
+                resultDiv.innerHTML = `<p style="color: red;">❌ Test failed: ${error.message}</p>`;
+            }
+        }
+        
+        // Run test when page loads
+        window.addEventListener('load', testClientDetailsAuth);
+    </script>
+</body>
+</html>

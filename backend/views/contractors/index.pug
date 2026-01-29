@@ -1,0 +1,72 @@
+extends ../layout
+
+block content
+  .max-w-7xl.mx-auto
+    .flex.justify-between.items-center.mb-6
+      h1.text-3xl.font-extrabold.text-blue-900= title || 'مقاولو العجل'
+      button#addContractorBtn.bg-blue-600.text-white.px-6.py-3.rounded-lg.font-semibold.hover_bg-blue-700.transition-colors.shadow-md + إضافة مقاول
+
+    if contractors && contractors.length > 0
+      .grid.grid-cols-1.md_grid-cols-2.lg_grid-cols-3.gap-6
+        each contractor in contractors
+          .bg-white.border.border-gray-200.rounded-xl.shadow-md.p-6.hover_shadow-xl.hover_border-blue-200.transition-all.duration-200.flex.flex-col.min-h-40
+            .text-xl.font-bold.text-blue-800.mb-3= contractor.name
+            .text-lg.mb-4.font-semibold(
+              class=contractor.balance > 0 ? 'text-green-600' : contractor.balance < 0 ? 'text-red-600' : 'text-gray-500'
+            )= contractor.balance.toLocaleString('ar-EG', { style: 'currency', currency: 'EGP', minimumFractionDigits: 2 })
+            .mt-auto
+              a.block.text-center.bg-blue-600.text-white.px-6.py-2.rounded-lg.hover_bg-blue-700.transition-colors.no-underline(href=`/contractors/${contractor.id}`) التفاصيل
+    else
+      .bg-white.border.border-gray-200.rounded-xl.shadow-md.p-8.text-center.text-gray-500
+        p.text-lg لا توجد مقاولين حتى الآن
+        p.text-sm.mt-2 ابدأ بإضافة مقاول جديد
+
+block scripts
+  script(src="https://cdn.jsdelivr.net/npm/sweetalert2@11")
+  script.
+    document.getElementById('addContractorBtn').addEventListener('click', async function() {
+      const { value: name } = await Swal.fire({
+        title: 'اسم المقاول',
+        input: 'text',
+        inputPlaceholder: 'اسم المقاول',
+        showCancelButton: true,
+        cancelButtonText: 'إلغاء',
+        confirmButtonText: 'التالي',
+        inputValidator: (value) => {
+          if (!value) {
+            return 'يرجى إدخال اسم المقاول';
+          }
+        }
+      });
+
+      if (!name) return;
+
+      const { value: opening } = await Swal.fire({
+        title: 'رصيد افتتاحي (اختياري)',
+        input: 'number',
+        inputPlaceholder: '0',
+        inputValue: '0',
+        showCancelButton: true,
+        cancelButtonText: 'إلغاء',
+        confirmButtonText: 'إضافة'
+      });
+
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/contractors';
+
+      const nameInput = document.createElement('input');
+      nameInput.type = 'hidden';
+      nameInput.name = 'name';
+      nameInput.value = name;
+      form.appendChild(nameInput);
+
+      const openingInput = document.createElement('input');
+      openingInput.type = 'hidden';
+      openingInput.name = 'opening_balance';
+      openingInput.value = opening || '0';
+      form.appendChild(openingInput);
+
+      document.body.appendChild(form);
+      form.submit();
+    });

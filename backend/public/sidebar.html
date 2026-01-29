@@ -1,0 +1,36 @@
+<button class="hamburger" id="sidebarHamburger" aria-label="القائمة الجانبية">
+    <span></span>
+</button>
+
+<!-- Sidebar overlay for mobile -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- Sidebar navigation -->
+<nav class="sidebar" id="sidebar">
+    <div class="app-title">نظام التوزيع</div>
+    
+    <!-- User info section -->
+    <div class="user-section" id="userSection">
+        <div class="user-info" id="userInfo">جاري التحميل...</div>
+        <button class="logout-btn" id="logoutBtn">تسجيل الخروج</button>
+    </div>
+    
+    <ul>
+        <li><a href="index.html">لوحة التحكم</a></li>
+        <li><a href="clients.html">العملاء</a></li>
+        <li><a href="crushers.html">الكسارات</a></li>
+        <li><a href="contractors.html">مقاولين العجل</a></li>
+        <li><a href="employees.html">الموظفين</a></li>
+        <li><a href="administration.html">الإدارة</a></li>
+        <li><a href="suppliers.html">الموردين</a></li>
+        <li><a href="projects.html">المشاريع</a></li>
+        <li><a href="expenses.html">المصروفات</a></li>
+        <li><a href="new-entry.html">تسليم جديد</a></li>
+        
+        <!-- System Management Section (Manager + System Maintenance only) -->
+        <li class="section-divider" data-role="manager,system_maintenance">إدارة النظام</li>
+        <li data-role="manager,accountant"><a href="audit-logs.html">سجل العمليات</a></li>
+        <li data-role="manager,accountant"><a href="recycle-bin.html">سلة المحذوفات</a></li>
+        <li data-role="system_maintenance"><a href="user-management.html">إدارة المستخدمين</a></li>
+    </ul>
+</nav>

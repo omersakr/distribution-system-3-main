@@ -1,0 +1,201 @@
+extends ../layout
+
+block content
+  .max-w-7xl.mx-auto
+    h1.text-3xl.font-extrabold.text-blue-900.mb-6= contractor.name
+
+    .bg-white.rounded-xl.shadow-md.p-6.mb-6
+      h2.text-xl.font-bold.text-blue-800.mb-4 الملخص المالي
+      .overflow-x-auto
+        table.w-full.text-right
+          tbody
+            tr.border-b
+              td.py-3.px-4.font-semibold.text-gray-700 الرصيد الافتتاحي
+              td.py-3.px-4.text-gray-900= totals.openingBalance.toLocaleString('ar-EG', { style: 'currency', currency: 'EGP', minimumFractionDigits: 2 })
+            tr.border-b
+              td.py-3.px-4.font-semibold.text-gray-700 إجمالي مستحقات المشاوير
+              td.py-3.px-4.text-gray-900= totals.totalTrips.toLocaleString('ar-EG', { style: 'currency', currency: 'EGP', minimumFractionDigits: 2 })
+            tr.border-b
+              td.py-3.px-4.font-semibold.text-gray-700 إجمالي المدفوعات/العُهد
+              td.py-3.px-4.text-gray-900= totals.totalPayments.toLocaleString('ar-EG', { style: 'currency', currency: 'EGP', minimumFractionDigits: 2 })
+            tr.border-b
+              td.py-3.px-4.font-semibold.text-gray-700 إجمالي التعديلات
+              td.py-3.px-4.text-gray-900= totals.totalAdjustments.toLocaleString('ar-EG', { style: 'currency', currency: 'EGP', minimumFractionDigits: 2 })
+            tr.bg-blue-50
+              td.py-3.px-4.font-bold.text-blue-900.text-lg الرصيد النهائي
+              td.py-3.px-4.font-bold.text-lg(
+                class=totals.balance > 0 ? 'text-green-600' : totals.balance < 0 ? 'text-red-600' : 'text-gray-600'
+              )= totals.balance.toLocaleString('ar-EG', { style: 'currency', currency: 'EGP', minimumFractionDigits: 2 })
+
+    .bg-white.rounded-xl.shadow-md.p-6.mb-6
+      .flex.justify-between.items-center.mb-4
+        h2.text-xl.font-bold.text-blue-800 المشاور/الحمولات للمقاول
+        span.text-sm.text-gray-600= `${deliveries.length} تسليمة`
+
+      if deliveries && deliveries.length > 0
+        .overflow-x-auto
+          table.w-full.text-center.border-collapse
+            thead
+              tr.bg-blue-100
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 التاريخ
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 العميل
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 الكسارة
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 نوع الحمولة
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 رقم البون
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 كمية
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 خصم
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 صافي
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 سعر المتر
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 مستحق للمقاول
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 الإجمالي
+            tbody
+              each r in deliveries
+                tr.hover_bg-gray-50
+                  td.border.border-gray-200.px-3.py-2= new Date(r.created_at).toLocaleDateString('ar-EG')
+                  td.border.border-gray-200.px-3.py-2= r.client_name || '-'
+                  td.border.border-gray-200.px-3.py-2= r.crusher_name || '-'
+                  td.border.border-gray-200.px-3.py-2= r.material || '-'
+                  td.border.border-gray-200.px-3.py-2= r.voucher || '-'
+                  td.border.border-gray-200.px-3.py-2= Number(r.quantity || 0).toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                  td.border.border-gray-200.px-3.py-2= Number(r.discount_volume || 0).toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                  td.border.border-gray-200.px-3.py-2= Number(r.net_quantity || 0).toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                  td.border.border-gray-200.px-3.py-2= r.price_per_meter.toLocaleString('ar-EG', { style: 'currency', currency: 'EGP', minimumFractionDigits: 2 })
+                  td.border.border-gray-200.px-3.py-2= r.contractor_charge.toLocaleString('ar-EG', { style: 'currency', currency: 'EGP', minimumFractionDigits: 2 })
+                  td.border.border-gray-200.px-3.py-2.font-bold= r.total_value.toLocaleString('ar-EG', { style: 'currency', currency: 'EGP', minimumFractionDigits: 2 })
+      else
+        p.text-center.text-gray-500.py-4 لا توجد تسليمات
+
+    .bg-white.rounded-xl.shadow-md.p-6.mb-6
+      .flex.justify-between.items-center.mb-4
+        h2.text-xl.font-bold.text-blue-800 المدفوعات والعُهد
+        button#addPaymentBtn.bg-green-600.text-white.px-4.py-2.rounded-lg.text-sm.hover_bg-green-700.transition-colors + إضافة دفعة
+
+      if payments && payments.length > 0
+        .overflow-x-auto
+          table.w-full.text-center.border-collapse
+            thead
+              tr.bg-blue-100
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 التاريخ
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 المبلغ
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 ملاحظات
+            tbody
+              each payment in payments
+                tr.hover_bg-gray-50
+                  td.border.border-gray-200.px-3.py-2= new Date(payment.paid_at).toLocaleDateString('ar-EG')
+                  td.border.border-gray-200.px-3.py-2.font-bold= payment.amount.toLocaleString('ar-EG', { style: 'currency', currency: 'EGP', minimumFractionDigits: 2 })
+                  td.border.border-gray-200.px-3.py-2= payment.note || '-'
+      else
+        p.text-center.text-gray-500.py-4 لا توجد مدفوعات
+
+    .bg-white.rounded-xl.shadow-md.p-6.mb-6
+      .flex.justify-between.items-center.mb-4
+        h2.text-xl.font-bold.text-blue-800 تسويات/مستحقات إضافية
+        button#addAdjustmentBtn.bg-orange-600.text-white.px-4.py-2.rounded-lg.text-sm.hover_bg-orange-700.transition-colors + إضافة تسوية
+
+      if adjustments && adjustments.length > 0
+        .overflow-x-auto
+          table.w-full.text-center.border-collapse
+            thead
+              tr.bg-blue-100
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 التاريخ
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 القيمة
+                th.border.border-blue-200.px-3.py-2.font-semibold.text-blue-900 السبب
+            tbody
+              each adjustment in adjustments
+                tr.hover_bg-gray-50
+                  td.border.border-gray-200.px-3.py-2= new Date(adjustment.created_at).toLocaleDateString('ar-EG')
+                  td.border.border-gray-200.px-3.py-2.font-bold(
+                    class=adjustment.amount > 0 ? 'text-green-600' : 'text-red-600'
+                  )= adjustment.amount.toLocaleString('ar-EG', { style: 'currency', currency: 'EGP', minimumFractionDigits: 2 })
+                  td.border.border-gray-200.px-3.py-2= adjustment.reason || '-'
+      else
+        p.text-center.text-gray-500.py-4 لا توجد تسويات
+
+block scripts
+  script(src="https://cdn.jsdelivr.net/npm/sweetalert2@11")
+  script.
+    // Add Payment
+    document.getElementById('addPaymentBtn').addEventListener('click', async function() {
+      const { value: amount } = await Swal.fire({
+        title: 'المبلغ المدفوع',
+        input: 'number',
+        inputPlaceholder: 'أدخل المبلغ',
+        showCancelButton: true,
+        cancelButtonText: 'إلغاء',
+        confirmButtonText: 'التالي',
+        inputValidator: (value) => {
+          if (!value || parseFloat(value) <= 0) {
+            return 'يرجى إدخال مبلغ صحيح';
+          }
+        }
+      });
+      if (!amount) return;
+      const { value: note } = await Swal.fire({
+        title: 'ملاحظات (اختياري)',
+        input: 'text',
+        inputPlaceholder: 'ملاحظات',
+        showCancelButton: true,
+        cancelButtonText: 'إلغاء',
+        confirmButtonText: 'إضافة'
+      });
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = window.location.pathname + '/payments';
+      const amountInput = document.createElement('input');
+      amountInput.type = 'hidden';
+      amountInput.name = 'amount';
+      amountInput.value = amount;
+      form.appendChild(amountInput);
+      if (note) {
+        const noteInput = document.createElement('input');
+        noteInput.type = 'hidden';
+        noteInput.name = 'note';
+        noteInput.value = note;
+        form.appendChild(noteInput);
+      }
+      document.body.appendChild(form);
+      form.submit();
+    });
+
+    // Add Adjustment
+    document.getElementById('addAdjustmentBtn').addEventListener('click', async function() {
+      const { value: amount } = await Swal.fire({
+        title: 'قيمة التسوية',
+        input: 'number',
+        inputPlaceholder: 'موجب للإضافة، سالب للخصم',
+        showCancelButton: true,
+        cancelButtonText: 'إلغاء',
+        confirmButtonText: 'التالي',
+        inputValidator: (value) => {
+          if (!value || parseFloat(value) === 0) {
+            return 'يرجى إدخال قيمة صحيحة';
+          }
+        }
+      });
+      if (amount === undefined) return;
+      const { value: reason } = await Swal.fire({
+        title: 'السبب',
+        input: 'text',
+        inputPlaceholder: 'سبب التسوية',
+        showCancelButton: true,
+        cancelButtonText: 'إلغاء',
+        confirmButtonText: 'إضافة'
+      });
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = window.location.pathname + '/adjustments';
+      const amountInput = document.createElement('input');
+      amountInput.type = 'hidden';
+      amountInput.name = 'amount';
+      amountInput.value = amount;
+      form.appendChild(amountInput);
+      if (reason) {
+        const reasonInput = document.createElement('input');
+        reasonInput.type = 'hidden';
+        reasonInput.name = 'reason';
+        reasonInput.value = reason;
+        form.appendChild(reasonInput);
+      }
+      document.body.appendChild(form);
+      form.submit();
+    });

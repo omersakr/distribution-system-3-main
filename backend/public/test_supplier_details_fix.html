@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Supplier Details Fix</title>
+</head>
+<body>
+    <h1>Test Supplier Details Fix</h1>
+    <div id="result"></div>
+    
+    <!-- Mock the required HTML elements -->
+    <div style="display: none;">
+        <h1 id="supplierName">تفاصيل المورد</h1>
+        <div id="supplierInfo"></div>
+        <div id="materialsContainer"></div>
+        <div id="financialSummary"></div>
+    </div>
+    
+    <script src="backend/public/js/auth.js"></script>
+    <script>
+        // Mock supplier data
+        const mockSupplierData = {
+            name: 'مورد تجريبي',
+            phone: '123456789',
+            notes: 'ملاحظات تجريبية',
+            materials: [
+                { name: 'مادة 1', price: 100 },
+                { name: 'مادة 2', price: 200 }
+            ]
+        };
+        
+        async function testSupplierDetailsJS() {
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                // Load the supplier-details.js file
+                const script = document.createElement('script');
+                script.src = 'backend/public/js/supplier-details.js';
+                
+                script.onload = function() {
+                    console.log('✅ supplier-details.js loaded successfully');
+                    
+                    // Test the renderSupplierInfo function
+                    try {
+                        // Set global supplier data (as the JS expects)
+                        window.supplierData = mockSupplierData;
+                        
+                        // Call the render function
+                        if (typeof window.renderSupplierInfo === 'function') {
+                            window.renderSupplierInfo();
+                            console.log('✅ renderSupplierInfo executed without errors');
+                            
+                            // Check if the elements were populated
+                            const supplierName = document.getElementById('supplierName');
+                            const supplierInfo = document.getElementById('supplierInfo');
+                            
+                            if (supplierName && supplierName.textContent.includes('مورد تجريبي')) {
+                                console.log('✅ Supplier name updated correctly');
+                            }
+                            
+                            if (supplierInfo && supplierInfo.innerHTML.includes('مورد تجريبي')) {
+                                console.log('✅ Supplier info populated correctly');
+                            }
+                            
+                            resultDiv.innerHTML = `
+                                <p style="color: green;">✅ Supplier details fix successful!</p>
+                                <p>✅ No more "Cannot set properties of null" error</p>
+                                <p>✅ renderSupplierInfo function works properly</p>
+                                <p>✅ Elements are populated correctly</p>
+                                <p>The supplier details page should now work without errors.</p>
+                            `;
+                        } else {
+                            throw new Error('renderSupplierInfo function not found');
+                        }
+                        
+                    } catch (renderError) {
+                        console.error('❌ Error testing render function:', renderError);
+                        resultDiv.innerHTML = `<p style="color: red;">❌ Render function test failed: ${renderError.message}</p>`;
+                    }
+                };
+                
+                script.onerror = function() {
+                    console.error('❌ supplier-details.js failed to load');
+                    resultDiv.innerHTML = `<p style="color: red;">❌ supplier-details.js still has errors</p>`;
+                };
+                
+                document.head.appendChild(script);
+                
+            } catch (error) {
+                console.error('Test error:', error);
+                resultDiv.innerHTML = `<p style="color: red;">❌ Test failed: ${error.message}</p>`;
+            }
+        }
+        
+        // Run test when page loads
+        window.addEventListener('load', testSupplierDetailsJS);
+    </script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>المشاريع</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/modern-theme.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+
+<body>
+    <div id="sidebar-placeholder"></div>
+    
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">المشاريع (العرض المالي للعملاء)</h1>
+        </div>
+        
+        <div class="content-section">
+            <div class="search-controls">
+                <div class="search-box">
+                    <input type="text" id="projectSearch" class="form-input" placeholder="ابحث عن مشروع...">
+                    <button id="searchBtn" class="btn btn-secondary">🔍 بحث</button>
+                </div>
+            </div>
+            
+            <div id="projectsContainer" class="projects-grid"></div>
+            <div id="paginationContainer"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/csp-fix.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/projects.js"></script>
+</body>
+
+</html>

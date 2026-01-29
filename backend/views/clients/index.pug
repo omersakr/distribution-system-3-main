@@ -1,0 +1,104 @@
+extends ../layout
+
+block content
+  .max-w-7xl.mx-auto
+    //- Header with Add Button
+    .flex.justify-between.items-center.mb-6
+      h1.text-3xl.font-extrabold.text-blue-900= title
+      button#addClientBtn.bg-blue-600.text-white.px-6.py-3.rounded-lg.font-semibold.hover_bg-blue-700.transition-colors.shadow-md + إضافة عميل
+    
+    //- Clients Grid
+    if clients && clients.length > 0
+      .grid.grid-cols-1.md_grid-cols-2.lg_grid-cols-3.gap-6
+        each client in clients
+          .bg-white.border.border-gray-200.rounded-xl.shadow-md.p-6.hover_shadow-xl.hover_border-blue-200.transition-all.duration-200.flex.flex-col.min-h-40
+            //- Client Name
+            .text-xl.font-bold.text-blue-800.mb-3= client.name
+            
+            //- Phone (if available)
+            if client.phone
+              .text-sm.text-gray-600.mb-2= `رقم التليفون ${client.phone}`
+            
+            //- Balance
+            - var bal = Number(client.balance || 0);
+            - var absStr = Math.abs(bal).toLocaleString('ar-EG', { style: 'currency', currency: 'EGP', minimumFractionDigits: 2 });
+            - var suffix = bal < 0 ? ' له' : bal > 0 ? ' عليه' : '';
+            .text-lg.mb-4.font-semibold(class= bal < 0 ? 'text-green-600' : bal > 0 ? 'text-red-600' : 'text-gray-500')= absStr + suffix
+            
+            //- Open Account Button
+            .mt-auto
+              a.block.text-center.bg-blue-600.text-white.px-6.py-2.rounded-lg.hover_bg-blue-700.transition-colors.no-underline(
+                href=`/clients/${client.id}`
+              ) فتح الحساب
+    else
+      .bg-white.border.border-gray-200.rounded-xl.shadow-md.p-8.text-center.text-gray-500
+        p.text-lg لا توجد عملاء حتى الآن
+        p.text-sm.mt-2 ابدأ بإضافة عميل جديد
+  
+  //- Add Client Modal (using SweetAlert2)
+  script(src="https://cdn.jsdelivr.net/npm/sweetalert2@11")
+  script.
+    document.getElementById('addClientBtn').addEventListener('click', async function() {
+      const { value: name } = await Swal.fire({
+        title: 'اسم العميل',
+        input: 'text',
+        inputPlaceholder: 'اسم العميل',
+        showCancelButton: true,
+        cancelButtonText: 'إلغاء',
+        confirmButtonText: 'التالي',
+        inputValidator: (value) => {
+          if (!value) {
+            return 'يرجى إدخال اسم العميل';
+          }
+        }
+      });
+      
+      if (!name) return;
+      
+      const { value: phone } = await Swal.fire({
+        title: 'رقم الهاتف (اختياري)',
+        input: 'text',
+        inputPlaceholder: 'رقم الهاتف',
+        showCancelButton: true,
+        cancelButtonText: 'إلغاء',
+        confirmButtonText: 'التالي'
+      });
+      
+      const { value: opening } = await Swal.fire({
+        title: 'رصيد افتتاحي (اختياري)',
+        input: 'number',
+        inputPlaceholder: '0',
+        inputValue: '0',
+        showCancelButton: true,
+        cancelButtonText: 'إلغاء',
+        confirmButtonText: 'إضافة'
+      });
+      
+      // Create form and submit
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/clients';
+      
+      const nameInput = document.createElement('input');
+      nameInput.type = 'hidden';
+      nameInput.name = 'name';
+      nameInput.value = name;
+      form.appendChild(nameInput);
+      
+      if (phone) {
+        const phoneInput = document.createElement('input');
+        phoneInput.type = 'hidden';
+        phoneInput.name = 'phone';
+        phoneInput.value = phone;
+        form.appendChild(phoneInput);
+      }
+      
+      const openingInput = document.createElement('input');
+      openingInput.type = 'hidden';
+      openingInput.name = 'opening_balance';
+      openingInput.value = opening || '0';
+      form.appendChild(openingInput);
+      
+      document.body.appendChild(form);
+      form.submit();
+    });

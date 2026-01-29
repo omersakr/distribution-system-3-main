@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>تفاصيل الإدارة</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/modern-theme.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <style>
+        .main-content {
+            margin-right: 225px;
+            padding: var(--space-8);
+            transition: margin-right 0.25s;
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                margin-right: 190px;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .main-content {
+                margin-right: 0;
+                padding: var(--space-4);
+            }
+        }
+
+        .page-header {
+            margin-bottom: var(--space-8);
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: var(--space-2);
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-800) 100%);
+            color: white;
+            border-radius: var(--radius-xl);
+            padding: var(--space-8);
+            margin-bottom: var(--space-8);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-6);
+            margin-top: var(--space-6);
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: var(--space-2);
+        }
+
+        .summary-label {
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+
+        .section {
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
+            margin-bottom: var(--space-6);
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: var(--space-6);
+            border-bottom: 1px solid var(--gray-200);
+            background: var(--gray-50);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin: 0;
+        }
+
+        .section-content {
+            padding: var(--space-6);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="sidebar-placeholder"></div>
+    
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title" id="administrationName">تفاصيل الإدارة</h1>
+            <button class="btn btn-secondary" onclick="history.back()">
+                <span>←</span> العودة
+            </button>
+        </div>
+
+        <!-- Financial Summary Card -->
+        <div class="summary-card">
+            <h2>الملخص المالي</h2>
+            <div class="summary-grid" id="financialSummary">
+                <!-- Financial summary will be populated here -->
+            </div>
+        </div>
+
+        <!-- Administration Info Section -->
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">معلومات الإدارة</h3>
+                <button class="btn btn-primary" id="editAdministrationBtn">
+                    <span>✏️</span> تعديل الإدارة
+                </button>
+            </div>
+            <div class="section-content">
+                <div class="info-grid" id="administrationInfo">
+                    <!-- Administration info will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Capital Injections Section -->
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">ضخ رأس المال</h3>
+                <button class="btn btn-primary" id="addCapitalInjectionBtn">
+                    <span>➕</span> إضافة ضخ رأس مال
+                </button>
+            </div>
+            <div class="section-content">
+                <div class="table-container">
+                    <table class="data-table" id="capitalInjectionsTable">
+                        <thead>
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>المبلغ</th>
+                                <th>المشروع</th>
+                                <th>ملاحظات</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="capitalInjectionsTableBody">
+                            <!-- Capital injections will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Withdrawals Section -->
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">المسحوبات</h3>
+                <button class="btn btn-primary" id="addWithdrawalBtn">
+                    <span>➕</span> إضافة مسحوبات
+                </button>
+            </div>
+            <div class="section-content">
+                <div class="table-container">
+                    <table class="data-table" id="withdrawalsTable">
+                        <thead>
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>المبلغ</th>
+                                <th>المشروع</th>
+                                <th>ملاحظات</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="withdrawalsTableBody">
+                            <!-- Withdrawals will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payments Section -->
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">المدفوعات</h3>
+                <button class="btn btn-primary" id="addPaymentBtn">
+                    <span>➕</span> إضافة دفعة
+                </button>
+            </div>
+            <div class="section-content">
+                <div class="table-container">
+                    <table class="data-table" id="paymentsTable">
+                        <thead>
+                            <tr>
+                                <th>المبلغ</th>
+                                <th>طريقة الدفع</th>
+                                <th>التفاصيل</th>
+                                <th>ملاحظات</th>
+                                <th>تاريخ الدفع</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentsTableBody">
+                            <!-- Payments will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Capital Injection Modal -->
+    <div id="capitalInjectionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="capitalInjectionModalTitle">إضافة ضخ رأس مال</h2>
+                <span class="close" onclick="closeCapitalInjectionModal()">&times;</span>
+            </div>
+            <form id="capitalInjectionForm">
+                <div class="form-group">
+                    <label for="injectionAmount">المبلغ *</label>
+                    <input type="number" id="injectionAmount" name="amount" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="injectionProject">المشروع *</label>
+                    <select id="injectionProject" name="project_id" required>
+                        <option value="">اختر المشروع</option>
+                        <!-- Projects will be populated here -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="injectionDate">التاريخ</label>
+                    <input type="date" id="injectionDate" name="date">
+                </div>
+                <div class="form-group">
+                    <label for="injectionNotes">ملاحظات</label>
+                    <textarea id="injectionNotes" name="notes" rows="3"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">حفظ</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeCapitalInjectionModal()">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Withdrawal Modal -->
+    <div id="withdrawalModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="withdrawalModalTitle">إضافة مسحوبات</h2>
+                <span class="close" onclick="closeWithdrawalModal()">&times;</span>
+            </div>
+            <form id="withdrawalForm">
+                <div class="form-group">
+                    <label for="withdrawalAmount">المبلغ *</label>
+                    <input type="number" id="withdrawalAmount" name="amount" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="withdrawalProject">المشروع *</label>
+                    <select id="withdrawalProject" name="project_id" required>
+                        <option value="">اختر المشروع</option>
+                        <!-- Projects will be populated here -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="withdrawalDate">التاريخ</label>
+                    <input type="date" id="withdrawalDate" name="date">
+                </div>
+                <div class="form-group">
+                    <label for="withdrawalNotes">ملاحظات</label>
+                    <textarea id="withdrawalNotes" name="notes" rows="3"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">حفظ</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeWithdrawalModal()">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="paymentModalTitle">إضافة دفعة</h2>
+                <span class="close" onclick="closePaymentModal()">&times;</span>
+            </div>
+            <form id="paymentForm">
+                <div class="form-group">
+                    <label for="paymentAmount">المبلغ *</label>
+                    <input type="number" id="paymentAmount" name="amount" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="paymentMethod">طريقة الدفع</label>
+                    <input type="text" id="paymentMethod" name="method" placeholder="نقدي، تحويل بنكي، إلخ">
+                </div>
+                <div class="form-group">
+                    <label for="paymentDetails">التفاصيل</label>
+                    <input type="text" id="paymentDetails" name="details" placeholder="تفاصيل إضافية">
+                </div>
+                <div class="form-group">
+                    <label for="paymentNote">ملاحظات</label>
+                    <textarea id="paymentNote" name="note" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="paymentDate">تاريخ الدفع</label>
+                    <input type="date" id="paymentDate" name="paid_at">
+                </div>
+                <div class="form-group">
+                    <label for="paymentImage">صورة الإيصال</label>
+                    <input type="file" id="paymentImage" accept="image/*">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">حفظ</button>
+                    <button type="button" class="btn btn-secondary" onclick="closePaymentModal()">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/csp-fix.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/administration-details.js"></script>
+</body>
+
+</html>

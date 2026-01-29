@@ -1,0 +1,131 @@
+body {
+  font-family: "Cairo", Arial, sans-serif;
+  background: #f6f8fb;
+}
+
+/* Responsive main content with sidebar */
+.main {
+  margin-right: 225px;
+  padding: 40px 30px 38px 18px;
+  min-height: 100vh;
+  transition: margin-right 0.25s;
+}
+
+@media (max-width: 900px) {
+  .main {
+    margin-right: 190px;
+  }
+}
+
+@media (max-width: 700px) {
+  .main {
+    margin-right: 0;
+    padding: 28px 7px 24px 7px;
+  }
+}
+
+/* Dashboard cards */
+.dashboard-cards {
+  display: grid;
+  gap: 22px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  margin-bottom: 36px;
+}
+
+.dashboard-card {
+  background: #f9fbff;
+  border: 1.7px solid #d3e7ff;
+  box-shadow: 0 8px 24px #23509c10;
+  border-radius: 14px;
+  padding: 26px 15px 22px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 126px;
+  transition:
+    box-shadow 0.13s,
+    border 0.13s;
+  position: relative;
+}
+
+.dashboard-card .card-value {
+  font-size: 2.12rem;
+  color: #247ae0;
+  font-weight: 700;
+  direction: ltr;
+  margin-bottom: 7px;
+}
+
+.dashboard-card .card-label {
+  font-size: 1.105rem;
+  color: #3c5275;
+  font-weight: 500;
+}
+
+.dashboard-card.sales .card-value {
+  color: #2d6e3a;
+}
+
+.dashboard-card.profit .card-value {
+  color: #ba7e18;
+}
+
+.dashboard-card.customers .card-value {
+  color: #2d5397;
+}
+
+.dashboard-card.deliveries .card-value {
+  color: #247ae0;
+}
+
+.dashboard-card.quarries .card-value {
+  color: #285236;
+}
+
+.dashboard-card.contractors .card-value {
+  color: #c0392b;
+}
+
+/* Chart section */
+.dashboard-charts-section {
+  margin-top: 27px;
+}
+
+.charts-title {
+  font-weight: 600;
+  color: #27406b;
+  font-size: 1.22rem;
+  margin-bottom: 18px;
+  margin-top: 0;
+}
+
+.charts-placeholders {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.chart-placeholder {
+  background: #f3f7fa;
+  border: 1.25px solid #dae6f6;
+  min-height: 230px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  color: #a1b3ce;
+  font-size: 1.13rem;
+  font-style: italic;
+}
+
+@media (max-width: 600px) {
+  .dashboard-cards {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .charts-placeholders {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}

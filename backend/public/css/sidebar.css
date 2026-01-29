@@ -1,0 +1,247 @@
+/* Sidebar styles */
+.sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 225px;
+    height: 100vh;
+    background: #1f365c;
+    color: #fff;
+    box-shadow: -2px 0 16px #0001;
+    display: flex;
+    flex-direction: column;
+    z-index: 300;
+    transition: right 0.25s;
+    overflow: hidden; /* Prevent overall sidebar scroll */
+}
+
+.sidebar .app-title {
+    font-size: 1.38rem;
+    font-weight: 700;
+    text-align: center;
+    margin: 23px 0 20px 0;
+    letter-spacing: 1px;
+    flex-shrink: 0; /* Prevent title from shrinking */
+}
+
+/* User section */
+.user-section {
+    background: #1a2f4a;
+    padding: 15px 20px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #2a4a6b;
+    flex-shrink: 0; /* Prevent user section from shrinking */
+}
+
+.user-info {
+    font-size: 0.9rem;
+    color: #b8c5d6;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.logout-btn {
+    width: 100%;
+    padding: 8px 12px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.logout-btn:hover {
+    background: #c82333;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex: 1; /* Take all remaining space */
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0; /* Allow flex item to shrink */
+    /* Add padding at the bottom for better UX */
+    padding-bottom: 20px;
+    /* Modern scrollbar styling */
+    scrollbar-width: thin;
+    scrollbar-color: transparent #2a4a6b;
+    transition: scrollbar-color 0.3s ease;
+}
+
+.sidebar ul:hover {
+    scrollbar-color: rgba(74, 111, 165, 0.6) #2a4a6b;
+}
+
+/* Webkit scrollbar styling for modern browsers */
+.sidebar ul::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar ul::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 3px;
+}
+
+.sidebar ul::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 3px;
+    transition: background 0.3s ease;
+}
+
+.sidebar ul:hover::-webkit-scrollbar-thumb {
+    background: rgba(74, 111, 165, 0.6);
+}
+
+.sidebar ul::-webkit-scrollbar-thumb:hover {
+    background: rgba(74, 111, 165, 0.8);
+}
+
+.sidebar ul::-webkit-scrollbar-thumb:active {
+    background: rgba(58, 95, 149, 0.9);
+}
+
+.sidebar li {
+    margin: 0;
+    padding: 0;
+}
+
+.sidebar li.section-divider {
+    color: #8fa4b8;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 12px 29px 8px 29px;
+    margin-top: 15px;
+    border-top: 1px solid #2a4a6b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sidebar a {
+    display: block;
+    color: #e4e9f6;
+    text-decoration: none;
+    font-size: 1.07rem;
+    padding: 15px 29px;
+    border-right: 4px solid transparent;
+    transition:
+        background 0.13s,
+        color 0.13s,
+        border-color 0.13s;
+    font-weight: 500;
+}
+
+.sidebar a.active,
+.sidebar a:focus {
+    background: #284b71;
+    color: #fff;
+    border-right: 4px solid #3e82dc;
+}
+
+.sidebar a:hover {
+    background: #27406b;
+    color: #f5faff;
+}
+
+/* Sidebar overlay for mobile */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 250;
+}
+
+.sidebar-overlay.active {
+    display: block;
+}
+
+/* Hamburger Button */
+.hamburger {
+    display: none;
+    position: fixed;
+    right: 16px;
+    top: 14px;
+    width: 40px;
+    height: 40px;
+    z-index: 310;
+    background: #1f365c;
+    border-radius: 7px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 7px #18518c17;
+    border: none;
+}
+
+.hamburger span,
+.hamburger span:before,
+.hamburger span:after {
+    display: block;
+    width: 24px;
+    height: 3.3px;
+    background: #fff;
+    border-radius: 2px;
+    position: absolute;
+    transition: all 0.3s;
+}
+
+.hamburger span {
+    position: relative;
+}
+
+.hamburger span:before {
+    content: "";
+    position: absolute;
+    top: -8px;
+}
+
+.hamburger span:after {
+    content: "";
+    position: absolute;
+    top: 8px;
+}
+
+/* Hamburger animation when open */
+.hamburger.open span {
+    background: transparent;
+}
+
+.hamburger.open span:before {
+    transform: rotate(45deg);
+    top: 0;
+}
+
+.hamburger.open span:after {
+    transform: rotate(-45deg);
+    top: 0;
+}
+
+@media (max-width: 900px) {
+    .sidebar {
+        width: 190px;
+    }
+}
+
+@media (max-width: 700px) {
+    .sidebar {
+        right: -210px;
+        width: 180px;
+        box-shadow: none;
+    }
+
+    .sidebar.open {
+        right: 0;
+        box-shadow: -2px 0 14px #0003;
+    }
+
+    .hamburger {
+        display: flex;
+    }
+}

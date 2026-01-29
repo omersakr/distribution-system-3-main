@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>الإدارة</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/modern-theme.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+
+<body>
+    <div id="sidebar-placeholder"></div>
+    
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">إدارة الشركاء والممولين</h1>
+            <button class="btn btn-primary" id="addAdministrationBtn">
+                <span>➕</span> إضافة شريك/ممول جديد
+            </button>
+        </div>
+        
+        <div class="content-section">
+            <div id="administrationContainer" class="contractors-grid"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/csp-fix.js"></script>
+    <script>
+        // Add administration button - using SweetAlert2 like contractors
+        document.getElementById('addAdministrationBtn').addEventListener('click', async function () {
+            const { value: name } = await Swal.fire({ 
+                title: 'اسم الشريك/الممول', 
+                input: 'text', 
+                inputPlaceholder: 'اسم الشريك/الممول؟', 
+                showCancelButton: true 
+            });
+            if (!name) return;
+
+            const { value: type } = await Swal.fire({ 
+                title: 'النوع', 
+                input: 'select',
+                inputOptions: {
+                    'Partner': 'شريك',
+                    'Funder': 'ممول'
+                },
+                inputPlaceholder: 'اختر النوع',
+                showCancelButton: true 
+            });
+            if (!type) return;
+
+            const { value: phone } = await Swal.fire({ 
+                title: 'رقم الهاتف (اختياري)', 
+                input: 'text', 
+                inputPlaceholder: 'رقم الهاتف', 
+                showCancelButton: true 
+            });
+
+            try {
+                await fetch('http://localhost:5000/api/administration', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        name: name.trim(),
+                        type: type,
+                        phone: phone?.trim() || null,
+                        status: 'Active'
+                    })
+                });
+                await Swal.fire({ icon: 'success', title: 'تم', text: 'تم إضافة الشريك/الممول' });
+                window.location.reload();
+            } catch (err) {
+                console.error(err);
+                Swal.fire({ icon: 'error', title: 'خطأ', text: 'تعذر إضافة الشريك/الممول' });
+            }
+        });
+    </script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/administration.js"></script>
+</body>
+
+</html>

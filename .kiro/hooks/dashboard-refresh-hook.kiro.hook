@@ -1,0 +1,18 @@
+{
+  "enabled": true,
+  "name": "Dashboard Auto Refresh",
+  "description": "Automatically refresh dashboard data when delivery files are modified to ensure real-time updates",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "backend/models/Delivery.js",
+      "backend/services/deliveryService.js",
+      "backend/controllers/deliveriesController.js"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The delivery system has been modified. Please remind users to refresh their dashboard or check if the auto-refresh is working properly to see the latest financial calculations."
+  }
+}

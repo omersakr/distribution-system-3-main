@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة المستخدمين - نظام التوزيع</title>
+    <link rel="stylesheet" href="css/modern-theme.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <style>
+        .main-content {
+            margin-right: 225px;
+            padding: var(--space-8);
+            transition: margin-right 0.25s;
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                margin-right: 190px;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .main-content {
+                margin-right: 0;
+                padding: var(--space-4);
+            }
+        }
+
+        .users-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-6);
+            margin-bottom: var(--space-8);
+        }
+
+        .user-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
+        }
+
+        .user-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            margin-bottom: var(--space-4);
+        }
+
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .user-avatar.manager { background: var(--primary-600); }
+        .user-avatar.accountant { background: var(--success-600); }
+        .user-avatar.system_maintenance { background: var(--warning-600); }
+
+        .user-info h3 {
+            margin: 0 0 var(--space-1) 0;
+            color: var(--gray-900);
+        }
+
+        .user-role {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+
+        .user-status {
+            display: inline-block;
+            padding: var(--space-1) var(--space-2);
+            border-radius: var(--radius);
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-top: var(--space-2);
+        }
+
+        .user-status.active {
+            background: var(--success-100);
+            color: var(--success-700);
+        }
+
+        .user-status.inactive {
+            background: var(--danger-100);
+            color: var(--danger-700);
+        }
+
+        .user-actions {
+            display: flex;
+            gap: var(--space-2);
+            margin-top: var(--space-4);
+        }
+
+        .user-actions button {
+            flex: 1;
+            padding: var(--space-2) var(--space-3);
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+        .reset-password-btn {
+            background: var(--warning-600);
+            color: white;
+        }
+
+        .toggle-status-btn {
+            background: var(--primary-600);
+            color: white;
+        }
+
+        .delete-user-btn {
+            background: var(--danger-600);
+            color: white;
+        }
+
+        .add-user-section {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            margin-bottom: var(--space-8);
+            box-shadow: var(--shadow);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-4);
+            margin-bottom: var(--space-4);
+        }
+
+        .loading {
+            text-align: center;
+            padding: var(--space-8);
+            color: var(--gray-500);
+        }
+
+        .error {
+            text-align: center;
+            padding: var(--space-8);
+            color: var(--danger-600);
+            background: var(--danger-50);
+            border-radius: var(--radius);
+            border: 1px solid var(--danger-200);
+        }
+
+        .success-message {
+            background: var(--success-50);
+            color: var(--success-700);
+            padding: var(--space-3);
+            border-radius: var(--radius);
+            border: 1px solid var(--success-200);
+            margin-bottom: var(--space-4);
+            display: none;
+        }
+
+        .error-message {
+            background: var(--danger-50);
+            color: var(--danger-700);
+            padding: var(--space-3);
+            border-radius: var(--radius);
+            border: 1px solid var(--danger-200);
+            margin-bottom: var(--space-4);
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-placeholder"></div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">إدارة المستخدمين</h1>
+            <p class="page-subtitle">إضافة وإدارة مستخدمي النظام</p>
+        </div>
+
+        <div id="successMessage" class="success-message"></div>
+        <div id="errorMessage" class="error-message"></div>
+
+        <div class="add-user-section" data-role="manager,system_maintenance">
+            <h3>إضافة مستخدم جديد</h3>
+            <form id="addUserForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>اسم المستخدم</label>
+                        <input type="text" id="newUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label>كلمة المرور</label>
+                        <input type="password" id="newPassword" required minlength="8">
+                    </div>
+                    <div class="form-group">
+                        <label>الدور</label>
+                        <select id="newRole" required>
+                            <option value="">اختر الدور</option>
+                            <option value="manager">المدير</option>
+                            <option value="accountant">المحاسب</option>
+                            <option value="system_maintenance">صيانة النظام</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">إضافة المستخدم</button>
+            </form>
+        </div>
+
+        <div class="users-section">
+            <h3>المستخدمون الحاليون</h3>
+            <div id="usersGrid" class="users-grid">
+                <div class="loading">جاري تحميل المستخدمين...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script>
+        const API_BASE = (function () {
+            if (window.__API_BASE__) return window.__API_BASE__;
+            try {
+                const origin = window.location.origin;
+                if (!origin || origin === 'null') return 'http://localhost:5000/api';
+                return origin.replace(/\/$/, '') + '/api';
+            } catch (e) {
+                return 'http://localhost:5000/api';
+            }
+        })();
+
+        function getRoleDisplayName(role) {
+            const roleNames = {
+                'manager': 'المدير',
+                'accountant': 'المحاسب',
+                'system_maintenance': 'صيانة النظام'
+            };
+            return roleNames[role] || role;
+        }
+
+        function getUserInitials(username) {
+            return username.charAt(0).toUpperCase();
+        }
+
+        async function loadUsers() {
+            try {
+                const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/users`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                renderUsers(data.users || []);
+
+            } catch (error) {
+                console.error('Error loading users:', error);
+                document.getElementById('usersGrid').innerHTML = 
+                    `<div class="error">خطأ في تحميل المستخدمين: ${error.message}</div>`;
+            }
+        }
+
+        function renderUsers(users) {
+            const container = document.getElementById('usersGrid');
+            
+            if (!users || users.length === 0) {
+                container.innerHTML = '<div class="loading">لا يوجد مستخدمون</div>';
+                return;
+            }
+
+            const canManage = authManager.hasRole(['manager', 'system_maintenance']);
+            
+            container.innerHTML = users.map(user => `
+                <div class="user-card">
+                    <div class="user-header">
+                        <div class="user-avatar ${user.role}">
+                            ${getUserInitials(user.username)}
+                        </div>
+                        <div class="user-info">
+                            <h3>${user.username}</h3>
+                            <div class="user-role">${getRoleDisplayName(user.role)}</div>
+                            <div class="user-status ${user.active ? 'active' : 'inactive'}">
+                                ${user.active ? 'نشط' : 'غير نشط'}
+                            </div>
+                        </div>
+                    </div>
+                    ${canManage ? `
+                        <div class="user-actions">
+                            <button class="reset-password-btn" onclick="resetPassword('${user._id}')">
+                                إعادة تعيين كلمة المرور
+                            </button>
+                            <button class="toggle-status-btn" onclick="toggleUserStatus('${user._id}', ${user.active})">
+                                ${user.active ? 'إلغاء التفعيل' : 'تفعيل'}
+                            </button>
+                            ${user.role !== 'manager' ? `
+                                <button class="delete-user-btn" onclick="deleteUser('${user._id}')">
+                                    حذف
+                                </button>
+                            ` : ''}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        async function addUser(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('newUsername').value.trim();
+            const password = document.getElementById('newPassword').value;
+            const role = document.getElementById('newRole').value;
+
+            if (!username || !password || !role) {
+                showError('يرجى ملء جميع الحقول');
+                return;
+            }
+
+            try {
+                const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/users`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, role })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'فشل في إضافة المستخدم');
+                }
+
+                showSuccess('تم إضافة المستخدم بنجاح');
+                document.getElementById('addUserForm').reset();
+                loadUsers();
+
+            } catch (error) {
+                console.error('Error adding user:', error);
+                showError('خطأ في إضافة المستخدم: ' + error.message);
+            }
+        }
+
+        async function resetPassword(userId) {
+            const newPassword = prompt('أدخل كلمة المرور الجديدة (8 أحرف على الأقل):');
+            if (!newPassword || newPassword.length < 8) {
+                alert('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
+                return;
+            }
+
+            try {
+                const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/users/${userId}/reset-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ newPassword })
+                });
+
+                if (!response.ok) {
+                    throw new Error('فشل في إعادة تعيين كلمة المرور');
+                }
+
+                showSuccess('تم إعادة تعيين كلمة المرور بنجاح');
+
+            } catch (error) {
+                console.error('Error resetting password:', error);
+                showError('خطأ في إعادة تعيين كلمة المرور: ' + error.message);
+            }
+        }
+
+        async function toggleUserStatus(userId, currentStatus) {
+            const action = currentStatus ? 'إلغاء تفعيل' : 'تفعيل';
+            if (!confirm(`هل أنت متأكد من ${action} هذا المستخدم؟`)) {
+                return;
+            }
+
+            try {
+                const endpoint = currentStatus ? 'deactivate' : 'activate';
+                const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/users/${userId}/${endpoint}`, {
+                    method: 'PUT'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`فشل في ${action} المستخدم`);
+                }
+
+                showSuccess(`تم ${action} المستخدم بنجاح`);
+                loadUsers();
+
+            } catch (error) {
+                console.error('Error toggling user status:', error);
+                showError(`خطأ في ${action} المستخدم: ` + error.message);
+            }
+        }
+
+        async function deleteUser(userId) {
+            if (!confirm('هل أنت متأكد من حذف هذا المستخدم؟ لا يمكن التراجع عن هذا الإجراء.')) {
+                return;
+            }
+
+            try {
+                const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/users/${userId}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    throw new Error('فشل في حذف المستخدم');
+                }
+
+                showSuccess('تم حذف المستخدم بنجاح');
+                loadUsers();
+
+            } catch (error) {
+                console.error('Error deleting user:', error);
+                showError('خطأ في حذف المستخدم: ' + error.message);
+            }
+        }
+
+        function showSuccess(message) {
+            const successEl = document.getElementById('successMessage');
+            successEl.textContent = message;
+            successEl.style.display = 'block';
+            document.getElementById('errorMessage').style.display = 'none';
+            setTimeout(() => {
+                successEl.style.display = 'none';
+            }, 5000);
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            if (authManager.checkAuth()) {
+                // Check if user has permission to manage users
+                if (!authManager.hasRole(['manager', 'system_maintenance'])) {
+                    document.body.innerHTML = `
+                        <div style="text-align: center; padding: 50px;">
+                            <h2>ليس لديك صلاحية للوصول إلى هذه الصفحة</h2>
+                            <a href="index.html">العودة إلى لوحة التحكم</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                loadUsers();
+                document.getElementById('addUserForm').addEventListener('submit', addUser);
+            }
+        });
+    </script>
+</body>
+</html>

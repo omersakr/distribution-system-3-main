@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>الموردين</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css?family=Cairo:400,700,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/modern-theme.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+
+<body>
+    <div id="sidebar-placeholder"></div>
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">إدارة الموردين</h1>
+            <button class="btn btn-primary" id="addSupplierBtn">
+                <span>➕</span> إضافة مورد جديد
+            </button>
+        </div>
+        
+        <div class="content-section">
+            <div id="suppliersContainer" class="crushers-grid"></div>
+        </div>
+    </div>
+
+    <!-- Add Supplier Modal -->
+    <div id="addSupplierModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>إضافة مورد جديد</h2>
+                <button class="modal-close" data-action="close-modal" data-target="addSupplierModal">&times;</button>
+            </div>
+            <form id="addSupplierForm">
+                <div class="form-group">
+                    <label for="supplierName">اسم المورد *</label>
+                    <input type="text" id="supplierName" name="name" autocomplete="organization" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="supplierPhone">رقم الهاتف</label>
+                    <input type="tel" id="supplierPhone" name="phone" placeholder="اختياري" autocomplete="tel">
+                </div>
+                
+                <div class="form-section">
+                    <h3>المواد</h3>
+                    <div id="materialsContainer">
+                        <div class="material-item">
+                            <div class="form-group">
+                                <label>اسم المادة</label>
+                                <input type="text" name="material_name" placeholder="اسم المادة" required>
+                            </div>
+                            <div class="form-group">
+                                <label>السعر (جنيه/وحدة)</label>
+                                <input type="number" name="material_price" step="0.01" min="0" placeholder="0.00" required>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-danger" onclick="removeMaterial(this)">حذف</button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="addMaterial()">+ إضافة مادة</button>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" data-action="close-modal" data-target="addSupplierModal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">إضافة المورد</button>
+                </div>
+                <div id="addSupplierMessage"></div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/csp-fix.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/suppliers.js"></script>
+</body>
+
+</html>

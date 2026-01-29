@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>مقاولو العجل</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/modern-theme.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+
+<body>
+    <div id="sidebar-placeholder"></div>
+    
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">إدارة مقاولو العجل</h1>
+            <button class="btn btn-primary" id="addContractorBtn">
+                <span>➕</span> إضافة مقاول جديد
+            </button>
+        </div>
+        
+        <div class="content-section">
+            <div id="contractorsContainer" class="contractors-grid"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/csp-fix.js"></script>
+    <script>
+        // زر إضافة مقاول - استخدام SweetAlert2 بدلاً من prompt/alert
+        document.getElementById('addContractorBtn').addEventListener('click', async function () {
+            const { value: name } = await Swal.fire({ title: 'اسم المقاول', input: 'text', inputPlaceholder: 'اسم المقاول؟', showCancelButton: true });
+            if (!name) return;
+
+            const { value: opening } = await Swal.fire({ title: 'رصيد افتتاحي (اختياري)', input: 'text', inputPlaceholder: '0', inputValue: '0', showCancelButton: true });
+
+            try {
+                await fetch('http://localhost:5000/api/contractors', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, opening_balance: parseFloat(opening) || 0 })
+                });
+                await Swal.fire({ icon: 'success', title: 'تم', text: 'تم إضافة المقاول' });
+                window.location.reload();
+            } catch (err) {
+                console.error(err);
+                Swal.fire({ icon: 'error', title: 'خطأ', text: 'تعذر إضافة المقاول' });
+            }
+        });
+    </script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/contractors.js"></script>
+</body>
+
+</html>

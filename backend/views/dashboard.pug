@@ -1,0 +1,25 @@
+extends ./layout
+include mixins/kpiCard
+
+block content
+  div(class="px-4 md:px-8 py-6 bg-gray-50 min-h-screen")
+
+    h1.text-2xl.font-bold.text-blue-900.mb-8 لوحة التحكم
+
+    div(class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10")
+      +kpiCard('إجمالي العملاء', metrics.totalClients, 'text-blue-700')
+      +kpiCard('إجمالي الكسارات', metrics.totalCrushers, 'text-green-700')
+      +kpiCard('إجمالي مقاولي العجل', metrics.totalContractors, 'text-red-600')
+      +kpiCard('إجمالي التسليمات', metrics.totalDeliveries, 'text-blue-600')
+      +kpiCard('المبيعات الإجمالية', metrics.totalSales, 'text-green-700')
+      +kpiCard('صافي الربح', metrics.netProfit, 'text-yellow-600')
+
+    div.mt-10
+      h2.text-lg.font-semibold.text-blue-900.mb-4 إحصائيات بيانية
+
+      div(class="grid grid-cols-1 md:grid-cols-2 gap-6")
+        .bg-white.border.border-gray-200.rounded-xl.h-56.flex.items-center.justify-center.text-gray-400.italic
+          | مبيعات حسب العميل (قريباً)
+
+        .bg-white.border.border-gray-200.rounded-xl.h-56.flex.items-center.justify-center.text-gray-400.italic
+          | مبيعات حسب الكسارة (قريباً)
