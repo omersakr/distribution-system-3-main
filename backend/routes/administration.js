@@ -11,6 +11,10 @@ const router = express.Router();
 // Get all administration entities
 router.get('/', administrationController.getAllAdministration);
 
+// Global routes for getting all withdrawals and capital injections
+router.get('/withdrawals', administrationController.getAllWithdrawals);
+router.get('/capital-injections', administrationController.getAllCapitalInjections);
+
 // Get administration by ID with detailed information and related data
 router.get('/:id', administrationController.getAdministrationById);
 

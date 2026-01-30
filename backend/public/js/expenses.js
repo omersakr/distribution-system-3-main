@@ -18,16 +18,24 @@ let projectsData = [];
 // Load projects for dropdown
 async function loadProjects() {
     try {
-        const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/projects`);
+        console.log('Loading projects from:', `${API_BASE}/clients`);
+        const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/clients`);
         if (!response.ok) {
             throw new Error('فشل في تحميل المشاريع');
         }
 
         const data = await response.json();
-        projectsData = data.projects || data.data || [];
+        console.log('Projects data received:', data);
+
+        // Handle different response formats
+        projectsData = data.clients || data.data || data || [];
+        console.log('Processed projects data:', projectsData);
+
         populateProjectDropdowns();
     } catch (error) {
         console.error('Error loading projects:', error);
+        // Show user-friendly message
+        showMessage('expenseMessage', 'تعذر تحميل قائمة المشاريع. يرجى المحاولة مرة أخرى.', 'error');
     }
 }
 
@@ -38,14 +46,18 @@ function populateProjectDropdowns() {
         const select = document.getElementById(selectId);
         if (!select) return;
 
-        select.innerHTML = '<option value="">اختر المشروع</option>';
+        select.innerHTML = '<option value="">اختر المشروع (اختياري)</option>';
 
-        projectsData.forEach(project => {
-            const option = document.createElement('option');
-            option.value = project.id;
-            option.textContent = project.name;
-            select.appendChild(option);
-        });
+        if (projectsData && projectsData.length > 0) {
+            projectsData.forEach(project => {
+                const option = document.createElement('option');
+                option.value = project.id || project._id;
+                option.textContent = project.name || project.client_name || `مشروع ${project.id}`;
+                select.appendChild(option);
+            });
+        } else {
+            console.warn('No projects data available');
+        }
     });
 }
 
@@ -106,14 +118,16 @@ async function loadExpenses(page = 1, filters = {}) {
             }
         });
 
+        console.log('Loading expenses with params:', params.toString());
         const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/expenses?${params}`);
         if (!response.ok) {
             throw new Error('فشل في تحميل المصروفات');
         }
 
         const data = await response.json();
+        console.log('Expenses data received:', data);
 
-        // Store categories for dropdowns
+        // Store categories for dropdowns if available
         if (data.categories) {
             expenseCategories = data.categories;
             populateCategories();
@@ -129,6 +143,7 @@ async function loadExpenses(page = 1, filters = {}) {
             <div class="error">
                 <h3>خطأ في تحميل المصروفات</h3>
                 <p>${error.message}</p>
+                <button class="btn btn-primary" onclick="loadExpenses()">إعادة المحاولة</button>
             </div>
         `;
     }
@@ -230,6 +245,7 @@ function renderExpenses(expenses) {
             <div class="empty-state">
                 <div class="empty-icon">💰</div>
                 <div>لا توجد مصروفات مسجلة</div>
+                <button class="btn btn-primary" onclick="document.getElementById('addExpenseBtn').click()">إضافة أول مصروف</button>
             </div>
         `;
         return;
@@ -241,7 +257,7 @@ function renderExpenses(expenses) {
     // Header
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
-    const headers = ['التاريخ', 'الوصف', 'المبلغ', 'ملاحظات', 'الإجراءات'];
+    const headers = ['التاريخ', 'المشروع', 'الوصف', 'المبلغ', 'ملاحظات', 'الإجراءات'];
 
     headers.forEach(header => {
         const th = document.createElement('th');
@@ -260,6 +276,17 @@ function renderExpenses(expenses) {
         const dateCell = document.createElement('td');
         dateCell.textContent = formatDate(expense.expense_date);
         row.appendChild(dateCell);
+
+        // Project
+        const projectCell = document.createElement('td');
+        if (expense.project_id) {
+            const project = projectsData.find(p => (p.id || p._id) === expense.project_id);
+            projectCell.textContent = project ? (project.name || project.client_name) : 'مشروع محذوف';
+        } else {
+            projectCell.textContent = 'غير محدد';
+            projectCell.className = 'text-muted';
+        }
+        row.appendChild(projectCell);
 
         // Description
         const descCell = document.createElement('td');
@@ -408,13 +435,16 @@ function setupEventHandlers() {
     document.getElementById('expenseForm').addEventListener('submit', async (e) => {
         e.preventDefault();
 
+        const projectValue = document.getElementById('expenseProject').value;
         const expenseData = {
-            project_id: document.getElementById('expenseProject').value,
+            project_id: projectValue || null, // Allow null for no project
             expense_date: document.getElementById('expenseDate').value,
             description: document.getElementById('expenseDescription').value,
             amount: document.getElementById('expenseAmount').value,
             notes: document.getElementById('expenseNotes').value
         };
+
+        console.log('Submitting expense data:', expenseData);
 
         try {
             await addExpense(expenseData);
@@ -429,6 +459,7 @@ function setupEventHandlers() {
                 loadExpenseStats();
             }, 1000);
         } catch (error) {
+            console.error('Error adding expense:', error);
             showMessage('expenseMessage', error.message, 'error');
         }
     });
@@ -438,13 +469,16 @@ function setupEventHandlers() {
         e.preventDefault();
 
         const id = document.getElementById('editExpenseId').value;
+        const projectValue = document.getElementById('editExpenseProject').value;
         const expenseData = {
-            project_id: document.getElementById('editExpenseProject').value,
+            project_id: projectValue || null, // Allow null for no project
             expense_date: document.getElementById('editExpenseDate').value,
             description: document.getElementById('editExpenseDescription').value,
             amount: document.getElementById('editExpenseAmount').value,
             notes: document.getElementById('editExpenseNotes').value
         };
+
+        console.log('Updating expense data:', expenseData);
 
         try {
             await updateExpense(id, expenseData);
@@ -456,6 +490,7 @@ function setupEventHandlers() {
                 loadExpenseStats();
             }, 1000);
         } catch (error) {
+            console.error('Error updating expense:', error);
             showMessage('editExpenseMessage', error.message, 'error');
         }
     });
@@ -496,16 +531,33 @@ function setupEventHandlers() {
 }
 
 // Initialize
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('Expenses page initializing...');
+
     // Check authentication first
     if (!authManager.checkAuth()) {
+        console.log('Authentication failed, redirecting...');
         return;
     }
 
-    setupEventHandlers();
-    loadProjects();
-    loadExpenses();
-    loadExpenseStats();
+    console.log('Authentication successful, setting up page...');
+
+    try {
+        setupEventHandlers();
+        console.log('Event handlers set up');
+
+        // Load data in parallel
+        await Promise.all([
+            loadProjects(),
+            loadExpenses(),
+            loadExpenseStats()
+        ]);
+
+        console.log('All data loaded successfully');
+    } catch (error) {
+        console.error('Error during initialization:', error);
+        showMessage('expenseMessage', 'حدث خطأ أثناء تحميل الصفحة. يرجى إعادة تحميل الصفحة.', 'error');
+    }
 });
 
 // Make closeModal available globally for onclick handlers

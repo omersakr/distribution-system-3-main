@@ -13,7 +13,7 @@ class EmployeeService {
                 try {
                     const balanceData = await PayrollService.calculateEmployeeBalance(employee._id);
                     const attendanceCount = await Attendance.countDocuments({ employee_id: employee._id });
-                    
+
                     return {
                         id: employee._id,
                         name: employee.name,
@@ -24,6 +24,8 @@ class EmployeeService {
                         end_working_date: employee.end_working_date,
                         status: employee.status,
                         notes: employee.notes,
+                        all_projects: employee.all_projects,
+                        assigned_projects: employee.assigned_projects,
                         created_at: employee.created_at,
                         // Payroll calculations
                         balance: balanceData.balance,
@@ -47,6 +49,8 @@ class EmployeeService {
                         end_working_date: employee.end_working_date,
                         status: employee.status,
                         notes: employee.notes,
+                        all_projects: employee.all_projects,
+                        assigned_projects: employee.assigned_projects,
                         created_at: employee.created_at,
                         balance: 0,
                         balance_status: 'error',
@@ -98,6 +102,8 @@ class EmployeeService {
                 end_working_date: employee.end_working_date,
                 status: employee.status,
                 notes: employee.notes,
+                all_projects: employee.all_projects,
+                assigned_projects: employee.assigned_projects,
                 created_at: employee.created_at
             },
             payments: payments.map(p => ({
@@ -149,7 +155,12 @@ class EmployeeService {
     static async createEmployee(data) {
         // Remove opening_balance if provided (not used in new system)
         const { opening_balance, ...employeeData } = data;
-        
+
+        // Handle project assignments
+        if (employeeData.all_projects) {
+            employeeData.assigned_projects = []; // Clear specific assignments if all projects is selected
+        }
+
         const employee = new Employee(employeeData);
         await employee.save();
         return {
@@ -162,6 +173,8 @@ class EmployeeService {
             end_working_date: employee.end_working_date,
             status: employee.status,
             notes: employee.notes,
+            all_projects: employee.all_projects,
+            assigned_projects: employee.assigned_projects,
             created_at: employee.created_at
         };
     }
@@ -169,7 +182,12 @@ class EmployeeService {
     static async updateEmployee(id, data) {
         // Remove opening_balance if provided (not used in new system)
         const { opening_balance, ...updateData } = data;
-        
+
+        // Handle project assignments
+        if (updateData.all_projects) {
+            updateData.assigned_projects = []; // Clear specific assignments if all projects is selected
+        }
+
         const employee = await Employee.findByIdAndUpdate(id, updateData, { new: true });
         if (!employee) return null;
 
@@ -183,6 +201,8 @@ class EmployeeService {
             end_working_date: employee.end_working_date,
             status: employee.status,
             notes: employee.notes,
+            all_projects: employee.all_projects,
+            assigned_projects: employee.assigned_projects,
             created_at: employee.created_at
         };
     }
@@ -233,7 +253,7 @@ class EmployeeService {
         try {
             // Validate using payroll service
             const validatedData = PayrollService.validateAttendanceRecordForSaving(attendanceData);
-            
+
             const attendance = new Attendance({
                 employee_id: employeeId,
                 ...validatedData
@@ -250,7 +270,7 @@ class EmployeeService {
         try {
             // Validate using payroll service
             const validatedData = PayrollService.validateAttendanceRecordForSaving(attendanceData);
-            
+
             const attendance = await Attendance.findOneAndUpdate(
                 { _id: attendanceId, employee_id: employeeId },
                 validatedData,

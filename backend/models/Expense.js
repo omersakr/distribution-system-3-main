@@ -21,8 +21,19 @@ const expenseSchema = new mongoose.Schema({
     },
     project_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Project',
-        required: true
+        ref: 'Client', // Reference to Client as projects are mapped to clients
+        required: false // Make it optional for backward compatibility
+    },
+    // Legacy fields for backward compatibility
+    method: {
+        type: String
+    },
+    details: {
+        type: String
+    },
+    is_deleted: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },

@@ -262,6 +262,43 @@ class AdministrationService {
         });
         return withdrawal;
     }
+
+    // Global methods to get all withdrawals and capital injections
+    static async getAllWithdrawals() {
+        const withdrawals = await Withdrawal.find()
+            .populate('administration_id', 'name')
+            .populate('project_id', 'name')
+            .sort({ date: -1 });
+
+        return withdrawals.map(w => ({
+            id: w._id,
+            amount: w.amount,
+            administration_name: w.administration_id?.name || 'إدارة محذوفة',
+            project_name: w.project_id?.name || 'مشروع محذوف',
+            project_id: w.project_id?._id,
+            date: w.date,
+            notes: w.notes,
+            created_at: w.created_at
+        }));
+    }
+
+    static async getAllCapitalInjections() {
+        const capitalInjections = await CapitalInjection.find()
+            .populate('administration_id', 'name')
+            .populate('project_id', 'name')
+            .sort({ date: -1 });
+
+        return capitalInjections.map(c => ({
+            id: c._id,
+            amount: c.amount,
+            administration_name: c.administration_id?.name || 'إدارة محذوفة',
+            project_name: c.project_id?.name || 'مشروع محذوف',
+            project_id: c.project_id?._id,
+            date: c.date,
+            notes: c.notes,
+            created_at: c.created_at
+        }));
+    }
 }
 
 module.exports = AdministrationService;

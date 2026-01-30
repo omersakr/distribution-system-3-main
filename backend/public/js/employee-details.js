@@ -44,7 +44,7 @@ function formatDateTime(dateString) {
 async function loadEmployeeDetails() {
     const urlParams = new URLSearchParams(window.location.search);
     currentEmployeeId = urlParams.get('id');
-    
+
     if (!currentEmployeeId) {
         Swal.fire({
             icon: 'error',
@@ -55,20 +55,20 @@ async function loadEmployeeDetails() {
         });
         return;
     }
-    
+
     try {
         const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/employees/${currentEmployeeId}`);
         if (!response.ok) throw new Error('فشل في تحميل بيانات الموظف');
-        
+
         const data = await response.json();
         currentEmployee = data.employee;
-        
+
         displayEmployeeInfo(data.employee);
         displayFinancialSummary(data.totals);
         displayAttendance(data.attendance);
         displayAdjustments(data.adjustments);
         displayPayments(data.payments);
-        
+
     } catch (error) {
         console.error('Error loading employee details:', error);
         Swal.fire({
@@ -81,7 +81,7 @@ async function loadEmployeeDetails() {
 
 function displayEmployeeInfo(employee) {
     document.getElementById('employeeName').textContent = `تفاصيل الموظف: ${employee.name}`;
-    
+
     // Get assigned projects display text
     let assignedProjectsText = '—';
     if (employee.all_projects) {
@@ -94,7 +94,7 @@ function displayEmployeeInfo(employee) {
         });
         assignedProjectsText = assignedClientNames.join(', ');
     }
-    
+
     const infoContainer = document.getElementById('employeeInfo');
     infoContainer.innerHTML = `
         <div class="info-item">
@@ -146,10 +146,10 @@ function displayFinancialSummary(totals) {
     const totalAdjustments = totals.total_adjustments || 0;
     const totalWorkedDays = totals.total_worked_days || 0;
     const attendanceRecordsCount = totals.attendance_records_count || 0;
-    
+
     // Always show the actual data, but handle balance display based on earned salary
     let balanceDisplay, balanceLabel;
-    
+
     if (earnedSalary === 0) {
         // When no earned salary, show neutral balance
         balanceDisplay = formatCurrency(0);
@@ -167,7 +167,7 @@ function displayFinancialSummary(totals) {
             balanceLabel = 'متوازن';
         }
     }
-    
+
     summaryContainer.innerHTML = `
         <div class="summary-item">
             <div class="summary-value balance-${balance >= 0 ? 'neutral' : 'negative'}">
@@ -200,7 +200,7 @@ function displayFinancialSummary(totals) {
 
 function displayAttendance(attendance) {
     const tbody = document.getElementById('attendanceTableBody');
-    
+
     if (!attendance || attendance.length === 0) {
         tbody.innerHTML = `
             <tr>
@@ -209,16 +209,16 @@ function displayAttendance(attendance) {
         `;
         return;
     }
-    
+
     tbody.innerHTML = attendance.map(record => {
         // Extract month and year from period_start
         const startDate = new Date(record.period_start);
-        const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 
-                           'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+        const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+            'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
         const monthName = monthNames[startDate.getMonth()];
         const year = startDate.getFullYear();
         const absenceDays = record.period_days - record.worked_days;
-        
+
         return `
             <tr>
                 <td>${monthName}</td>
@@ -239,7 +239,7 @@ function displayAttendance(attendance) {
 
 function displayAdjustments(adjustments) {
     const tbody = document.getElementById('adjustmentsTableBody');
-    
+
     if (!adjustments || adjustments.length === 0) {
         tbody.innerHTML = `
             <tr>
@@ -248,28 +248,36 @@ function displayAdjustments(adjustments) {
         `;
         return;
     }
-    
-    tbody.innerHTML = adjustments.map(adjustment => `
-        <tr>
-            <td class="amount-${adjustment.amount >= 0 ? 'positive' : 'negative'}">
-                ${formatCurrency(Math.abs(adjustment.amount))}
-                ${adjustment.amount >= 0 ? '(إضافة)' : '(خصم)'}
-            </td>
-            <td>${adjustment.method || '—'}</td>
-            <td>${adjustment.details || '—'}</td>
-            <td>${adjustment.reason || '—'}</td>
-            <td>${formatDateTime(adjustment.created_at)}</td>
-            <td>
-                <button class="btn btn-sm btn-secondary" onclick="editAdjustment('${adjustment.id}')">تعديل</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteAdjustment('${adjustment.id}')">حذف</button>
-            </td>
-        </tr>
-    `).join('');
+
+    tbody.innerHTML = adjustments.map(adjustment => {
+        const amount = parseFloat(adjustment.amount) || 0;
+        const isPositive = amount >= 0;
+        const displayAmount = Math.abs(amount);
+        const amountClass = isPositive ? 'amount-positive' : 'amount-negative';
+        const amountLabel = isPositive ? '(إضافة)' : '(خصم)';
+
+        return `
+            <tr>
+                <td class="${amountClass}">
+                    ${formatCurrency(displayAmount)}
+                    ${amountLabel}
+                </td>
+                <td>${adjustment.method || '—'}</td>
+                <td>${adjustment.details || '—'}</td>
+                <td>${adjustment.reason || '—'}</td>
+                <td>${formatDateTime(adjustment.created_at)}</td>
+                <td>
+                    <button class="btn btn-sm btn-secondary" onclick="editAdjustment('${adjustment.id}')">تعديل</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteAdjustment('${adjustment.id}')">حذف</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
 function displayPayments(payments) {
     const tbody = document.getElementById('paymentsTableBody');
-    
+
     if (!payments || payments.length === 0) {
         tbody.innerHTML = `
             <tr>
@@ -278,7 +286,7 @@ function displayPayments(payments) {
         `;
         return;
     }
-    
+
     tbody.innerHTML = payments.map(payment => `
         <tr>
             <td>${formatCurrency(payment.amount)}</td>
@@ -302,13 +310,13 @@ function closeAttendanceModal() {
     document.getElementById('attendanceForm').reset();
     delete document.getElementById('attendanceForm').dataset.attendanceId;
     document.getElementById('attendanceModalTitle').textContent = 'إضافة سجل شهري';
-    
+
     // Reset radio selection and hide input groups
     document.getElementById('attendanceDaysGroup').style.display = 'none';
     document.getElementById('absenceDaysGroup').style.display = 'none';
     document.getElementById('attendanceDays').required = false;
     document.getElementById('absenceDays').required = false;
-    
+
     // Set default year to current year
     document.getElementById('attendanceYear').value = new Date().getFullYear();
 }
@@ -332,15 +340,15 @@ function closePaymentModal() {
 // Attendance CRUD
 async function handleAttendanceSubmit(event) {
     event.preventDefault();
-    
+
     const form = event.target;
     const formData = new FormData(form);
     const attendanceData = Object.fromEntries(formData.entries());
-    
+
     // Convert month/year to period dates
     const month = parseInt(attendanceData.month);
     const year = parseInt(attendanceData.year);
-    
+
     if (!month || !year) {
         Swal.fire({
             icon: 'error',
@@ -349,18 +357,18 @@ async function handleAttendanceSubmit(event) {
         });
         return;
     }
-    
+
     // Calculate first and last day of the month
     const periodStart = new Date(year, month - 1, 1);
     const periodEnd = new Date(year, month, 0); // Last day of the month
     const periodDays = periodEnd.getDate();
-    
+
     // Validate days don't exceed month days
     const recordType = attendanceData.record_type;
-    const daysValue = recordType === 'attendance' ? 
-        parseInt(attendanceData.attendance_days) : 
+    const daysValue = recordType === 'attendance' ?
+        parseInt(attendanceData.attendance_days) :
         parseInt(attendanceData.absence_days);
-    
+
     if (daysValue > periodDays) {
         Swal.fire({
             icon: 'error',
@@ -369,7 +377,7 @@ async function handleAttendanceSubmit(event) {
         });
         return;
     }
-    
+
     // Prepare data for API
     const apiData = {
         period_start: periodStart.toISOString().split('T')[0],
@@ -377,39 +385,39 @@ async function handleAttendanceSubmit(event) {
         record_type: recordType,
         notes: attendanceData.notes
     };
-    
+
     if (recordType === 'attendance') {
         apiData.attendance_days = parseInt(attendanceData.attendance_days);
     } else {
         apiData.absence_days = parseInt(attendanceData.absence_days);
     }
-    
+
     const attendanceId = form.dataset.attendanceId;
     const isEdit = !!attendanceId;
-    
+
     try {
-        const url = isEdit 
+        const url = isEdit
             ? `${API_BASE}/employees/${currentEmployeeId}/attendance/${attendanceId}`
             : `${API_BASE}/employees/${currentEmployeeId}/attendance`;
         const method = isEdit ? 'PUT' : 'POST';
-        
+
         const response = await authManager.makeAuthenticatedRequest(url, {
             method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(apiData)
         });
-        
+
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.message || 'فشل في حفظ سجل الحضور');
         }
-        
+
         await Swal.fire({
             icon: 'success',
             title: 'تم الحفظ',
             text: isEdit ? 'تم تحديث سجل الحضور بنجاح' : 'تم إضافة سجل الحضور بنجاح'
         });
-        
+
         closeAttendanceModal();
         loadEmployeeDetails();
     } catch (error) {
@@ -463,7 +471,7 @@ async function deleteAttendance(attendanceId) {
 function editAttendance(attendanceId) {
     // Find the attendance record from the loaded data
     let attendanceRecord = null;
-    
+
     // Look in the attendance table rows to get the data
     const tableRows = document.querySelectorAll('#attendanceTableBody tr');
     for (let row of tableRows) {
@@ -477,12 +485,12 @@ function editAttendance(attendanceId) {
             const absenceDays = parseInt(cells[4].textContent);
             const recordType = cells[5].textContent === 'حضور' ? 'attendance' : 'absence';
             const notes = cells[6].textContent === '—' ? '' : cells[6].textContent;
-            
+
             // Convert month name to number
-            const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 
-                               'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+            const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+                'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
             const monthNumber = monthNames.indexOf(monthName) + 1;
-            
+
             attendanceRecord = {
                 id: attendanceId,
                 month: monthNumber,
@@ -496,20 +504,20 @@ function editAttendance(attendanceId) {
             break;
         }
     }
-    
+
     if (!attendanceRecord) {
         console.error('Attendance record not found:', attendanceId);
         return;
     }
-    
+
     // Set modal title
     document.getElementById('attendanceModalTitle').textContent = 'تعديل سجل الحضور';
-    
+
     // Fill form with existing data
     document.getElementById('attendanceMonth').value = attendanceRecord.month;
     document.getElementById('attendanceYear').value = attendanceRecord.year;
     document.getElementById('attendanceNotes').value = attendanceRecord.notes || '';
-    
+
     // Set record type and show appropriate field
     if (attendanceRecord.record_type === 'absence') {
         document.getElementById('recordTypeAbsence').checked = true;
@@ -526,10 +534,10 @@ function editAttendance(attendanceId) {
         document.getElementById('attendanceDays').required = true;
         document.getElementById('absenceDays').required = false;
     }
-    
+
     // Store attendance ID for update
     document.getElementById('attendanceForm').dataset.attendanceId = attendanceId;
-    
+
     // Show modal
     document.getElementById('attendanceModal').style.display = 'block';
 }
@@ -537,37 +545,42 @@ function editAttendance(attendanceId) {
 // Adjustment CRUD
 async function handleAdjustmentSubmit(event) {
     event.preventDefault();
-    
+
     const form = event.target;
     const formData = new FormData(form);
     const adjustmentData = Object.fromEntries(formData.entries());
-    
+
+    // Ensure amount is properly converted to number
+    adjustmentData.amount = parseFloat(adjustmentData.amount) || 0;
+
+    console.log('Submitting adjustment data:', adjustmentData);
+
     const adjustmentId = form.dataset.adjustmentId;
     const isEdit = !!adjustmentId;
-    
+
     try {
-        const url = isEdit 
+        const url = isEdit
             ? `${API_BASE}/employees/${currentEmployeeId}/adjustments/${adjustmentId}`
             : `${API_BASE}/employees/${currentEmployeeId}/adjustments`;
         const method = isEdit ? 'PUT' : 'POST';
-        
+
         const response = await authManager.makeAuthenticatedRequest(url, {
             method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(adjustmentData)
         });
-        
+
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.message || 'فشل في حفظ التسوية');
         }
-        
+
         await Swal.fire({
             icon: 'success',
             title: 'تم الحفظ',
             text: isEdit ? 'تم تحديث التسوية بنجاح' : 'تم إضافة التسوية بنجاح'
         });
-        
+
         closeAdjustmentModal();
         loadEmployeeDetails();
     } catch (error) {
@@ -621,19 +634,41 @@ async function deleteAdjustment(adjustmentId) {
 function editAdjustment(adjustmentId) {
     // Find the adjustment record from the table
     let adjustmentRecord = null;
-    
+
     const tableRows = document.querySelectorAll('#adjustmentsTableBody tr');
     for (let row of tableRows) {
         const editButton = row.querySelector(`button[onclick="editAdjustment('${adjustmentId}')"]`);
         if (editButton) {
             const cells = row.querySelectorAll('td');
             const amountText = cells[0].textContent;
-            const isPositive = amountText.includes('(إضافة)');
-            const amountValue = amountText.replace(/[^\d.-]/g, '');
-            
+            const isAddition = amountText.includes('(إضافة)');
+            const isDeduction = amountText.includes('(خصم)');
+
+            // Extract numeric value
+            const numericValue = amountText.replace(/[^\d.-]/g, '').replace(/[,٬]/g, '');
+            const absoluteAmount = parseFloat(numericValue) || 0;
+
+            // Determine the actual amount based on the display text
+            let actualAmount;
+            if (isAddition) {
+                actualAmount = absoluteAmount; // Positive for additions
+            } else if (isDeduction) {
+                actualAmount = -absoluteAmount; // Negative for deductions
+            } else {
+                // Fallback: try to determine from the CSS class
+                const amountCell = cells[0];
+                if (amountCell.classList.contains('amount-positive')) {
+                    actualAmount = absoluteAmount;
+                } else if (amountCell.classList.contains('amount-negative')) {
+                    actualAmount = -absoluteAmount;
+                } else {
+                    actualAmount = absoluteAmount; // Default to positive
+                }
+            }
+
             adjustmentRecord = {
                 id: adjustmentId,
-                amount: isPositive ? parseFloat(amountValue) : -parseFloat(amountValue),
+                amount: actualAmount,
                 method: cells[1].textContent === '—' ? '' : cells[1].textContent,
                 details: cells[2].textContent === '—' ? '' : cells[2].textContent,
                 reason: cells[3].textContent === '—' ? '' : cells[3].textContent
@@ -641,25 +676,24 @@ function editAdjustment(adjustmentId) {
             break;
         }
     }
-    
+
     if (!adjustmentRecord) {
         console.error('Adjustment record not found:', adjustmentId);
         return;
     }
-    
+
     // Set modal title
     document.getElementById('adjustmentModalTitle').textContent = 'تعديل التسوية';
-    
-    // Fill form with existing data
-    document.getElementById('adjustmentAmount').value = Math.abs(adjustmentRecord.amount);
-    document.getElementById('adjustmentType').value = adjustmentRecord.amount >= 0 ? 'bonus' : 'deduction';
+
+    // Fill form with existing data - use the actual amount (positive or negative)
+    document.getElementById('adjustmentAmount').value = adjustmentRecord.amount;
     document.getElementById('adjustmentMethod').value = adjustmentRecord.method || '';
     document.getElementById('adjustmentDetails').value = adjustmentRecord.details || '';
     document.getElementById('adjustmentReason').value = adjustmentRecord.reason || '';
-    
+
     // Store adjustment ID for update
     document.getElementById('adjustmentForm').dataset.adjustmentId = adjustmentId;
-    
+
     // Show modal
     document.getElementById('adjustmentModal').style.display = 'block';
 }
@@ -667,16 +701,16 @@ function editAdjustment(adjustmentId) {
 // Payment CRUD
 async function handlePaymentSubmit(event) {
     event.preventDefault();
-    
+
     const form = event.target;
     const formData = new FormData(form);
     const paymentData = Object.fromEntries(formData.entries());
-    
+
     // Handle image upload
     const imageFile = document.getElementById('paymentImage').files[0];
     if (imageFile) {
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function (e) {
             paymentData.payment_image = e.target.result;
             submitPayment(paymentData, form.dataset.paymentId);
         };
@@ -688,30 +722,30 @@ async function handlePaymentSubmit(event) {
 
 async function submitPayment(paymentData, paymentId) {
     const isEdit = !!paymentId;
-    
+
     try {
-        const url = isEdit 
+        const url = isEdit
             ? `${API_BASE}/employees/${currentEmployeeId}/payments/${paymentId}`
             : `${API_BASE}/employees/${currentEmployeeId}/payments`;
         const method = isEdit ? 'PUT' : 'POST';
-        
+
         const response = await authManager.makeAuthenticatedRequest(url, {
             method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(paymentData)
         });
-        
+
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.message || 'فشل في حفظ الدفعة');
         }
-        
+
         await Swal.fire({
             icon: 'success',
             title: 'تم الحفظ',
             text: isEdit ? 'تم تحديث الدفعة بنجاح' : 'تم إضافة الدفعة بنجاح'
         });
-        
+
         closePaymentModal();
         loadEmployeeDetails();
     } catch (error) {
@@ -765,14 +799,14 @@ async function deletePayment(paymentId) {
 function editPayment(paymentId) {
     // Find the payment record from the table
     let paymentRecord = null;
-    
+
     const tableRows = document.querySelectorAll('#paymentsTableBody tr');
     for (let row of tableRows) {
         const editButton = row.querySelector(`button[onclick="editPayment('${paymentId}')"]`);
         if (editButton) {
             const cells = row.querySelectorAll('td');
             const amountText = cells[0].textContent.replace(/[^\d.-]/g, '');
-            
+
             paymentRecord = {
                 id: paymentId,
                 amount: parseFloat(amountText),
@@ -784,32 +818,32 @@ function editPayment(paymentId) {
             break;
         }
     }
-    
+
     if (!paymentRecord) {
         console.error('Payment record not found:', paymentId);
         return;
     }
-    
+
     // Set modal title
     document.getElementById('paymentModalTitle').textContent = 'تعديل الدفعة';
-    
+
     // Convert Arabic date to ISO format for input
     function parseArabicDate(arabicDate) {
         // Handle different date formats
         if (!arabicDate || arabicDate === '—') return '';
-        
+
         // If already in ISO format, return as is
         if (arabicDate.match(/^\d{4}-\d{2}-\d{2}/)) {
             return arabicDate.split('T')[0];
         }
-        
+
         // Try to parse Arabic numerals and format
         try {
             // Convert Arabic numerals to English
             const englishDate = arabicDate
                 .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
                 .replace(/[‏]/g, ''); // Remove RTL marks
-            
+
             // Parse different formats: DD/MM/YYYY or D/M/YYYY
             const parts = englishDate.split('/');
             if (parts.length === 3) {
@@ -821,20 +855,20 @@ function editPayment(paymentId) {
         } catch (e) {
             console.warn('Could not parse Arabic date:', arabicDate);
         }
-        
+
         return '';
     }
-    
+
     // Fill form with existing data
     document.getElementById('paymentAmount').value = paymentRecord.amount;
     document.getElementById('paymentMethod').value = paymentRecord.method || '';
     document.getElementById('paymentDetails').value = paymentRecord.details || '';
     document.getElementById('paymentNote').value = paymentRecord.note || '';
-    document.getElementById('paymentDate').value = parseArabicDate(paymentRecord.paid_at);
-    
+    document.getElementById('paidAt').value = parseArabicDate(paymentRecord.paid_at);
+
     // Store payment ID for update
     document.getElementById('paymentForm').dataset.paymentId = paymentId;
-    
+
     // Show modal
     document.getElementById('paymentModal').style.display = 'block';
 }
@@ -875,12 +909,12 @@ function populateProjectsList() {
     clientsData.forEach(client => {
         const label = document.createElement('label');
         label.className = 'checkbox-label';
-        
+
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.name = 'assigned_projects';
         checkbox.value = client.id;
-        
+
         label.appendChild(checkbox);
         label.appendChild(document.createTextNode(client.name));
         projectsList.appendChild(label);
@@ -891,31 +925,31 @@ function populateProjectsList() {
 
 function openEditEmployeeModal() {
     if (!currentEmployee) return;
-    
+
     // Fill form with current employee data
     document.getElementById('editEmployeeName').value = currentEmployee.name || '';
     document.getElementById('editJobTitle').value = currentEmployee.job_title || '';
     document.getElementById('editPhoneNumber').value = currentEmployee.phone_number || '';
-    document.getElementById('editBaseSalary').value = currentEmployee.basic_salary || currentEmployee.base_salary || '';
+    document.getElementById('editBasicSalary').value = currentEmployee.basic_salary || currentEmployee.base_salary || '';
     document.getElementById('editStartWorkingDate').value = currentEmployee.start_working_date ? currentEmployee.start_working_date.split('T')[0] : '';
     document.getElementById('editStatus').value = currentEmployee.status || 'Active';
     document.getElementById('editNotes').value = currentEmployee.notes || '';
-    
+
     // Handle project assignment
     const allProjectsCheckbox = document.getElementById('editAllProjects');
     const projectsList = document.getElementById('editProjectsList');
-    
+
     if (currentEmployee.all_projects) {
         allProjectsCheckbox.checked = true;
         projectsList.style.display = 'none';
     } else {
         allProjectsCheckbox.checked = false;
         projectsList.style.display = 'block';
-        
+
         // Clear all project checkboxes first
         const projectCheckboxes = projectsList.querySelectorAll('input[name="assigned_projects"]');
         projectCheckboxes.forEach(cb => cb.checked = false);
-        
+
         // Check assigned projects
         if (currentEmployee.assigned_projects && Array.isArray(currentEmployee.assigned_projects)) {
             currentEmployee.assigned_projects.forEach(projectId => {
@@ -924,7 +958,7 @@ function openEditEmployeeModal() {
             });
         }
     }
-    
+
     // Show modal
     document.getElementById('editEmployeeModal').style.display = 'block';
 }
@@ -932,7 +966,7 @@ function openEditEmployeeModal() {
 function closeEditEmployeeModal() {
     document.getElementById('editEmployeeModal').style.display = 'none';
     document.getElementById('editEmployeeForm').reset();
-    
+
     // Reset project assignment
     document.getElementById('editAllProjects').checked = false;
     document.getElementById('editProjectsList').style.display = 'none';
@@ -942,11 +976,11 @@ function closeEditEmployeeModal() {
 
 async function handleEditEmployeeSubmit(event) {
     event.preventDefault();
-    
+
     const form = event.target;
     const formData = new FormData(form);
     const employeeData = Object.fromEntries(formData.entries());
-    
+
     // Handle project assignment
     const allProjectsChecked = document.getElementById('editAllProjects').checked;
     if (allProjectsChecked) {
@@ -958,14 +992,14 @@ async function handleEditEmployeeSubmit(event) {
             .map(cb => cb.value);
         employeeData.assigned_projects = checkedProjects;
     }
-    
+
     // Convert empty strings to null for optional fields
     Object.keys(employeeData).forEach(key => {
         if (employeeData[key] === '' && key !== 'assigned_projects') {
             employeeData[key] = null;
         }
     });
-    
+
     try {
         const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/employees/${currentEmployeeId}`, {
             method: 'PUT',
@@ -974,18 +1008,18 @@ async function handleEditEmployeeSubmit(event) {
             },
             body: JSON.stringify(employeeData)
         });
-        
+
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.message || 'فشل في تحديث الموظف');
         }
-        
+
         await Swal.fire({
             icon: 'success',
             title: 'تم الحفظ',
             text: 'تم تحديث معلومات الموظف بنجاح'
         });
-        
+
         closeEditEmployeeModal();
         loadEmployeeDetails(); // Reload to show updated data
     } catch (error) {
@@ -1000,20 +1034,25 @@ async function handleEditEmployeeSubmit(event) {
 
 // --- Event Listeners ---
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
+    // Check authentication first
+    if (!authManager.checkAuth()) {
+        return;
+    }
+
     // Load employee details and clients on page load
     loadEmployeeDetails();
     loadClients();
-    
+
     // Radio button logic for attendance modal
     const recordTypeRadios = document.querySelectorAll('input[name="record_type"]');
     const attendanceDaysGroup = document.getElementById('attendanceDaysGroup');
     const absenceDaysGroup = document.getElementById('absenceDaysGroup');
     const attendanceDaysInput = document.getElementById('attendanceDays');
     const absenceDaysInput = document.getElementById('absenceDays');
-    
+
     recordTypeRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
+        radio.addEventListener('change', function () {
             if (this.value === 'attendance') {
                 attendanceDaysGroup.style.display = 'block';
                 absenceDaysGroup.style.display = 'none';
@@ -1029,33 +1068,70 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
+
     // Modal buttons
-    document.getElementById('addAttendanceBtn').addEventListener('click', function() {
+    document.getElementById('addAttendanceBtn').addEventListener('click', function () {
         // Set default year to current year when opening modal
         document.getElementById('attendanceYear').value = new Date().getFullYear();
         document.getElementById('attendanceModal').style.display = 'block';
     });
-    
-    document.getElementById('addAdjustmentBtn').addEventListener('click', function() {
+
+    document.getElementById('addAdjustmentBtn').addEventListener('click', function () {
+        // Clear any previous values and show helpful message
+        document.getElementById('adjustmentAmount').value = '';
+        document.getElementById('adjustmentAmount').placeholder = 'مثال: 500 للإضافة، -200 للخصم';
         document.getElementById('adjustmentModal').style.display = 'block';
     });
-    
-    document.getElementById('addPaymentBtn').addEventListener('click', function() {
+
+    document.getElementById('addPaymentBtn').addEventListener('click', function () {
+        // Set default date to today
+        document.getElementById('paidAt').value = new Date().toISOString().split('T')[0];
         document.getElementById('paymentModal').style.display = 'block';
     });
-    
+
     // Form submissions
     document.getElementById('attendanceForm').addEventListener('submit', handleAttendanceSubmit);
     document.getElementById('adjustmentForm').addEventListener('submit', handleAdjustmentSubmit);
     document.getElementById('paymentForm').addEventListener('submit', handlePaymentSubmit);
-    
+
+    // Add real-time feedback for adjustment amount
+    document.getElementById('adjustmentAmount').addEventListener('input', function () {
+        const amount = parseFloat(this.value);
+        const helpText = this.parentElement.querySelector('.form-help');
+
+        if (!isNaN(amount)) {
+            if (amount > 0) {
+                helpText.innerHTML = `
+                    <strong style="color: var(--green-600);">✓ إضافة ${formatCurrency(Math.abs(amount))}</strong> - سيزيد من استحقاق الموظف<br>
+                    <small>المبالغ الموجبة (+): تزيد من استحقاق الموظف (مكافآت، علاوات)<br>
+                    المبالغ السالبة (-): تقلل من استحقاق الموظف (خصومات، غرامات)</small>
+                `;
+            } else if (amount < 0) {
+                helpText.innerHTML = `
+                    <strong style="color: var(--red-600);">✓ خصم ${formatCurrency(Math.abs(amount))}</strong> - سيقلل من استحقاق الموظف<br>
+                    <small>المبالغ الموجبة (+): تزيد من استحقاق الموظف (مكافآت، علاوات)<br>
+                    المبالغ السالبة (-): تقلل من استحقاق الموظف (خصومات، غرامات)</small>
+                `;
+            } else {
+                helpText.innerHTML = `
+                    <strong>المبالغ الموجبة (+):</strong> تزيد من استحقاق الموظف (مكافآت، علاوات)<br>
+                    <strong>المبالغ السالبة (-):</strong> تقلل من استحقاق الموظف (خصومات، غرامات)
+                `;
+            }
+        } else {
+            helpText.innerHTML = `
+                <strong>المبالغ الموجبة (+):</strong> تزيد من استحقاق الموظف (مكافآت، علاوات)<br>
+                <strong>المبالغ السالبة (-):</strong> تقلل من استحقاق الموظف (خصومات، غرامات)
+            `;
+        }
+    });
+
     // Edit employee button and form
     document.getElementById('editEmployeeBtn').addEventListener('click', openEditEmployeeModal);
     document.getElementById('editEmployeeForm').addEventListener('submit', handleEditEmployeeSubmit);
-    
+
     // All projects checkbox toggle
-    document.getElementById('editAllProjects').addEventListener('change', function() {
+    document.getElementById('editAllProjects').addEventListener('change', function () {
         const projectsList = document.getElementById('editProjectsList');
         if (this.checked) {
             projectsList.style.display = 'none';
@@ -1066,9 +1142,9 @@ document.addEventListener('DOMContentLoaded', function() {
             projectsList.style.display = 'block';
         }
     });
-    
+
     // Close modals when clicking outside
-    window.addEventListener('click', function(event) {
+    window.addEventListener('click', function (event) {
         if (event.target.classList.contains('modal')) {
             event.target.style.display = 'none';
         }

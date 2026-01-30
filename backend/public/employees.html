@@ -9,11 +9,228 @@
     <link rel="stylesheet" href="css/modern-theme.css">
     <link rel="stylesheet" href="css/sidebar.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <style>
+        .main-content {
+            margin-right: 225px;
+            padding: var(--space-8);
+            transition: margin-right 0.25s;
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                margin-right: 190px;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .main-content {
+                margin-right: 0;
+                padding: var(--space-4);
+            }
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-8);
+            flex-wrap: wrap;
+            gap: var(--space-4);
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin: 0;
+        }
+
+        .employees-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: var(--space-6);
+        }
+
+        .employee-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
+            transition: all 0.2s ease;
+        }
+
+        .employee-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .employee-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-4);
+            padding-bottom: var(--space-4);
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .employee-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin: 0;
+        }
+
+        .employee-actions {
+            display: flex;
+            gap: var(--space-2);
+        }
+
+        .employee-info {
+            margin-bottom: var(--space-4);
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-2) 0;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 500;
+            color: var(--gray-600);
+        }
+
+        .info-value {
+            color: var(--gray-900);
+        }
+
+        .status-active {
+            color: var(--green-600);
+            font-weight: 500;
+        }
+
+        .status-inactive {
+            color: var(--red-600);
+            font-weight: 500;
+        }
+
+        .employee-financial {
+            margin-bottom: var(--space-4);
+            padding: var(--space-4);
+            background: var(--gray-50);
+            border-radius: var(--radius);
+        }
+
+        .financial-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .financial-label {
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        .financial-value {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .financial-value.positive {
+            color: var(--green-600);
+        }
+
+        .financial-value.negative {
+            color: var(--red-600);
+        }
+
+        .employee-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-3);
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: var(--space-3);
+            background: var(--primary-50);
+            border-radius: var(--radius);
+        }
+
+        .stat-label {
+            display: block;
+            font-size: 0.875rem;
+            color: var(--primary-700);
+            margin-bottom: var(--space-1);
+        }
+
+        .stat-value {
+            display: block;
+            font-weight: 600;
+            color: var(--primary-900);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: var(--space-12);
+            color: var(--gray-500);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: var(--space-4);
+        }
+
+        .empty-text {
+            font-size: 1.125rem;
+            margin-bottom: var(--space-6);
+        }
+
+        .error-message {
+            text-align: center;
+            padding: var(--space-8);
+            color: var(--red-600);
+            background: var(--red-50);
+            border: 1px solid var(--red-200);
+            border-radius: var(--radius-lg);
+            margin: var(--space-4);
+        }
+
+        .text-muted {
+            color: var(--gray-500);
+            font-style: italic;
+        }
+
+        /* SweetAlert2 custom styles for RTL */
+        .swal2-popup {
+            text-align: right;
+        }
+
+        .swal2-input,
+        .swal2-textarea,
+        .swal2-select {
+            text-align: right;
+            direction: rtl;
+        }
+
+        .swal2-validation-message {
+            text-align: right;
+            direction: rtl;
+        }
+    </style>
 </head>
 
 <body>
     <div id="sidebar-placeholder"></div>
-    
+
     <div class="main-content">
         <div class="page-header">
             <h1 class="page-title">إدارة الموظفين</h1>
@@ -21,7 +238,7 @@
                 <span>➕</span> إضافة موظف جديد
             </button>
         </div>
-        
+
         <div class="content-section">
             <div id="employeesContainer" class="employees-grid"></div>
         </div>
@@ -31,35 +248,203 @@
     <script src="js/auth.js"></script>
     <script src="js/csp-fix.js"></script>
     <script>
-        // زر إضافة موظف - استخدام SweetAlert2 بدلاً من prompt/alert
+        // Load projects for assignment
+        let availableProjects = [];
+
+        async function loadProjects() {
+            try {
+                const response = await authManager.makeAuthenticatedRequest('/api/clients');
+                if (response.ok) {
+                    const data = await response.json();
+                    availableProjects = data.clients || data.data || data || [];
+                }
+            } catch (error) {
+                console.error('Error loading projects:', error);
+                availableProjects = [];
+            }
+        }
+
+        // Initialize projects on page load
+        document.addEventListener('DOMContentLoaded', async function () {
+            // Check authentication first
+            if (!authManager.checkAuth()) {
+                return;
+            }
+
+            await loadProjects();
+
+            // Load employees after projects are loaded
+            if (window.loadEmployees) {
+                await window.loadEmployees();
+            }
+        });
+
+        // زر إضافة موظف - نموذج موحد شامل
         document.getElementById('addEmployeeBtn').addEventListener('click', async function () {
-            const { value: name } = await Swal.fire({ title: 'اسم الموظف', input: 'text', inputPlaceholder: 'اسم الموظف؟', showCancelButton: true });
-            if (!name) return;
+            // Create projects options HTML
+            const projectsOptionsHtml = availableProjects.map(project =>
+                `<option value="${project.id || project._id}">${project.name || project.client_name}</option>`
+            ).join('');
 
-            const { value: jobTitle } = await Swal.fire({ title: 'المسمى الوظيفي (اختياري)', input: 'text', inputPlaceholder: 'المسمى الوظيفي', showCancelButton: true });
+            const { value: formValues } = await Swal.fire({
+                title: 'إضافة موظف جديد',
+                html: `
+                    <div style="text-align: right; max-height: 500px; overflow-y: auto;">
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">اسم الموظف *</label>
+                            <input id="swal-name" class="swal2-input" placeholder="اسم الموظف" style="width: 100%; margin: 0;">
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">المسمى الوظيفي</label>
+                            <input id="swal-job-title" class="swal2-input" placeholder="المسمى الوظيفي (اختياري)" style="width: 100%; margin: 0;">
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">الراتب الأساسي *</label>
+                            <input id="swal-salary" type="number" class="swal2-input" placeholder="الراتب الأساسي" min="0" step="0.01" style="width: 100%; margin: 0;">
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">رقم الهاتف</label>
+                            <input id="swal-phone" class="swal2-input" placeholder="رقم الهاتف (اختياري)" style="width: 100%; margin: 0;">
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">تاريخ بداية العمل</label>
+                            <input id="swal-start-date" type="date" class="swal2-input" style="width: 100%; margin: 0;">
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">الحالة</label>
+                            <select id="swal-status" class="swal2-select" style="width: 100%; margin: 0;">
+                                <option value="Active">نشط</option>
+                                <option value="Inactive">غير نشط</option>
+                            </select>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">المشاريع المخصصة</label>
+                            <div style="margin-bottom: 10px;">
+                                <label style="font-weight: normal;">
+                                    <input type="checkbox" id="swal-all-projects" style="margin-left: 5px;">
+                                    جميع المشاريع
+                                </label>
+                            </div>
+                            <select id="swal-projects" multiple class="swal2-select" style="width: 100%; margin: 0; height: 120px;" ${availableProjects.length === 0 ? 'disabled' : ''}>
+                                ${projectsOptionsHtml}
+                            </select>
+                            <small style="color: #666; font-size: 12px;">اضغط Ctrl للاختيار المتعدد</small>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">ملاحظات</label>
+                            <textarea id="swal-notes" class="swal2-textarea" placeholder="ملاحظات إضافية (اختياري)" style="width: 100%; margin: 0; height: 80px;"></textarea>
+                        </div>
+                    </div>
+                `,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'إضافة الموظف',
+                cancelButtonText: 'إلغاء',
+                width: '600px',
+                didOpen: () => {
+                    // Set default start date to today
+                    document.getElementById('swal-start-date').value = new Date().toISOString().split('T')[0];
 
-            const { value: phone } = await Swal.fire({ title: 'رقم الهاتف (اختياري)', input: 'text', inputPlaceholder: 'رقم الهاتف', showCancelButton: true });
+                    // Handle "All Projects" checkbox
+                    const allProjectsCheckbox = document.getElementById('swal-all-projects');
+                    const projectsSelect = document.getElementById('swal-projects');
+
+                    allProjectsCheckbox.addEventListener('change', function () {
+                        if (this.checked) {
+                            projectsSelect.disabled = true;
+                            // Clear selections
+                            Array.from(projectsSelect.options).forEach(option => option.selected = false);
+                        } else {
+                            projectsSelect.disabled = false;
+                        }
+                    });
+                },
+                preConfirm: () => {
+                    const name = document.getElementById('swal-name').value.trim();
+                    const jobTitle = document.getElementById('swal-job-title').value.trim();
+                    const salary = document.getElementById('swal-salary').value;
+                    const phone = document.getElementById('swal-phone').value.trim();
+                    const startDate = document.getElementById('swal-start-date').value;
+                    const status = document.getElementById('swal-status').value;
+                    const allProjects = document.getElementById('swal-all-projects').checked;
+                    const selectedProjects = Array.from(document.getElementById('swal-projects').selectedOptions).map(option => option.value);
+                    const notes = document.getElementById('swal-notes').value.trim();
+
+                    // Validation
+                    if (!name) {
+                        Swal.showValidationMessage('اسم الموظف مطلوب');
+                        return false;
+                    }
+
+                    if (!salary || parseFloat(salary) <= 0) {
+                        Swal.showValidationMessage('الراتب الأساسي مطلوب ويجب أن يكون أكبر من صفر');
+                        return false;
+                    }
+
+                    if (parseFloat(salary) > 1000000) {
+                        Swal.showValidationMessage('الراتب الأساسي كبير جداً');
+                        return false;
+                    }
+
+                    if (!startDate) {
+                        Swal.showValidationMessage('تاريخ بداية العمل مطلوب');
+                        return false;
+                    }
+
+                    return {
+                        name,
+                        job_title: jobTitle || null,
+                        basic_salary: parseFloat(salary),
+                        phone_number: phone || null,
+                        start_working_date: startDate,
+                        status,
+                        all_projects: allProjects,
+                        assigned_projects: allProjects ? [] : selectedProjects,
+                        notes: notes || null
+                    };
+                }
+            });
+
+            if (!formValues) return;
 
             try {
+                // Show loading
+                Swal.fire({
+                    title: 'جاري إضافة الموظف...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
                 // Use authenticated request
                 const response = await authManager.makeAuthenticatedRequest('/api/employees', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        name: name.trim(),
-                        job_title: jobTitle?.trim() || null,
-                        phone_number: phone?.trim() || null,
-                        status: 'Active'
-                    })
+                    body: JSON.stringify(formValues)
                 });
 
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
                 }
 
-                await Swal.fire({ icon: 'success', title: 'تم', text: 'تم إضافة الموظف' });
-                
-                // Refresh the employee list instead of full page reload
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'تم بنجاح',
+                    text: 'تم إضافة الموظف بنجاح',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
+                // Refresh the employee list
                 if (window.loadEmployees) {
                     await window.loadEmployees();
                 } else {
@@ -67,7 +452,11 @@
                 }
             } catch (err) {
                 console.error('Error adding employee:', err);
-                Swal.fire({ icon: 'error', title: 'خطأ', text: 'تعذر إضافة الموظف: ' + err.message });
+                Swal.fire({
+                    icon: 'error',
+                    title: 'خطأ في الإضافة',
+                    text: 'تعذر إضافة الموظف: ' + err.message
+                });
             }
         });
     </script>

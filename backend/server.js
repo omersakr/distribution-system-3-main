@@ -46,6 +46,7 @@ const auditRouter = require('./routes/audit');
 const recycleBinRouter = require('./routes/recycleBin');
 const usersRouter = require('./routes/users');
 const userController = require('./controllers/userController');
+const publicReportsRouter = require('./routes/public-reports');
 
 // Import old routes for backward compatibility (v1)
 const clientsApiRouterV1 = require('./routes/clients-v1');
@@ -59,7 +60,7 @@ const expensesApiRouterV1 = require('./routes/expenses-v1');
 
 async function bootstrap() {
   await ensureTables();
-  
+
   // Create default users for all roles
   await authService.createDefaultUsers();
 
@@ -76,7 +77,7 @@ async function bootstrap() {
   // Middleware
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-  
+
   // Trust proxy for accurate IP addresses in audit logs
   app.set('trust proxy', true);
 
@@ -108,7 +109,10 @@ async function bootstrap() {
   // Authentication routes (public - no auth required)
   app.use('/api/auth', authRouter);
 
-  // Apply authentication middleware to ALL API routes except auth
+  // Public report routes (no auth required) - must be before global auth middleware
+  app.use('/api', publicReportsRouter);
+
+  // Apply authentication middleware to ALL other API routes
   app.use('/api', authenticateToken, auditLogger);
 
   // Web routes (SSR with Pug) - now protected
@@ -129,7 +133,7 @@ async function bootstrap() {
   app.use('/api/employees', requireRole(['manager', 'accountant']), employeesApiRouter);
   app.use('/api/administration', requireRole(['manager', 'accountant']), administrationApiRouter);
   app.use('/api/suppliers', requireRole(['manager', 'accountant']), suppliersApiRouter);
-  
+
   // Projects route - maps to clients as financial project views
   app.use('/api/projects', requireRole(['manager', 'accountant']), clientsApiRouter);
 
@@ -141,7 +145,7 @@ async function bootstrap() {
       const contractorsCount = await Contractor.countDocuments({ is_deleted: { $ne: true } });
       const employeesCount = await Employee.countDocuments({ is_deleted: { $ne: true } });
       const deliveriesCount = await Delivery.countDocuments({ is_deleted: { $ne: true } });
-      
+
       // New sections counts
       const administrationCount = await Administration.countDocuments({ is_deleted: { $ne: true } });
       const suppliersCount = await Supplier.countDocuments({ is_deleted: { $ne: true } });
@@ -175,7 +179,7 @@ async function bootstrap() {
       // SAFETY GUARD: Use dashboard-safe totals only
       const PayrollService = require('./services/payrollService');
       const employeeDashboardTotals = await PayrollService.getDashboardSafeTotals();
-      
+
       const totalEmployeePayments = employeeDashboardTotals.totalPayments;
       const totalEmployeeAdjustments = employeeDashboardTotals.totalAdjustments;
       const totalEarnedSalary = employeeDashboardTotals.totalEarnedSalary;
@@ -192,7 +196,7 @@ async function bootstrap() {
           { $group: { _id: null, total: { $sum: '$amount' } } }
         ])
       ]);
-      
+
       const totalAdministrationWithdrawals = administrationWithdrawalsAgg.length > 0 ? administrationWithdrawalsAgg[0].total : 0;
       const totalAdministrationPayments = administrationPaymentsAgg.length > 0 ? administrationPaymentsAgg[0].total : 0;
       const totalAdministrationCosts = Number(totalAdministrationWithdrawals || 0) + Number(totalAdministrationPayments || 0);
@@ -269,7 +273,7 @@ async function bootstrap() {
   // System management routes
   app.use('/api', auditRouter);
   app.use('/api', recycleBinRouter);
-  
+
   // User management routes (system_maintenance only)
   app.get('/api/users', requireRole(['system_maintenance']), userController.getUsers);
   app.post('/api/users', requireRole(['system_maintenance']), userController.createUser);

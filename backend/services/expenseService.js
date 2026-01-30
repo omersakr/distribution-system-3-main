@@ -4,10 +4,10 @@ const toNumber = (v) => Number(v || 0);
 
 class ExpenseService {
     static async getExpenseStats() {
-        const expenses = await Expense.find();
+        const expenses = await Expense.find({ is_deleted: { $ne: true } });
 
         // Calculate total expenses
-        const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+        const totalExpenses = expenses.reduce((sum, expense) => sum + toNumber(expense.amount), 0);
 
         // Monthly trend (last 12 months)
         const now = new Date();
@@ -17,15 +17,19 @@ class ExpenseService {
             const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
             const nextDate = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
 
-            const monthExpenses = expenses.filter(expense =>
-                expense.expense_date >= date && expense.expense_date < nextDate
-            );
+            const monthExpenses = expenses.filter(expense => {
+                const expenseDate = new Date(expense.expense_date);
+                return expenseDate >= date && expenseDate < nextDate;
+            });
 
-            const total = monthExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+            const total = monthExpenses.reduce((sum, expense) => sum + toNumber(expense.amount), 0);
+            const count = monthExpenses.length;
 
             monthlyTrend.push({
-                month: date.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long' }),
-                total: total
+                month: date.toISOString().slice(0, 7), // YYYY-MM format for easier comparison
+                monthName: date.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long' }),
+                total: total,
+                count: count
             });
         }
 
@@ -37,16 +41,17 @@ class ExpenseService {
     }
 
     static async getAllExpenses() {
-        const expenses = await Expense.find().sort({ expense_date: -1 });
+        const expenses = await Expense.find({ is_deleted: { $ne: true } }).sort({ expense_date: -1 });
 
         const result = expenses.map(expense => ({
             id: expense._id,
             expense_date: expense.expense_date,
             description: expense.description,
-            amount: expense.amount,
+            amount: toNumber(expense.amount),
             notes: expense.notes,
             method: expense.method,
             details: expense.details,
+            project_id: expense.project_id || null, // Add project_id field
             created_at: expense.created_at,
             updated_at: expense.updated_at
         }));
@@ -65,17 +70,18 @@ class ExpenseService {
             id: expense._id,
             expense_date: expense.expense_date,
             description: expense.description,
-            amount: expense.amount,
+            amount: toNumber(expense.amount),
             notes: expense.notes,
             method: expense.method,
             details: expense.details,
+            project_id: expense.project_id,
             created_at: expense.created_at,
             updated_at: expense.updated_at
         };
     }
 
     static async createExpense(data) {
-        const { expense_date, description, amount, notes, method, details } = data;
+        const { expense_date, description, amount, notes, method, details, project_id } = data;
 
         if (!expense_date || !description || !amount) {
             throw new Error('التاريخ والوصف والمبلغ مطلوبة');
@@ -87,7 +93,8 @@ class ExpenseService {
             amount: toNumber(amount),
             notes: notes?.trim() || '',
             method: method?.trim() || '',
-            details: details?.trim() || ''
+            details: details?.trim() || '',
+            project_id: project_id || null
         });
 
         await expense.save();
@@ -96,17 +103,18 @@ class ExpenseService {
             id: expense._id,
             expense_date: expense.expense_date,
             description: expense.description,
-            amount: expense.amount,
+            amount: toNumber(expense.amount),
             notes: expense.notes,
             method: expense.method,
             details: expense.details,
+            project_id: expense.project_id,
             created_at: expense.created_at,
             updated_at: expense.updated_at
         };
     }
 
     static async updateExpense(id, data) {
-        const { expense_date, description, amount, notes, method, details } = data;
+        const { expense_date, description, amount, notes, method, details, project_id } = data;
 
         if (!expense_date || !description || !amount) {
             throw new Error('التاريخ والوصف والمبلغ مطلوبة');
@@ -120,7 +128,8 @@ class ExpenseService {
                 amount: toNumber(amount),
                 notes: notes?.trim() || '',
                 method: method?.trim() || '',
-                details: details?.trim() || ''
+                details: details?.trim() || '',
+                project_id: project_id || null
             },
             { new: true }
         );
@@ -133,10 +142,11 @@ class ExpenseService {
             id: expense._id,
             expense_date: expense.expense_date,
             description: expense.description,
-            amount: expense.amount,
+            amount: toNumber(expense.amount),
             notes: expense.notes,
             method: expense.method,
             details: expense.details,
+            project_id: expense.project_id,
             created_at: expense.created_at,
             updated_at: expense.updated_at
         };
@@ -151,19 +161,25 @@ class ExpenseService {
         const {
             from_date,
             to_date,
+            start_date,
+            end_date,
             page = 1,
             limit = 50,
             sort = 'expense_date',
             order = 'desc'
         } = query;
 
-        let filter = {};
+        let filter = { is_deleted: { $ne: true } };
 
-        if (from_date || to_date) {
+        // Handle both date filter formats
+        const startDate = start_date || from_date;
+        const endDate = end_date || to_date;
+
+        if (startDate || endDate) {
             filter.expense_date = {};
-            if (from_date) filter.expense_date.$gte = new Date(from_date);
-            if (to_date) {
-                const toDate = new Date(to_date);
+            if (startDate) filter.expense_date.$gte = new Date(startDate);
+            if (endDate) {
+                const toDate = new Date(endDate);
                 toDate.setDate(toDate.getDate() + 1);
                 filter.expense_date.$lt = toDate;
             }
@@ -183,10 +199,11 @@ class ExpenseService {
             id: expense._id,
             expense_date: expense.expense_date,
             description: expense.description,
-            amount: expense.amount,
+            amount: toNumber(expense.amount),
             notes: expense.notes,
             method: expense.method,
             details: expense.details,
+            project_id: expense.project_id,
             created_at: expense.created_at,
             updated_at: expense.updated_at
         }));

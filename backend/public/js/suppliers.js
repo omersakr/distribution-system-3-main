@@ -106,7 +106,7 @@ function createSupplierCard(supplier) {
 
     const stats = [
         { label: 'عدد المواد', value: supplier.materials?.length || 0 },
-        { label: 'عدد التسليمات', value: supplier.deliveries_count || 0 }, // Fixed: use deliveries_count from backend
+        { label: 'عدد التسليمات', value: supplier.deliveries_count || 0 },
         {
             label: 'الرصيد', value: formatCurrency(Math.abs(supplier.balance || 0)),
             class: supplier.balance > 0 ? 'text-danger' : supplier.balance < 0 ? 'text-success' : ''
@@ -215,7 +215,9 @@ async function fetchSuppliers() {
     if (!response.ok) {
         throw new Error('فشل في تحميل بيانات الموردين');
     }
+
     const data = await response.json();
+    console.log(data);
     return data.suppliers || data;
 }
 

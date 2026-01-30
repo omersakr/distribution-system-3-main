@@ -374,6 +374,25 @@ class AdministrationController {
             next(err);
         }
     }
+
+    // Global methods to get all withdrawals and capital injections
+    async getAllWithdrawals(req, res, next) {
+        try {
+            const withdrawals = await administrationService.getAllWithdrawals();
+            res.json({ withdrawals });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async getAllCapitalInjections(req, res, next) {
+        try {
+            const capitalInjections = await administrationService.getAllCapitalInjections();
+            res.json({ capital_injections: capitalInjections });
+        } catch (err) {
+            next(err);
+        }
+    }
 }
 
 module.exports = new AdministrationController();

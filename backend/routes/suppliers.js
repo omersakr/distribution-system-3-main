@@ -36,4 +36,16 @@ router.put('/:id/payments/:paymentId', supplierController.updateSupplierPayment)
 // Delete supplier payment
 router.delete('/:id/payments/:paymentId', supplierController.deleteSupplierPayment);
 
+// ============================================================================
+// SUPPLIER REPORTS
+// ============================================================================
+
+// Generate deliveries report (GET and POST)
+router.get('/:id/reports/deliveries', supplierController.generateDeliveriesReport);
+router.post('/:id/reports/deliveries', supplierController.generateDeliveriesReport);
+
+// Generate account statement (GET and POST)
+router.get('/:id/reports/statement', supplierController.generateAccountStatement);
+router.post('/:id/reports/statement', supplierController.generateAccountStatement);
+
 module.exports = router;

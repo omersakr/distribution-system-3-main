@@ -7,6 +7,7 @@ class DeliveryService {
         const deliveries = await Delivery.find()
             .populate('client_id', 'name')
             .populate('crusher_id', 'name')
+            .populate('supplier_id', 'name')
             .populate('contractor_id', 'name')
             .sort({ created_at: -1 });
 
@@ -14,6 +15,7 @@ class DeliveryService {
             id: delivery._id,
             client_name: delivery.client_id?.name || '',
             crusher_name: delivery.crusher_id?.name || '',
+            supplier_name: delivery.supplier_id?.name || '',
             contractor_name: delivery.contractor_id?.name || '',
             material: delivery.material,
             voucher: delivery.voucher,
@@ -24,6 +26,7 @@ class DeliveryService {
             total_value: delivery.total_value,
             material_price_at_time: delivery.material_price_at_time,
             crusher_total_cost: delivery.crusher_total_cost,
+            supplier_total_cost: delivery.supplier_total_cost,
             driver_name: delivery.driver_name,
             car_head: delivery.car_head,
             car_tail: delivery.car_tail,
@@ -40,6 +43,7 @@ class DeliveryService {
         const delivery = await Delivery.findById(id)
             .populate('client_id', 'name')
             .populate('crusher_id', 'name')
+            .populate('supplier_id', 'name')
             .populate('contractor_id', 'name');
 
         if (!delivery) {
@@ -52,6 +56,8 @@ class DeliveryService {
             client_name: delivery.client_id?.name || '',
             crusher_id: delivery.crusher_id?._id,
             crusher_name: delivery.crusher_id?.name || '',
+            supplier_id: delivery.supplier_id?._id,
+            supplier_name: delivery.supplier_id?.name || '',
             contractor_id: delivery.contractor_id?._id,
             contractor_name: delivery.contractor_id?.name || '',
             material: delivery.material,
@@ -63,6 +69,7 @@ class DeliveryService {
             total_value: delivery.total_value,
             material_price_at_time: delivery.material_price_at_time,
             crusher_total_cost: delivery.crusher_total_cost,
+            supplier_total_cost: delivery.supplier_total_cost,
             driver_name: delivery.driver_name,
             car_head: delivery.car_head,
             car_tail: delivery.car_tail,
@@ -77,6 +84,7 @@ class DeliveryService {
         const {
             client_id,
             crusher_id,
+            supplier_id,
             contractor_id,
             material,
             voucher,
@@ -98,6 +106,7 @@ class DeliveryService {
         const delivery = new Delivery({
             client_id,
             crusher_id: crusher_id || null,
+            supplier_id: supplier_id || null,
             contractor_id: contractor_id || null,
             material,
             voucher,
@@ -124,6 +133,7 @@ class DeliveryService {
         const {
             client_id,
             crusher_id,
+            supplier_id,
             contractor_id,
             material,
             voucher,
@@ -149,6 +159,7 @@ class DeliveryService {
             {
                 client_id,
                 crusher_id: crusher_id || null,
+                supplier_id: supplier_id || null,
                 contractor_id: contractor_id || null,
                 material,
                 voucher,
@@ -185,6 +196,7 @@ class DeliveryService {
         const {
             client_id,
             crusher_id,
+            supplier_id,
             contractor_id,
             material,
             from_date,
@@ -199,6 +211,7 @@ class DeliveryService {
 
         if (client_id) filter.client_id = client_id;
         if (crusher_id) filter.crusher_id = crusher_id;
+        if (supplier_id) filter.supplier_id = supplier_id;
         if (contractor_id) filter.contractor_id = contractor_id;
         if (material) filter.material = { $regex: material, $options: 'i' };
 
@@ -218,6 +231,7 @@ class DeliveryService {
         const deliveries = await Delivery.find(filter)
             .populate('client_id', 'name')
             .populate('crusher_id', 'name')
+            .populate('supplier_id', 'name')
             .populate('contractor_id', 'name')
             .sort({ [sort]: sortOrder })
             .skip(skip)
@@ -229,6 +243,7 @@ class DeliveryService {
             id: delivery._id,
             client_name: delivery.client_id?.name || '',
             crusher_name: delivery.crusher_id?.name || '',
+            supplier_name: delivery.supplier_id?.name || '',
             contractor_name: delivery.contractor_id?.name || '',
             material: delivery.material,
             voucher: delivery.voucher,
@@ -239,6 +254,7 @@ class DeliveryService {
             total_value: delivery.total_value,
             material_price_at_time: delivery.material_price_at_time,
             crusher_total_cost: delivery.crusher_total_cost,
+            supplier_total_cost: delivery.supplier_total_cost,
             driver_name: delivery.driver_name,
             car_head: delivery.car_head,
             car_tail: delivery.car_tail,

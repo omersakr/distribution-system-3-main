@@ -13,9 +13,9 @@ const router = express.Router();
 router.get('/stats', expensesController.getExpenseStats);
 
 // Get all expenses (simple list)
-router.get('/', expensesController.getAllExpenses);
+router.get('/', expensesController.getExpensesWithFilters);
 
-// Get expenses with advanced filtering and pagination
+// Get expenses with advanced filtering and pagination (alias)
 router.get('/search', expensesController.getExpensesWithFilters);
 
 // Get expense by ID with detailed information

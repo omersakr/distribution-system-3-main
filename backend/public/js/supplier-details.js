@@ -701,10 +701,10 @@ function setupEventHandlers() {
     // Edit Supplier Form
     document.getElementById('editSupplierForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        
+
         const formData = new FormData(e.target);
         const supplierUpdateData = Object.fromEntries(formData);
-        
+
         try {
             const supplierId = getSupplierIdFromURL();
             const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/suppliers/${supplierId}`, {
@@ -734,10 +734,10 @@ function setupEventHandlers() {
     // Add Payment Form
     document.getElementById('addPaymentForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        
+
         const formData = new FormData(e.target);
         const paymentData = Object.fromEntries(formData);
-        
+
         try {
             const supplierId = getSupplierIdFromURL();
             const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/suppliers/${supplierId}/payments`, {
@@ -767,10 +767,10 @@ function setupEventHandlers() {
     // Add Adjustment Form
     document.getElementById('adjustmentForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        
+
         const formData = new FormData(e.target);
         const adjustmentData = Object.fromEntries(formData);
-        
+
         try {
             const supplierId = getSupplierIdFromURL();
             const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/suppliers/${supplierId}/adjustments`, {
@@ -814,7 +814,7 @@ function setupEventHandlers() {
 }
 
 // Initialize page
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Check authentication
     if (!authManager.checkAuth()) {
         return;
@@ -830,9 +830,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Setup event handlers
     setupEventHandlers();
-    
+
     // Load supplier details
     loadSupplierDetails();
+
+    // Setup report button handlers
+    document.getElementById('generateDeliveriesReportBtn').addEventListener('click', generateDeliveriesReport);
+    document.getElementById('generateAccountStatementBtn').addEventListener('click', generateAccountStatement);
+    document.getElementById('useCustomDateRange').addEventListener('change', toggleDateRange);
 });
 
 // Event delegation for CSP compliance
@@ -954,8 +959,12 @@ window.generateDeliveriesReport = async function () {
     }
 
     try {
+        // Use simple GET request since reports are now public (no auth required)
         const url = `${API_BASE}/suppliers/${supplierId}/reports/deliveries?from=${fromDate}&to=${toDate}`;
+
+        // Open the report directly in a new window
         window.open(url, '_blank');
+
     } catch (error) {
         console.error('Error generating deliveries report:', error);
         alert('حدث خطأ في إنشاء التقرير');
@@ -966,27 +975,24 @@ window.generateAccountStatement = async function () {
     const supplierId = getSupplierIdFromURL();
     const useCustomRange = document.getElementById('useCustomDateRange').checked;
 
-    let fromDate, toDate;
+    let url = `${API_BASE}/suppliers/${supplierId}/reports/statement`;
 
     if (useCustomRange) {
-        fromDate = document.getElementById('statementFromDate').value;
-        toDate = document.getElementById('statementToDate').value;
+        const fromDate = document.getElementById('statementFromDate').value;
+        const toDate = document.getElementById('statementToDate').value;
 
         if (!fromDate || !toDate) {
             alert('يرجى تحديد تاريخ البداية والنهاية');
             return;
         }
-    } else {
-        fromDate = '';
-        toDate = '';
+
+        url += `?from=${fromDate}&to=${toDate}`;
     }
 
     try {
-        let url = `${API_BASE}/suppliers/${supplierId}/reports/statement`;
-        if (fromDate && toDate) {
-            url += `?from=${fromDate}&to=${toDate}`;
-        }
+        // Open the report directly in a new window (no auth required)
         window.open(url, '_blank');
+
     } catch (error) {
         console.error('Error generating account statement:', error);
         alert('حدث خطأ في إنشاء كشف الحساب');

@@ -92,6 +92,18 @@ function createEmployeeCard(employee) {
     startDateItem.innerHTML = `<span class="info-label">تاريخ بداية العمل:</span> <span class="info-value">${formatDate(employee.start_working_date)}</span>`;
     infoSection.appendChild(startDateItem);
 
+    // Project assignment info
+    const projectsItem = document.createElement('div');
+    projectsItem.className = 'info-item';
+    if (employee.all_projects) {
+        projectsItem.innerHTML = `<span class="info-label">المشاريع:</span> <span class="info-value" style="color: var(--blue-600); font-weight: 500;">جميع المشاريع</span>`;
+    } else if (employee.assigned_projects && employee.assigned_projects.length > 0) {
+        projectsItem.innerHTML = `<span class="info-label">المشاريع:</span> <span class="info-value">${employee.assigned_projects.length} مشروع مخصص</span>`;
+    } else {
+        projectsItem.innerHTML = `<span class="info-label">المشاريع:</span> <span class="info-value text-muted">غير مخصص لمشاريع</span>`;
+    }
+    infoSection.appendChild(projectsItem);
+
     card.appendChild(infoSection);
 
     // Financial summary section
@@ -109,7 +121,7 @@ function createEmployeeCard(employee) {
     balanceValue.className = 'financial-value employee-balance';
     const balance = employee.balance || 0;
     const earnedSalary = employee.total_earned_salary || 0;
-    
+
     // SAFETY GUARD: If no earned salary, show neutral balance
     if (earnedSalary === 0) {
         balanceValue.classList.add('text-muted');
@@ -120,7 +132,7 @@ function createEmployeeCard(employee) {
         balanceItem.appendChild(document.createTextNode(' (متوازن)'));
     } else {
         balanceValue.textContent = formatCurrency(Math.abs(balance));
-        
+
         if (balance > 0) {
             balanceValue.classList.add('positive');
             balanceItem.appendChild(balanceLabel);
@@ -273,18 +285,8 @@ async function deleteEmployee(employeeId, employeeName) {
     }
 }
 
-// --- Initialization on DOMContentLoaded ---
-document.addEventListener('DOMContentLoaded', function () {
-    // Check authentication first
-    if (!authManager.checkAuth()) {
-        return;
-    }
-
-    loadEmployees();
-});
-
 // Global function to load and render employees
-window.loadEmployees = async function() {
+window.loadEmployees = async function () {
     try {
         const employees = await fetchEmployees();
         renderEmployees(employees);

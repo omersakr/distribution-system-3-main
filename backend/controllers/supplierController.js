@@ -218,6 +218,344 @@ class SupplierController {
             next(err);
         }
     }
+
+    // ============================================================================
+    // SUPPLIER REPORTS
+    // ============================================================================
+
+    // Generate deliveries report
+    async generateDeliveriesReport(req, res, next) {
+        try {
+            // Handle both GET and POST requests
+            const { from, to } = req.method === 'POST' ? req.body : req.query;
+            const supplierId = req.params.id;
+
+            const reportData = await supplierService.generateDeliveriesReport(supplierId, from, to);
+
+            // Generate HTML report
+            const html = this.generateDeliveriesReportHTML(reportData);
+
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            res.send(html);
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    // Generate account statement
+    async generateAccountStatement(req, res, next) {
+        try {
+            // Handle both GET and POST requests
+            const { from, to } = req.method === 'POST' ? req.body : req.query;
+            const supplierId = req.params.id;
+
+            const reportData = await supplierService.generateAccountStatement(supplierId, from, to);
+
+            // Generate HTML report
+            const html = this.generateAccountStatementHTML(reportData);
+
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            res.send(html);
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    // Helper method to generate deliveries report HTML
+    generateDeliveriesReportHTML(data) {
+        const formatCurrency = (amount) => {
+            return Number(amount || 0).toLocaleString('ar-EG', {
+                style: 'currency',
+                currency: 'EGP',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            });
+        };
+
+        const formatDate = (dateStr) => {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('ar-EG', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        };
+
+        const formatQuantity = (amount) => {
+            return Number(amount || 0).toLocaleString('ar-EG', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        };
+
+        const periodText = data.period.from && data.period.to
+            ? `من ${formatDate(data.period.from)} إلى ${formatDate(data.period.to)}`
+            : 'جميع الفترات';
+
+        let materialSummaryHTML = '';
+        data.materialSummary.forEach(material => {
+            materialSummaryHTML += `
+                <tr>
+                    <td>${material.material}</td>
+                    <td>${formatQuantity(material.quantity)} م³</td>
+                    <td>${formatCurrency(material.totalCost)}</td>
+                    <td>${material.deliveries.length}</td>
+                </tr>
+            `;
+        });
+
+        let deliveriesHTML = '';
+        data.deliveries.forEach(delivery => {
+            deliveriesHTML += `
+                <tr>
+                    <td>${formatDate(delivery.date)}</td>
+                    <td>${delivery.client_name}</td>
+                    <td>${delivery.material}</td>
+                    <td>${formatQuantity(delivery.quantity)} م³</td>
+                    <td>${formatCurrency(delivery.price)}</td>
+                    <td>${formatCurrency(delivery.total)}</td>
+                    <td>${delivery.voucher || '-'}</td>
+                </tr>
+            `;
+        });
+
+        return `
+            <!DOCTYPE html>
+            <html lang="ar" dir="rtl">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>تقرير توريدات المورد - ${data.supplier.name}</title>
+                <style>
+                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+                    .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                    .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #007bff; padding-bottom: 20px; }
+                    .header h1 { color: #007bff; margin: 0; font-size: 2rem; }
+                    .header h2 { color: #666; margin: 10px 0 0 0; font-size: 1.2rem; }
+                    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 30px 0; }
+                    .info-card { background: #f8f9fa; padding: 15px; border-radius: 6px; text-align: center; }
+                    .info-card .value { font-size: 1.5rem; font-weight: bold; color: #007bff; }
+                    .info-card .label { color: #666; margin-top: 5px; }
+                    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                    th, td { padding: 12px; text-align: right; border-bottom: 1px solid #ddd; }
+                    th { background: #007bff; color: white; font-weight: bold; }
+                    tr:nth-child(even) { background: #f8f9fa; }
+                    .section-title { color: #007bff; font-size: 1.3rem; margin: 30px 0 15px 0; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+                    .print-btn { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 20px 0; }
+                    @media print { .print-btn { display: none; } }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>تقرير توريدات المورد</h1>
+                        <h2>${data.supplier.name}</h2>
+                        <p>الفترة: ${periodText}</p>
+                        <p>تاريخ الإنشاء: ${formatDate(new Date())}</p>
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <div class="value">${formatQuantity(data.summary.totalQuantity)} م³</div>
+                            <div class="label">إجمالي الكمية</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="value">${formatCurrency(data.summary.totalValue)}</div>
+                            <div class="label">إجمالي القيمة</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="value">${data.summary.deliveriesCount}</div>
+                            <div class="label">عدد التسليمات</div>
+                        </div>
+                    </div>
+
+                    <h3 class="section-title">ملخص المواد</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>المادة</th>
+                                <th>الكمية الإجمالية</th>
+                                <th>القيمة الإجمالية</th>
+                                <th>عدد التسليمات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${materialSummaryHTML}
+                        </tbody>
+                    </table>
+
+                    <h3 class="section-title">تفاصيل التسليمات</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>العميل</th>
+                                <th>المادة</th>
+                                <th>الكمية</th>
+                                <th>السعر</th>
+                                <th>الإجمالي</th>
+                                <th>رقم البون</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${deliveriesHTML}
+                        </tbody>
+                    </table>
+
+                    <button class="print-btn" onclick="window.print()">طباعة التقرير</button>
+                </div>
+            </body>
+            </html>
+        `;
+    }
+
+    // Helper method to generate account statement HTML
+    generateAccountStatementHTML(data) {
+        const formatCurrency = (amount) => {
+            return Number(amount || 0).toLocaleString('ar-EG', {
+                style: 'currency',
+                currency: 'EGP',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            });
+        };
+
+        const formatDate = (dateStr) => {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('ar-EG', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        };
+
+        const formatQuantity = (amount) => {
+            return Number(amount || 0).toLocaleString('ar-EG', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        };
+
+        const periodText = data.period.isFullHistory
+            ? 'كامل التاريخ'
+            : `من ${formatDate(data.period.from)} إلى ${formatDate(data.period.to)}`;
+
+        let transactionsHTML = '';
+        data.transactions.forEach(transaction => {
+            const balanceClass = transaction.balance > 0 ? 'text-danger' : transaction.balance < 0 ? 'text-success' : '';
+            transactionsHTML += `
+                <tr>
+                    <td>${formatDate(transaction.date)}</td>
+                    <td>${transaction.description}</td>
+                    <td>${transaction.voucher || '-'}</td>
+                    <td>${transaction.quantity ? formatQuantity(transaction.quantity) + ' م³' : '-'}</td>
+                    <td>${transaction.price ? formatCurrency(transaction.price) : '-'}</td>
+                    <td>${transaction.debit > 0 ? formatCurrency(transaction.debit) : '-'}</td>
+                    <td>${transaction.credit > 0 ? formatCurrency(transaction.credit) : '-'}</td>
+                    <td class="${balanceClass}">${formatCurrency(Math.abs(transaction.balance))}</td>
+                </tr>
+            `;
+        });
+
+        const balanceClass = data.summary.balance > 0 ? 'text-danger' : data.summary.balance < 0 ? 'text-success' : '';
+
+        return `
+            <!DOCTYPE html>
+            <html lang="ar" dir="rtl">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>كشف حساب المورد - ${data.supplier.name}</title>
+                <style>
+                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+                    .container { max-width: 1400px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                    .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #007bff; padding-bottom: 20px; }
+                    .header h1 { color: #007bff; margin: 0; font-size: 2rem; }
+                    .header h2 { color: #666; margin: 10px 0 0 0; font-size: 1.2rem; }
+                    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 30px 0; }
+                    .info-card { background: #f8f9fa; padding: 15px; border-radius: 6px; text-align: center; }
+                    .info-card .value { font-size: 1.5rem; font-weight: bold; color: #007bff; }
+                    .info-card .label { color: #666; margin-top: 5px; }
+                    .balance-card { background: linear-gradient(135deg, #28a745, #20c997); color: white; }
+                    .balance-card.negative { background: linear-gradient(135deg, #dc3545, #e74c3c); }
+                    table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.9rem; }
+                    th, td { padding: 8px; text-align: right; border-bottom: 1px solid #ddd; }
+                    th { background: #007bff; color: white; font-weight: bold; }
+                    tr:nth-child(even) { background: #f8f9fa; }
+                    .section-title { color: #007bff; font-size: 1.3rem; margin: 30px 0 15px 0; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+                    .text-danger { color: #dc3545; }
+                    .text-success { color: #28a745; }
+                    .print-btn { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 20px 0; }
+                    @media print { .print-btn { display: none; } }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>كشف حساب المورد</h1>
+                        <h2>${data.supplier.name}</h2>
+                        ${data.supplier.phone_number ? `<p>الهاتف: ${data.supplier.phone_number}</p>` : ''}
+                        <p>الفترة: ${periodText}</p>
+                        <p>تاريخ الإنشاء: ${formatDate(new Date())}</p>
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <div class="value text-danger">${formatCurrency(data.summary.totalDue)}</div>
+                            <div class="label">إجمالي المستحق</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="value text-success">${formatCurrency(data.summary.totalPaid)}</div>
+                            <div class="label">إجمالي المدفوع</div>
+                        </div>
+                        <div class="info-card ${data.summary.balance < 0 ? 'balance-card negative' : 'balance-card'}">
+                            <div class="value">${formatCurrency(Math.abs(data.summary.balance))}</div>
+                            <div class="label">${data.summary.balanceDescription}</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="value">${data.summary.deliveriesCount}</div>
+                            <div class="label">عدد التسليمات</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="value">${data.summary.paymentsCount}</div>
+                            <div class="label">عدد المدفوعات</div>
+                        </div>
+                    </div>
+
+                    <h3 class="section-title">تفاصيل الحساب</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>البيان</th>
+                                <th>رقم البون</th>
+                                <th>الكمية</th>
+                                <th>السعر</th>
+                                <th>مدين</th>
+                                <th>دائن</th>
+                                <th>الرصيد</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${transactionsHTML}
+                        </tbody>
+                    </table>
+
+                    <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 6px;">
+                        <h4 style="margin: 0 0 10px 0; color: #007bff;">الرصيد النهائي</h4>
+                        <p style="margin: 0; font-size: 1.2rem;">
+                            <strong class="${balanceClass}">${formatCurrency(Math.abs(data.summary.balance))} - ${data.summary.balanceDescription}</strong>
+                        </p>
+                    </div>
+
+                    <button class="print-btn" onclick="window.print()">طباعة كشف الحساب</button>
+                </div>
+            </body>
+            </html>
+        `;
+    }
 }
 
 module.exports = new SupplierController();
