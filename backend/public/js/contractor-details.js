@@ -725,6 +725,13 @@ function setupEventHandlers() {
             return;
         }
 
+        // Find the original delivery to preserve the ID fields
+        const originalDelivery = allDeliveries.find(d => d.id === editId);
+        if (!originalDelivery) {
+            showMessage('deliveryEditMessage', 'خطأ: لم يتم العثور على بيانات التسليم الأصلية', 'error');
+            return;
+        }
+
         const deliveryData = {
             material: document.getElementById('editDeliveryMaterial').value,
             voucher: document.getElementById('editDeliveryVoucher').value,
@@ -732,7 +739,12 @@ function setupEventHandlers() {
             driver_name: document.getElementById('editDeliveryDriverName').value,
             car_head: document.getElementById('editDeliveryCarHead').value,
             car_tail: document.getElementById('editDeliveryCarTail').value,
-            contractor_charge_per_meter: parseFloat(document.getElementById('editDeliveryContractorCharge').value) || 0
+            contractor_charge_per_meter: parseFloat(document.getElementById('editDeliveryContractorCharge').value) || 0,
+            // Preserve the original ID fields to prevent them from being set to null
+            crusher_id: originalDelivery.crusher_id,
+            supplier_id: originalDelivery.supplier_id,
+            contractor_id: originalDelivery.contractor_id,
+            client_id: originalDelivery.client_id
         };
 
         try {
@@ -1377,9 +1389,9 @@ document.addEventListener('click', function (e) {
     if (action && type && id) {
         e.preventDefault(); // Prevent any default behavior
         e.stopPropagation(); // Stop event bubbling
-        
+
         console.log(`Handling ${action} ${type} with ID: ${id}`);
-        
+
         try {
             if (action === 'edit') {
                 if (type === 'delivery') {
@@ -1407,7 +1419,7 @@ document.addEventListener('click', function (e) {
         } catch (error) {
             console.error('Error executing CRUD operation:', error);
         }
-        
+
         return; // Exit early to prevent other handlers
     }
 });

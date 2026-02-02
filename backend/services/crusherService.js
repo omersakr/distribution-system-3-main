@@ -17,6 +17,7 @@ class CrusherService {
                     aggregate1_price: crusher.aggregate1_price,
                     aggregate2_price: crusher.aggregate2_price,
                     aggregate3_price: crusher.aggregate3_price,
+                    aggregate6_powder_price: crusher.aggregate6_powder_price,
                     created_at: crusher.created_at,
                     // Add calculated totals
                     totalVolume: totals.totalVolume,
@@ -65,12 +66,17 @@ class CrusherService {
                 aggregate1_price: crusher.aggregate1_price,
                 aggregate2_price: crusher.aggregate2_price,
                 aggregate3_price: crusher.aggregate3_price,
+                aggregate6_powder_price: crusher.aggregate6_powder_price,
                 created_at: crusher.created_at
             },
             deliveries: deliveries.map(d => ({
                 id: d._id,
+                client_id: d.client_id?._id || d.client_id,
                 client_name: d.client_id?.name || '',
+                contractor_id: d.contractor_id?._id || d.contractor_id,
                 contractor_name: d.contractor_id?.name || '',
+                crusher_id: d.crusher_id,
+                supplier_id: d.supplier_id,
                 material: d.material,
                 voucher: d.voucher,
                 quantity: d.quantity,
@@ -82,6 +88,7 @@ class CrusherService {
                 car_head: d.car_head,
                 car_tail: d.car_tail,
                 car_volume: d.car_volume,
+                contractor_charge_per_meter: d.contractor_charge_per_meter,
                 created_at: d.created_at
             })),
             payments: payments.map(p => ({
@@ -112,7 +119,8 @@ class CrusherService {
             sand_price: toNumber(data.sand_price),
             aggregate1_price: toNumber(data.aggregate1_price),
             aggregate2_price: toNumber(data.aggregate2_price),
-            aggregate3_price: toNumber(data.aggregate3_price)
+            aggregate3_price: toNumber(data.aggregate3_price),
+            aggregate6_powder_price: toNumber(data.aggregate6_powder_price)
         });
 
         await crusher.save();
@@ -124,6 +132,7 @@ class CrusherService {
             aggregate1_price: crusher.aggregate1_price,
             aggregate2_price: crusher.aggregate2_price,
             aggregate3_price: crusher.aggregate3_price,
+            aggregate6_powder_price: crusher.aggregate6_powder_price,
             created_at: crusher.created_at
         };
     }
@@ -137,6 +146,7 @@ class CrusherService {
         if (data.aggregate1_price !== undefined) updateData.aggregate1_price = toNumber(data.aggregate1_price);
         if (data.aggregate2_price !== undefined) updateData.aggregate2_price = toNumber(data.aggregate2_price);
         if (data.aggregate3_price !== undefined) updateData.aggregate3_price = toNumber(data.aggregate3_price);
+        if (data.aggregate6_powder_price !== undefined) updateData.aggregate6_powder_price = toNumber(data.aggregate6_powder_price);
 
         const crusher = await Crusher.findByIdAndUpdate(
             id,
@@ -155,6 +165,7 @@ class CrusherService {
             aggregate1_price: crusher.aggregate1_price,
             aggregate2_price: crusher.aggregate2_price,
             aggregate3_price: crusher.aggregate3_price,
+            aggregate6_powder_price: crusher.aggregate6_powder_price,
             created_at: crusher.created_at
         };
     }

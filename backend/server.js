@@ -8,6 +8,7 @@ const cors = require('cors');
 const { ensureTables } = require('./db');
 const {
   Client,
+  Project,
   Crusher,
   Contractor,
   Delivery,
@@ -32,9 +33,11 @@ const {
 const { authenticateToken, requireRole, auditLogger } = require('./middleware/auth');
 const authRouter = require('./routes/auth');
 const authService = require('./services/authService');
+const ClientProjectSyncService = require('./services/clientProjectSyncService');
 
 // Import API routes (consolidated - all methods in single files)
 const clientsApiRouter = require('./routes/clients');
+const projectsApiRouter = require('./routes/projects');
 const crushersApiRouter = require('./routes/crushers');
 const contractorsApiRouter = require('./routes/contractors');
 const deliveriesApiRouter = require('./routes/deliveries');
@@ -63,6 +66,14 @@ async function bootstrap() {
 
   // Create default users for all roles
   await authService.createDefaultUsers();
+
+  // Sync all existing clients to projects
+  try {
+    console.log('Syncing existing clients to projects...');
+    await ClientProjectSyncService.syncAllClientsToProjects();
+  } catch (error) {
+    console.warn('Warning: Failed to sync clients to projects:', error.message);
+  }
 
   const app = express();
   app.use(morgan('dev'));
@@ -126,6 +137,7 @@ async function bootstrap() {
   // API routes (consolidated - all methods in single files with MVC architecture)
   // All routes now require authentication due to middleware above
   app.use('/api/clients', requireRole(['manager', 'accountant']), clientsApiRouter);
+  app.use('/api/projects', requireRole(['manager', 'accountant']), projectsApiRouter);
   app.use('/api/crushers', requireRole(['manager', 'accountant']), crushersApiRouter);
   app.use('/api/contractors', requireRole(['manager', 'accountant']), contractorsApiRouter);
   app.use('/api/deliveries', requireRole(['manager', 'accountant']), deliveriesApiRouter);
@@ -133,9 +145,6 @@ async function bootstrap() {
   app.use('/api/employees', requireRole(['manager', 'accountant']), employeesApiRouter);
   app.use('/api/administration', requireRole(['manager', 'accountant']), administrationApiRouter);
   app.use('/api/suppliers', requireRole(['manager', 'accountant']), suppliersApiRouter);
-
-  // Projects route - maps to clients as financial project views
-  app.use('/api/projects', requireRole(['manager', 'accountant']), clientsApiRouter);
 
   // API metrics endpoint - Updated for MongoDB (Manager + Accountant only)
   app.get('/api/metrics', requireRole(['manager', 'accountant']), async (req, res, next) => {
@@ -273,6 +282,20 @@ async function bootstrap() {
   // System management routes
   app.use('/api', auditRouter);
   app.use('/api', recycleBinRouter);
+
+  // Manual sync endpoint for client-project synchronization
+  app.post('/api/sync/clients-projects', requireRole(['manager']), async (req, res) => {
+    try {
+      const result = await ClientProjectSyncService.syncAllClientsToProjects();
+      res.json({
+        message: 'تم مزامنة العملاء مع المشاريع بنجاح',
+        ...result
+      });
+    } catch (error) {
+      console.error('Error syncing clients to projects:', error);
+      res.status(500).json({ error: 'خطأ في مزامنة العملاء مع المشاريع' });
+    }
+  });
 
   // User management routes (system_maintenance only)
   app.get('/api/users', requireRole(['system_maintenance']), userController.getUsers);

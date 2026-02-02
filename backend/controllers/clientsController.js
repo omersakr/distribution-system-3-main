@@ -1,5 +1,6 @@
 const clientService = require('../services/clientService');
 const reportService = require('../services/reportService');
+const PDFService = require('../services/pdfServiceUltraFast');
 
 class ClientsController {
     // Get all clients with balances, supporting search, filter, sort, pagination
@@ -265,9 +266,30 @@ class ClientsController {
             const reportData = await reportService.getDeliveriesReportData(req.params.id, from, to);
             const html = reportService.generateDeliveriesReportHTML(reportData);
 
-            res.setHeader('Content-Type', 'text/html; charset=utf-8');
-            res.send(html);
+            // Generate PDF using smart method for optimal performance
+            const pdfBuffer = await PDFService.generatePDFSmart(html);
+
+            // Create filename
+            const filename = PDFService.formatFilename(
+                'تقرير_التسليمات',
+                reportData.client.name,
+                from,
+                to
+            );
+
+            // Set headers for PDF download
+            const headers = PDFService.getDownloadHeaders(filename);
+            Object.entries(headers).forEach(([key, value]) => {
+                res.setHeader(key, value);
+            });
+
+            // Set content length
+            res.setHeader('Content-Length', pdfBuffer.length);
+
+            // Send the PDF buffer
+            res.end(pdfBuffer, 'binary');
         } catch (err) {
+            console.error('PDF generation error:', err);
             if (err.message === 'العميل غير موجود') {
                 return res.status(404).json({ message: err.message });
             }
@@ -283,9 +305,30 @@ class ClientsController {
             const reportData = await reportService.getAccountStatementData(req.params.id, from, to);
             const html = reportService.generateAccountStatementHTML(reportData);
 
-            res.setHeader('Content-Type', 'text/html; charset=utf-8');
-            res.send(html);
+            // Generate PDF using smart method for optimal performance
+            const pdfBuffer = await PDFService.generatePDFSmart(html);
+
+            // Create filename
+            const filename = PDFService.formatFilename(
+                'كشف_حساب',
+                reportData.client.name,
+                from,
+                to
+            );
+
+            // Set headers for PDF download
+            const headers = PDFService.getDownloadHeaders(filename);
+            Object.entries(headers).forEach(([key, value]) => {
+                res.setHeader(key, value);
+            });
+
+            // Set content length
+            res.setHeader('Content-Length', pdfBuffer.length);
+
+            // Send the PDF buffer
+            res.end(pdfBuffer, 'binary');
         } catch (err) {
+            console.error('PDF generation error:', err);
             if (err.message === 'العميل غير موجود') {
                 return res.status(404).json({ message: err.message });
             }

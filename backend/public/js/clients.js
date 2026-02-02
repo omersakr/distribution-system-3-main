@@ -1,36 +1,10 @@
-const API_BASE = (function () {
-    if (window.__API_BASE__) return window.__API_BASE__;
-    try {
-        const origin = window.location.origin;
-        if (!origin || origin === 'null') return 'http://localhost:5000/api';
-        return origin.replace(/\/$/, '') + '/api';
-    } catch (e) {
-        return 'http://localhost:5000/api';
-    }
-})();
+// Utilities are loaded via utils/index.js - no need to redefine common functions
 
 // State
 let clientsData = [];
 let currentPage = 1;
 let currentSearch = '';
 let totalPages = 1;
-
-// Helpers
-function formatCurrency(amount) {
-    return Number(amount || 0).toLocaleString('ar-EG', {
-        style: 'currency',
-        currency: 'EGP',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    });
-}
-
-function formatQuantity(qty) {
-    return Number(qty || 0).toLocaleString('ar-EG', {
-        minimumFractionDigits: 1,
-        maximumFractionDigits: 1
-    });
-}
 
 // Create client card with modern design
 function createClientCard(client) {
@@ -210,29 +184,6 @@ function renderPagination(pagination) {
     container.appendChild(nav);
 }
 
-// Modal functions
-function showModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.classList.add('active');
-    }
-}
-
-function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.classList.remove('active');
-    }
-}
-
-function showMessage(elementId, message, type) {
-    const msgDiv = document.getElementById(elementId);
-    if (msgDiv) {
-        msgDiv.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
-        setTimeout(() => msgDiv.innerHTML = '', 5000);
-    }
-}
-
 // API functions
 async function loadClients(page = 1) {
     try {
@@ -240,15 +191,10 @@ async function loadClients(page = 1) {
         params.set('page', page);
         params.set('limit', 25);
         if (currentSearch) {
-            params.set('q', currentSearch);
+            params.set('search', currentSearch); // Changed from 'q' to 'search'
         }
 
-        const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/clients?${params}`);
-        if (!response.ok) {
-            throw new Error('فشل في تحميل بيانات العملاء');
-        }
-
-        const result = await response.json();
+        const result = await apiGet(`/clients?${params}`);
         clientsData = result.clients || result.data || [];
 
         renderClients(clientsData);
@@ -272,17 +218,7 @@ async function loadClients(page = 1) {
 }
 
 async function createClient(clientData) {
-    const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/clients`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(clientData)
-    });
-
-    if (!response.ok) {
-        throw new Error('فشل في إضافة العميل');
-    }
-
-    return response.json();
+    return await apiPost('/clients', clientData);
 }
 
 // Event handlers
@@ -320,18 +256,58 @@ function setupEventHandlers() {
     // Search functionality
     const searchInput = document.getElementById('clientSearch');
     const searchBtn = document.getElementById('searchBtn');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+    let searchTimeout;
 
-    searchBtn.addEventListener('click', () => {
-        currentSearch = searchInput.value.trim();
-        loadClients(1);
-    });
-
-    searchInput.addEventListener('keyup', (e) => {
-        if (e.key === 'Enter') {
+    function performSearch() {
+        if (searchInput) {
             currentSearch = searchInput.value.trim();
-            loadClients(1);
+            currentPage = 1; // Reset to first page when searching
+            loadClients(currentPage);
         }
-    });
+    }
+
+    // Search button click handler
+    if (searchBtn) {
+        searchBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            performSearch();
+        });
+    }
+
+    // Clear search button handler
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            currentSearch = '';
+            currentPage = 1;
+            loadClients(currentPage);
+        });
+    }
+
+    // Search input handlers
+    if (searchInput) {
+        searchInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                clearTimeout(searchTimeout);
+                performSearch();
+            } else {
+                // Real-time search with debounce
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    const newSearch = searchInput.value.trim();
+                    if (newSearch !== currentSearch) {
+                        performSearch();
+                    }
+                }, 500); // Wait 500ms after user stops typing
+            }
+        });
+    }
 
     // Modal close on backdrop click
     document.querySelectorAll('.modal').forEach(modal => {
@@ -372,18 +348,7 @@ async function deleteClient(clientId, clientName) {
             }
         });
 
-        const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/clients/${clientId}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || 'فشل في حذف العميل');
-        }
+        const data = await apiDelete(`/clients/${clientId}`);
 
         // Show success message
         await Swal.fire({
@@ -420,8 +385,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Make functions available globally
 window.deleteClient = deleteClient;
-window.showModal = showModal;
-window.closeModal = closeModal;
 
 // Event delegation for CSP compliance
 document.addEventListener('click', function (e) {

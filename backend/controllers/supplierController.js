@@ -1,4 +1,5 @@
 const supplierService = require('../services/supplierService');
+const PDFService = require('../services/pdfServiceUltraFast');
 
 class SupplierController {
     // Get all suppliers
@@ -235,9 +236,30 @@ class SupplierController {
             // Generate HTML report
             const html = this.generateDeliveriesReportHTML(reportData);
 
-            res.setHeader('Content-Type', 'text/html; charset=utf-8');
-            res.send(html);
+            // Generate PDF using smart method for optimal performance
+            const pdfBuffer = await PDFService.generatePDFSmart(html);
+
+            // Create filename
+            const filename = PDFService.formatFilename(
+                'تقرير_التوريدات',
+                reportData.supplier.name,
+                from,
+                to
+            );
+
+            // Set headers for PDF download
+            const headers = PDFService.getDownloadHeaders(filename);
+            Object.entries(headers).forEach(([key, value]) => {
+                res.setHeader(key, value);
+            });
+
+            // Set content length
+            res.setHeader('Content-Length', pdfBuffer.length);
+
+            // Send the PDF buffer
+            res.end(pdfBuffer, 'binary');
         } catch (err) {
+            console.error('PDF generation error:', err);
             next(err);
         }
     }
@@ -254,9 +276,30 @@ class SupplierController {
             // Generate HTML report
             const html = this.generateAccountStatementHTML(reportData);
 
-            res.setHeader('Content-Type', 'text/html; charset=utf-8');
-            res.send(html);
+            // Generate PDF using smart method for optimal performance
+            const pdfBuffer = await PDFService.generatePDFSmart(html);
+
+            // Create filename
+            const filename = PDFService.formatFilename(
+                'كشف_حساب',
+                reportData.supplier.name,
+                from,
+                to
+            );
+
+            // Set headers for PDF download
+            const headers = PDFService.getDownloadHeaders(filename);
+            Object.entries(headers).forEach(([key, value]) => {
+                res.setHeader(key, value);
+            });
+
+            // Set content length
+            res.setHeader('Content-Length', pdfBuffer.length);
+
+            // Send the PDF buffer
+            res.end(pdfBuffer, 'binary');
         } catch (err) {
+            console.error('PDF generation error:', err);
             next(err);
         }
     }

@@ -1,5 +1,6 @@
 // Export all models for easy importing
 const Client = require('./Client');
+const Project = require('./Project');
 const Crusher = require('./Crusher');
 const Contractor = require('./Contractor');
 const Delivery = require('./Delivery');
@@ -22,6 +23,7 @@ const UserSession = require('./UserSession');
 
 module.exports = {
     Client,
+    Project,
     Crusher,
     Contractor,
     Delivery,

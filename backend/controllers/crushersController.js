@@ -1,5 +1,6 @@
 const crusherService = require('../services/crusherService');
 const reportService = require('../services/reportService');
+const PDFService = require('../services/pdfServiceUltraFast');
 
 class CrushersController {
     // Get all crushers
@@ -30,7 +31,7 @@ class CrushersController {
     // Create new crusher
     async createCrusher(req, res, next) {
         try {
-            const { name, sand_price, aggregate1_price, aggregate2_price, aggregate3_price } = req.body;
+            const { name, sand_price, aggregate1_price, aggregate2_price, aggregate3_price, aggregate6_powder_price } = req.body;
 
             if (!name || name.trim() === '') {
                 return res.status(400).json({ message: 'اسم الكسارة مطلوب' });
@@ -41,7 +42,8 @@ class CrushersController {
                 sand_price,
                 aggregate1_price,
                 aggregate2_price,
-                aggregate3_price
+                aggregate3_price,
+                aggregate6_powder_price
             });
 
             res.status(201).json(crusher);
@@ -56,7 +58,7 @@ class CrushersController {
     // Update crusher
     async updateCrusher(req, res, next) {
         try {
-            const { name, sand_price, aggregate1_price, aggregate2_price, aggregate3_price } = req.body;
+            const { name, sand_price, aggregate1_price, aggregate2_price, aggregate3_price, aggregate6_powder_price } = req.body;
 
             if (!name || name.trim() === '') {
                 return res.status(400).json({ message: 'اسم الكسارة مطلوب' });
@@ -67,7 +69,8 @@ class CrushersController {
                 sand_price,
                 aggregate1_price,
                 aggregate2_price,
-                aggregate3_price
+                aggregate3_price,
+                aggregate6_powder_price
             });
 
             if (!crusher) {
@@ -86,7 +89,7 @@ class CrushersController {
     // Update crusher prices only
     async updateCrusherPrices(req, res, next) {
         try {
-            const { sand_price, aggregate1_price, aggregate2_price, aggregate3_price } = req.body;
+            const { sand_price, aggregate1_price, aggregate2_price, aggregate3_price, aggregate6_powder_price } = req.body;
 
             // Get current crusher data to preserve the name
             const currentCrusher = await crusherService.getCrusherById(req.params.id);
@@ -99,7 +102,8 @@ class CrushersController {
                 sand_price,
                 aggregate1_price,
                 aggregate2_price,
-                aggregate3_price
+                aggregate3_price,
+                aggregate6_powder_price
             });
 
             res.json(crusher);
@@ -283,9 +287,30 @@ class CrushersController {
             const reportData = await reportService.getCrusherDeliveriesReportData(req.params.id, from, to);
             const html = reportService.generateCrusherDeliveriesReportHTML(reportData);
 
-            res.setHeader('Content-Type', 'text/html; charset=utf-8');
-            res.send(html);
+            // Generate PDF using smart method for optimal performance
+            const pdfBuffer = await PDFService.generatePDFSmart(html);
+
+            // Create filename
+            const filename = PDFService.formatFilename(
+                'تقرير_التوريدات',
+                reportData.crusher.name,
+                from,
+                to
+            );
+
+            // Set headers for PDF download
+            const headers = PDFService.getDownloadHeaders(filename);
+            Object.entries(headers).forEach(([key, value]) => {
+                res.setHeader(key, value);
+            });
+
+            // Set content length
+            res.setHeader('Content-Length', pdfBuffer.length);
+
+            // Send the PDF buffer
+            res.end(pdfBuffer, 'binary');
         } catch (err) {
+            console.error('PDF generation error:', err);
             if (err.message === 'الكسارة غير موجودة') {
                 return res.status(404).json({ message: err.message });
             }
@@ -301,9 +326,30 @@ class CrushersController {
             const reportData = await reportService.getCrusherAccountStatementData(req.params.id, from, to);
             const html = reportService.generateCrusherAccountStatementHTML(reportData);
 
-            res.setHeader('Content-Type', 'text/html; charset=utf-8');
-            res.send(html);
+            // Generate PDF using smart method for optimal performance
+            const pdfBuffer = await PDFService.generatePDFSmart(html);
+
+            // Create filename
+            const filename = PDFService.formatFilename(
+                'كشف_حساب',
+                reportData.crusher.name,
+                from,
+                to
+            );
+
+            // Set headers for PDF download
+            const headers = PDFService.getDownloadHeaders(filename);
+            Object.entries(headers).forEach(([key, value]) => {
+                res.setHeader(key, value);
+            });
+
+            // Set content length
+            res.setHeader('Content-Length', pdfBuffer.length);
+
+            // Send the PDF buffer
+            res.end(pdfBuffer, 'binary');
         } catch (err) {
+            console.error('PDF generation error:', err);
             if (err.message === 'الكسارة غير موجودة') {
                 return res.status(404).json({ message: err.message });
             }

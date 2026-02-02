@@ -1,4 +1,5 @@
 const { Client, Delivery, Payment, Adjustment } = require('../models');
+const ClientProjectSyncService = require('./clientProjectSyncService');
 
 const toNumber = (v) => Number(v || 0);
 
@@ -98,8 +99,12 @@ class ClientService {
             },
             deliveries: deliveries.map(d => ({
                 id: d._id,
+                crusher_id: d.crusher_id?._id || d.crusher_id,
                 crusher_name: d.crusher_id?.name || '',
+                contractor_id: d.contractor_id?._id || d.contractor_id,
                 contractor_name: d.contractor_id?.name || '',
+                client_id: d.client_id,
+                supplier_id: d.supplier_id,
                 material: d.material,
                 voucher: d.voucher,
                 quantity: d.quantity,
@@ -111,6 +116,7 @@ class ClientService {
                 car_head: d.car_head,
                 car_tail: d.car_tail,
                 car_volume: d.car_volume,
+                contractor_charge_per_meter: d.contractor_charge_per_meter,
                 created_at: d.created_at
             })),
             payments: payments.map(p => ({
@@ -142,6 +148,13 @@ class ClientService {
 
         await client.save();
 
+        // Automatically create corresponding project
+        try {
+            await ClientProjectSyncService.syncClientToProject(client._id);
+        } catch (error) {
+            console.warn('Failed to sync new client to project:', error.message);
+        }
+
         return {
             id: client._id,
             name: client.name,
@@ -166,6 +179,13 @@ class ClientService {
             return null;
         }
 
+        // Sync changes to corresponding project
+        try {
+            await ClientProjectSyncService.syncClientToProject(client._id);
+        } catch (error) {
+            console.warn('Failed to sync client update to project:', error.message);
+        }
+
         return {
             id: client._id,
             name: client.name,
@@ -176,7 +196,15 @@ class ClientService {
     }
 
     static async deleteClient(id) {
-        return await Client.findByIdAndDelete(id);
+        // Use the sync service to delete both client and project
+        try {
+            const result = await ClientProjectSyncService.deleteClientAndProject(id);
+            return result.client;
+        } catch (error) {
+            console.warn('Failed to sync client deletion to project:', error.message);
+            // Fallback to just deleting the client
+            return await Client.findByIdAndDelete(id);
+        }
     }
 
     static async computeClientTotals(clientId) {
@@ -425,8 +453,12 @@ class ClientService {
         // Format deliveries for response
         const formattedDeliveries = deliveries.map(d => ({
             id: d._id,
+            crusher_id: d.crusher_id?._id || d.crusher_id,
             crusher_name: d.crusher_id?.name || '',
+            contractor_id: d.contractor_id?._id || d.contractor_id,
             contractor_name: d.contractor_id?.name || '',
+            client_id: d.client_id,
+            supplier_id: d.supplier_id,
             material: d.material,
             voucher: d.voucher,
             quantity: d.quantity,
@@ -438,6 +470,7 @@ class ClientService {
             car_head: d.car_head,
             car_tail: d.car_tail,
             car_volume: d.car_volume,
+            contractor_charge_per_meter: d.contractor_charge_per_meter,
             created_at: d.created_at,
             formatted_date: formatDate(d.created_at)
         }));

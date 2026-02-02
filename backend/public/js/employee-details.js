@@ -1,41 +1,11 @@
-const API_BASE = (function () {
-    if (window.__API_BASE__) return window.__API_BASE__;
-    try {
-        const origin = window.location.origin;
-        if (!origin || origin === 'null') return 'http://localhost:5000/api';
-        return origin.replace(/\/$/, '') + '/api';
-    } catch (e) {
-        return 'http://localhost:5000/api';
-    }
-})();
+// Utilities are loaded via utils/index.js - no need to redefine common functions
+
+// Utilities are loaded via utils/index.js - no need to redefine common functions
 
 // Global variables
 let currentEmployeeId = null;
 let currentEmployee = null;
 let clientsData = []; // For project assignment (clients = projects)
-
-// --- Helpers ---
-
-function formatCurrency(amount) {
-    return Number(amount || 0).toLocaleString('ar-EG', {
-        style: 'currency',
-        currency: 'EGP',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    });
-}
-
-function formatDate(dateString) {
-    if (!dateString) return '—';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ar-EG');
-}
-
-function formatDateTime(dateString) {
-    if (!dateString) return '—';
-    const date = new Date(dateString);
-    return date.toLocaleString('ar-EG');
-}
 
 // --- Tab Management --- (REMOVED - using sections instead)
 
@@ -57,10 +27,7 @@ async function loadEmployeeDetails() {
     }
 
     try {
-        const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/employees/${currentEmployeeId}`);
-        if (!response.ok) throw new Error('فشل في تحميل بيانات الموظف');
-
-        const data = await response.json();
+        const data = await apiGet(`/employees/${currentEmployeeId}`);
         currentEmployee = data.employee;
 
         displayEmployeeInfo(data.employee);
@@ -397,19 +364,14 @@ async function handleAttendanceSubmit(event) {
 
     try {
         const url = isEdit
-            ? `${API_BASE}/employees/${currentEmployeeId}/attendance/${attendanceId}`
-            : `${API_BASE}/employees/${currentEmployeeId}/attendance`;
+            ? `/employees/${currentEmployeeId}/attendance/${attendanceId}`
+            : `/employees/${currentEmployeeId}/attendance`;
         const method = isEdit ? 'PUT' : 'POST';
 
-        const response = await authManager.makeAuthenticatedRequest(url, {
-            method: method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(apiData)
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'فشل في حفظ سجل الحضور');
+        if (isEdit) {
+            await apiPut(url, apiData);
+        } else {
+            await apiPost(url, apiData);
         }
 
         await Swal.fire({
@@ -444,11 +406,7 @@ async function deleteAttendance(attendanceId) {
 
     if (result.isConfirmed) {
         try {
-            const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/employees/${currentEmployeeId}/attendance/${attendanceId}`, {
-                method: 'DELETE'
-            });
-
-            if (!response.ok) throw new Error('فشل في حذف سجل الحضور');
+            await apiDelete(`/employees/${currentEmployeeId}/attendance/${attendanceId}`);
 
             await Swal.fire({
                 icon: 'success',
@@ -560,19 +518,13 @@ async function handleAdjustmentSubmit(event) {
 
     try {
         const url = isEdit
-            ? `${API_BASE}/employees/${currentEmployeeId}/adjustments/${adjustmentId}`
-            : `${API_BASE}/employees/${currentEmployeeId}/adjustments`;
-        const method = isEdit ? 'PUT' : 'POST';
+            ? `/employees/${currentEmployeeId}/adjustments/${adjustmentId}`
+            : `/employees/${currentEmployeeId}/adjustments`;
 
-        const response = await authManager.makeAuthenticatedRequest(url, {
-            method: method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(adjustmentData)
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'فشل في حفظ التسوية');
+        if (isEdit) {
+            await apiPut(url, adjustmentData);
+        } else {
+            await apiPost(url, adjustmentData);
         }
 
         await Swal.fire({
@@ -607,11 +559,7 @@ async function deleteAdjustment(adjustmentId) {
 
     if (result.isConfirmed) {
         try {
-            const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/employees/${currentEmployeeId}/adjustments/${adjustmentId}`, {
-                method: 'DELETE'
-            });
-
-            if (!response.ok) throw new Error('فشل في حذف التسوية');
+            await apiDelete(`/employees/${currentEmployeeId}/adjustments/${adjustmentId}`);
 
             await Swal.fire({
                 icon: 'success',
@@ -725,19 +673,13 @@ async function submitPayment(paymentData, paymentId) {
 
     try {
         const url = isEdit
-            ? `${API_BASE}/employees/${currentEmployeeId}/payments/${paymentId}`
-            : `${API_BASE}/employees/${currentEmployeeId}/payments`;
-        const method = isEdit ? 'PUT' : 'POST';
+            ? `/employees/${currentEmployeeId}/payments/${paymentId}`
+            : `/employees/${currentEmployeeId}/payments`;
 
-        const response = await authManager.makeAuthenticatedRequest(url, {
-            method: method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(paymentData)
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'فشل في حفظ الدفعة');
+        if (isEdit) {
+            await apiPut(url, paymentData);
+        } else {
+            await apiPost(url, paymentData);
         }
 
         await Swal.fire({
@@ -772,11 +714,7 @@ async function deletePayment(paymentId) {
 
     if (result.isConfirmed) {
         try {
-            const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/employees/${currentEmployeeId}/payments/${paymentId}`, {
-                method: 'DELETE'
-            });
-
-            if (!response.ok) throw new Error('فشل في حذف الدفعة');
+            await apiDelete(`/employees/${currentEmployeeId}/payments/${paymentId}`);
 
             await Swal.fire({
                 icon: 'success',
@@ -827,38 +765,6 @@ function editPayment(paymentId) {
     // Set modal title
     document.getElementById('paymentModalTitle').textContent = 'تعديل الدفعة';
 
-    // Convert Arabic date to ISO format for input
-    function parseArabicDate(arabicDate) {
-        // Handle different date formats
-        if (!arabicDate || arabicDate === '—') return '';
-
-        // If already in ISO format, return as is
-        if (arabicDate.match(/^\d{4}-\d{2}-\d{2}/)) {
-            return arabicDate.split('T')[0];
-        }
-
-        // Try to parse Arabic numerals and format
-        try {
-            // Convert Arabic numerals to English
-            const englishDate = arabicDate
-                .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
-                .replace(/[‏]/g, ''); // Remove RTL marks
-
-            // Parse different formats: DD/MM/YYYY or D/M/YYYY
-            const parts = englishDate.split('/');
-            if (parts.length === 3) {
-                const day = parts[0].padStart(2, '0');
-                const month = parts[1].padStart(2, '0');
-                const year = parts[2];
-                return `${year}-${month}-${day}`;
-            }
-        } catch (e) {
-            console.warn('Could not parse Arabic date:', arabicDate);
-        }
-
-        return '';
-    }
-
     // Fill form with existing data
     document.getElementById('paymentAmount').value = paymentRecord.amount;
     document.getElementById('paymentMethod').value = paymentRecord.method || '';
@@ -887,12 +793,7 @@ function viewPaymentImage(imageData) {
 
 async function loadClients() {
     try {
-        const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/clients`);
-        if (!response.ok) {
-            throw new Error('فشل في تحميل العملاء');
-        }
-
-        const data = await response.json();
+        const data = await apiGet('/clients');
         clientsData = data.clients || data.data || [];
         populateProjectsList();
     } catch (error) {
@@ -1001,18 +902,7 @@ async function handleEditEmployeeSubmit(event) {
     });
 
     try {
-        const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/employees/${currentEmployeeId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(employeeData)
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'فشل في تحديث الموظف');
-        }
+        await apiPut(`/employees/${currentEmployeeId}`, employeeData);
 
         await Swal.fire({
             icon: 'success',

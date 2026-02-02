@@ -182,6 +182,68 @@
             border-radius: var(--radius);
             border: 1px solid var(--danger-200);
         }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-4);
+            margin-bottom: var(--space-8);
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin-bottom: var(--space-2);
+            color: var(--gray-900);
+        }
+
+        .stat-value.text-success {
+            color: var(--success-600);
+        }
+
+        .stat-value.text-danger {
+            color: var(--danger-600);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            margin-bottom: var(--space-1);
+        }
+
+        .stat-change {
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .stat-change.positive {
+            color: var(--success-600);
+        }
+
+        .stat-change.negative {
+            color: var(--danger-600);
+        }
+
+        .card-header {
+            padding: var(--space-6);
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin: 0;
+        }
     </style>
 </head>
 
@@ -271,41 +333,19 @@
         </div>
     </div>
 
+    <script src="js/utils/index.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/sidebar.js"></script>
     <script>
-        const API_BASE = (function () {
-            if (window.__API_BASE__) return window.__API_BASE__;
-            try {
-                const origin = window.location.origin;
-                if (!origin || origin === 'null') return 'http://localhost:5000/api';
-                return origin.replace(/\/$/, '') + '/api';
-            } catch (e) {
-                return 'http://localhost:5000/api';
-            }
-        })();
-
-        function formatCurrency(amount) {
-            return Number(amount || 0).toLocaleString('ar-EG', {
-                style: 'currency',
-                currency: 'EGP',
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            });
-        }
-
-        function formatDate(dateStr) {
-            if (!dateStr) return '';
-            const date = new Date(dateStr);
-            return date.toLocaleDateString('ar-EG', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            });
-        }
+        // Utilities are loaded via utils/index.js - no need to redefine common functions
 
         async function loadDashboardData() {
             try {
+                // Check if API utilities are available
+                if (typeof apiGet === 'undefined') {
+                    throw new Error('API utilities not loaded');
+                }
+
                 // Check authentication first
                 if (!authManager.isAuthenticated()) {
                     window.location.href = '/login.html';
@@ -313,19 +353,14 @@
                 }
 
                 // Use only the metrics API endpoint for consistent data
-                const metricsRes = await authManager.makeAuthenticatedRequest(`${API_BASE}/metrics`);
-                const metrics = await metricsRes.json();
+                const metrics = await apiGet('/metrics');
 
                 // Load additional data for recent activity
-                const [clientsRes, contractorsRes, crushersRes] = await Promise.all([
-                    authManager.makeAuthenticatedRequest(`${API_BASE}/clients?limit=5`),
-                    authManager.makeAuthenticatedRequest(`${API_BASE}/contractors?limit=5`),
-                    authManager.makeAuthenticatedRequest(`${API_BASE}/crushers?limit=5`)
+                const [clientsData, contractorsData, crushersData] = await Promise.all([
+                    apiGet('/clients?limit=5'),
+                    apiGet('/contractors?limit=5'),
+                    apiGet('/crushers?limit=5')
                 ]);
-
-                const clientsData = await clientsRes.json();
-                const contractorsData = await contractorsRes.json();
-                const crushersData = await crushersRes.json();
 
                 const clients = clientsData.clients || clientsData.data || [];
                 const contractors = contractorsData.contractors || contractorsData.data || [];
@@ -390,13 +425,13 @@
 
         function renderStats(metrics, clients, contractors, crushers) {
             const container = document.getElementById('statsGrid');
-            
+
             // Calculate balance summaries from actual data
             const clientsOwingUs = clients.filter(c => (c.balance || 0) > 0).reduce((sum, c) => sum + c.balance, 0);
             const clientsWeOwe = Math.abs(clients.filter(c => (c.balance || 0) < 0).reduce((sum, c) => sum + c.balance, 0));
             const contractorsWeOwe = contractors.filter(c => (c.balance || 0) > 0).reduce((sum, c) => sum + c.balance, 0);
             const crushersWeOwe = crushers.filter(c => (c.net || 0) > 0).reduce((sum, c) => sum + c.net, 0);
-            
+
             container.innerHTML = `
                 <div class="stat-card">
                     <div class="stat-value">${metrics.totalClients}</div>
@@ -516,14 +551,34 @@
             }
         }
 
-        // Load data when page loads and start auto-refresh
-        document.addEventListener('DOMContentLoaded', function() {
+        // Wait for utilities to load before initializing dashboard
+        async function initializeDashboard() {
+            // Wait for utilities to be available
+            let attempts = 0;
+            const maxAttempts = 50; // 5 seconds max wait
+
+            while (typeof apiGet === 'undefined' && attempts < maxAttempts) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+            }
+
+            if (typeof apiGet === 'undefined') {
+                console.error('API utilities failed to load');
+                document.getElementById('financialOverview').innerHTML =
+                    '<div class="error">فشل في تحميل أدوات النظام</div>';
+                return;
+            }
+
+            // Now load dashboard data
             loadDashboardData();
             startAutoRefresh();
-        });
+        }
+
+        // Load data when page loads and start auto-refresh
+        document.addEventListener('DOMContentLoaded', initializeDashboard);
 
         // Stop auto-refresh when page is hidden/closed
-        document.addEventListener('visibilitychange', function() {
+        document.addEventListener('visibilitychange', function () {
             if (document.hidden) {
                 stopAutoRefresh();
             } else {

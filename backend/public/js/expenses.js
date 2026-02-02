@@ -1,13 +1,4 @@
-const API_BASE = (function () {
-    if (window.__API_BASE__) return window.__API_BASE__;
-    try {
-        const origin = window.location.origin;
-        if (!origin || origin === 'null') return 'http://localhost:5000/api';
-        return origin.replace(/\/$/, '') + '/api';
-    } catch (e) {
-        return 'http://localhost:5000/api';
-    }
-})();
+// Utilities are loaded via utils/index.js - no need to redefine common functions
 
 // State
 let currentPage = 1;
@@ -18,17 +9,8 @@ let projectsData = [];
 // Load projects for dropdown
 async function loadProjects() {
     try {
-        console.log('Loading projects from:', `${API_BASE}/clients`);
-        const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/clients`);
-        if (!response.ok) {
-            throw new Error('فشل في تحميل المشاريع');
-        }
-
-        const data = await response.json();
-        console.log('Projects data received:', data);
-
-        // Handle different response formats
-        projectsData = data.clients || data.data || data || [];
+        console.log('Loading projects from API');
+        projectsData = await loadProjectsData();
         console.log('Processed projects data:', projectsData);
 
         populateProjectDropdowns();
@@ -61,50 +43,6 @@ function populateProjectDropdowns() {
     });
 }
 
-// Helpers
-function formatCurrency(amount) {
-    return Number(amount || 0).toLocaleString('ar-EG', {
-        style: 'currency',
-        currency: 'EGP',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    });
-}
-
-function formatDate(dateStr) {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('ar-EG', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-    });
-}
-
-function showMessage(elementId, message, type) {
-    const msgDiv = document.getElementById(elementId);
-    if (msgDiv) {
-        msgDiv.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
-        setTimeout(() => {
-            msgDiv.innerHTML = '';
-        }, 5000);
-    }
-}
-
-function showModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.classList.add('active');
-    }
-}
-
-function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.classList.remove('active');
-    }
-}
-
 // API Functions
 async function loadExpenses(page = 1, filters = {}) {
     try {
@@ -119,12 +57,7 @@ async function loadExpenses(page = 1, filters = {}) {
         });
 
         console.log('Loading expenses with params:', params.toString());
-        const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/expenses?${params}`);
-        if (!response.ok) {
-            throw new Error('فشل في تحميل المصروفات');
-        }
-
-        const data = await response.json();
+        const data = await apiGet(`/expenses?${params}`);
         console.log('Expenses data received:', data);
 
         // Store categories for dropdowns if available
@@ -151,14 +84,9 @@ async function loadExpenses(page = 1, filters = {}) {
 
 async function loadExpenseStats() {
     try {
-        console.log('Loading expense stats from:', `${API_BASE}/expenses/stats`);
+        console.log('Loading expense stats from API');
 
-        const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/expenses/stats`);
-        if (!response.ok) {
-            throw new Error('فشل في تحميل إحصائيات المصروفات');
-        }
-
-        const stats = await response.json();
+        const stats = await apiGet('/expenses/stats');
         console.log('Received stats:', stats);
         console.log('monthlyTrend type:', typeof stats.monthlyTrend);
         console.log('monthlyTrend isArray:', Array.isArray(stats.monthlyTrend));
@@ -174,46 +102,15 @@ async function loadExpenseStats() {
 }
 
 async function addExpense(expenseData) {
-    const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/expenses`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(expenseData)
-    });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'فشل في إضافة المصروف');
-    }
-
-    return response.json();
+    return await apiPost('/expenses', expenseData);
 }
 
 async function updateExpense(id, expenseData) {
-    const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/expenses/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(expenseData)
-    });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'فشل في تحديث المصروف');
-    }
-
-    return response.json();
+    return await apiPut(`/expenses/${id}`, expenseData);
 }
 
 async function deleteExpense(id) {
-    const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/expenses/${id}`, {
-        method: 'DELETE'
-    });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'فشل في حذف المصروف');
-    }
-
-    return response.json();
+    return await apiDelete(`/expenses/${id}`);
 }
 
 // Render Functions
@@ -274,7 +171,7 @@ function renderExpenses(expenses) {
 
         // Date
         const dateCell = document.createElement('td');
-        dateCell.textContent = formatDate(expense.expense_date);
+        dateCell.textContent = formatDateShort(expense.expense_date);
         row.appendChild(dateCell);
 
         // Project

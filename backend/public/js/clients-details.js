@@ -1,13 +1,4 @@
-const API_BASE = (function () {
-    if (window.__API_BASE__) return window.__API_BASE__;
-    try {
-        const origin = window.location.origin;
-        if (!origin || origin === 'null') return 'http://localhost:5000/api';
-        return origin.replace(/\/$/, '') + '/api';
-    } catch (e) {
-        return 'http://localhost:5000/api';
-    }
-})();
+// Utilities are loaded via utils/index.js - no need to redefine common functions
 
 // State
 let clientData = null;
@@ -17,33 +8,7 @@ let allAdjustments = [];
 
 // Helpers
 function getClientIdFromURL() {
-    return new URLSearchParams(window.location.search).get('id');
-}
-
-function formatCurrency(amount) {
-    return Number(amount || 0).toLocaleString('ar-EG', {
-        style: 'currency',
-        currency: 'EGP',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    });
-}
-
-function formatDate(dateStr) {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('ar-EG', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-    });
-}
-
-function formatQuantity(amount) {
-    return Number(amount || 0).toLocaleString('ar-EG', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
+    return getUrlParameter('id');
 }
 
 // Render Functions
@@ -356,102 +321,6 @@ function renderAdjustments(adjustments) {
     container.appendChild(table);
 }
 
-// Modal Functions
-function showModal(modalId) {
-    console.log('showModal called with:', modalId);
-    const modal = document.getElementById(modalId);
-    console.log('Modal element:', modal);
-
-    if (modal) {
-        console.log('Adding active class and setting display to flex');
-        modal.classList.add('active');
-        modal.style.display = 'flex'; // Ensure modal is visible
-
-        // Clear any previous messages
-        const messageElements = modal.querySelectorAll('[id$="Message"]');
-        messageElements.forEach(el => el.innerHTML = '');
-
-        // Reset form to add mode if not already in edit mode
-        if (modalId === 'paymentModal') {
-            const form = document.getElementById('paymentForm');
-            if (!form.dataset.editId) {
-                resetPaymentForm();
-            }
-        } else if (modalId === 'adjustmentModal') {
-            const form = document.getElementById('adjustmentForm');
-            if (!form.dataset.editId) {
-                resetAdjustmentForm();
-            }
-        }
-
-        console.log('Modal should now be visible');
-    } else {
-        console.error('Modal not found:', modalId);
-    }
-}
-
-function closeModal(modalId) {
-    console.log('closeModal called with:', modalId);
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        console.log('Removing active class and hiding modal');
-        modal.classList.remove('active');
-        modal.style.display = 'none'; // Ensure modal is hidden
-
-        // Clear messages when closing
-        const messageElements = modal.querySelectorAll('[id$="Message"]');
-        messageElements.forEach(el => el.innerHTML = '');
-
-        // Always reset forms when closing
-        if (modalId === 'paymentModal') {
-            resetPaymentForm();
-        } else if (modalId === 'adjustmentModal') {
-            resetAdjustmentForm();
-        }
-
-        console.log('Modal hidden');
-    } else {
-        console.error('Modal not found:', modalId);
-    }
-}
-
-function resetPaymentForm() {
-    const form = document.getElementById('paymentForm');
-    form.reset();
-    delete form.dataset.editId;
-
-    // Reset UI elements
-    document.getElementById('paymentDetailsGroup').style.display = 'none';
-    document.getElementById('paymentImageGroup').style.display = 'none';
-    document.getElementById('paymentDetails').required = false;
-    document.getElementById('paymentImagePreview').innerHTML = '';
-
-    // Reset modal title and button
-    document.querySelector('#paymentModal .modal-header').textContent = 'إضافة دفعة جديدة';
-    document.querySelector('#paymentForm button[type="submit"]').textContent = 'إضافة';
-
-    // Set default date
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('paymentDate').value = today;
-}
-
-function resetAdjustmentForm() {
-    const form = document.getElementById('adjustmentForm');
-    form.reset();
-    delete form.dataset.editId;
-
-    // Reset modal title and button
-    document.querySelector('#adjustmentModal .modal-header').textContent = 'إضافة تسوية جديدة';
-    document.querySelector('#adjustmentForm button[type="submit"]').textContent = 'إضافة';
-}
-
-function showMessage(elementId, message, type) {
-    const msgDiv = document.getElementById(elementId);
-    if (msgDiv) {
-        msgDiv.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
-    }
-}
-
 // CRUD Functions
 async function editPayment(paymentId) {
     try {
@@ -497,13 +366,7 @@ async function deletePayment(paymentId) {
 
     try {
         const clientId = getClientIdFromURL();
-        const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/clients/${clientId}/payments/${paymentId}`, {
-            method: 'DELETE'
-        });
-
-        if (!response.ok) {
-            throw new Error('فشل في حذف الدفعة');
-        }
+        await apiDelete(`/clients/${clientId}/payments/${paymentId}`);
 
         alert('تم حذف الدفعة بنجاح');
         loadClientDetails(); // Reload data
@@ -686,13 +549,7 @@ async function deleteAdjustment(adjustmentId) {
 
     try {
         const clientId = getClientIdFromURL();
-        const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/clients/${clientId}/adjustments/${adjustmentId}`, {
-            method: 'DELETE'
-        });
-
-        if (!response.ok) {
-            throw new Error('فشل في حذف التسوية');
-        }
+        await apiDelete(`/clients/${clientId}/adjustments/${adjustmentId}`);
 
         alert('تم حذف التسوية بنجاح');
         loadClientDetails(); // Reload data
@@ -704,123 +561,22 @@ async function deleteAdjustment(adjustmentId) {
 
 async function updatePayment(paymentId, paymentData) {
     const clientId = getClientIdFromURL();
-    const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/clients/${clientId}/payments/${paymentId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(paymentData)
-    });
-
-    if (!response.ok) {
-        let errorMessage = 'فشل في تحديث الدفعة';
-        try {
-            const responseClone = response.clone();
-            const errorData = await responseClone.json();
-            errorMessage = errorData.message || errorMessage;
-        } catch (parseError) {
-            try {
-                const errorText = await response.text();
-                if (errorText) errorMessage = errorText;
-            } catch (textError) {
-                console.log('Could not read error response');
-            }
-        }
-        throw new Error(errorMessage);
-    }
-
-    return response.json();
+    return await apiPut(`/clients/${clientId}/payments/${paymentId}`, paymentData);
 }
 
 async function updateAdjustment(adjustmentId, adjustmentData) {
     const clientId = getClientIdFromURL();
-    const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/clients/${clientId}/adjustments/${adjustmentId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(adjustmentData)
-    });
-
-    if (!response.ok) {
-        let errorMessage = 'فشل في تحديث التسوية';
-        try {
-            const responseClone = response.clone();
-            const errorData = await responseClone.json();
-            errorMessage = errorData.message || errorMessage;
-        } catch (parseError) {
-            try {
-                const errorText = await response.text();
-                if (errorText) errorMessage = errorText;
-            } catch (textError) {
-                console.log('Could not read error response');
-            }
-        }
-        throw new Error(errorMessage);
-    }
-
-    return response.json();
+    return await apiPut(`/clients/${clientId}/adjustments/${adjustmentId}`, adjustmentData);
 }
+
 async function addPayment(clientId, paymentData) {
     console.log('Sending payment data:', paymentData);
-    console.log('Sending payment request to:', `${API_BASE}/clients/${clientId}/payments`);
-    console.log('Payment data:', paymentData);
-
-    const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/clients/${clientId}/payments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(paymentData)
-    });
-
-    console.log('Response status:', response.status);
-    console.log('Response headers:', response.headers);
-
-    if (!response.ok) {
-        let errorMessage = 'فشل في إضافة الدفعة';
-        try {
-            const responseClone = response.clone();
-            const errorData = await responseClone.json();
-            errorMessage = errorData.message || errorMessage;
-        } catch (parseError) {
-            console.log('Could not parse error response as JSON');
-            try {
-                const errorText = await response.text();
-                console.log('Error response text:', errorText);
-                if (errorText) errorMessage = errorText;
-            } catch (textError) {
-                console.log('Could not read error response as text');
-            }
-        }
-        console.log('Payment API error:', errorMessage);
-        throw new Error(errorMessage);
-    }
-
-    return response.json();
+    return await apiPost(`/clients/${clientId}/payments`, paymentData);
 }
 
 async function addAdjustment(clientId, adjustmentData) {
     console.log('Sending adjustment data:', adjustmentData);
-
-    const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/clients/${clientId}/adjustments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(adjustmentData)
-    });
-
-    if (!response.ok) {
-        let errorMessage = 'فشل في إضافة التسوية';
-        try {
-            const responseClone = response.clone();
-            const errorData = await responseClone.json();
-            errorMessage = errorData.message || errorMessage;
-        } catch (parseError) {
-            try {
-                const errorText = await response.text();
-                if (errorText) errorMessage = errorText;
-            } catch (textError) {
-                console.log('Could not read error response');
-            }
-        }
-        throw new Error(errorMessage);
-    }
-
-    return response.json();
+    return await apiPost(`/clients/${clientId}/adjustments`, adjustmentData);
 }
 
 // Event Handlers
@@ -992,6 +748,13 @@ function setupEventHandlers() {
             return;
         }
 
+        // Find the original delivery to preserve the ID fields
+        const originalDelivery = allDeliveries.find(d => d.id === editId);
+        if (!originalDelivery) {
+            showMessage('deliveryEditMessage', 'خطأ: لم يتم العثور على بيانات التسليم الأصلية', 'error');
+            return;
+        }
+
         const deliveryData = {
             material: document.getElementById('editDeliveryMaterial').value,
             voucher: document.getElementById('editDeliveryVoucher').value,
@@ -999,7 +762,12 @@ function setupEventHandlers() {
             price_per_meter: parseFloat(document.getElementById('editDeliveryPricePerMeter').value),
             driver_name: document.getElementById('editDeliveryDriverName').value,
             car_head: document.getElementById('editDeliveryCarHead').value,
-            car_tail: document.getElementById('editDeliveryCarTail').value
+            car_tail: document.getElementById('editDeliveryCarTail').value,
+            // Preserve the original ID fields to prevent them from being set to null
+            crusher_id: originalDelivery.crusher_id,
+            supplier_id: originalDelivery.supplier_id,
+            contractor_id: originalDelivery.contractor_id,
+            client_id: originalDelivery.client_id
         };
 
         try {
@@ -1271,13 +1039,7 @@ async function loadClientDetails() {
     }
 
     try {
-        const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/clients/${clientId}`);
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: فشل في تحميل بيانات العميل`);
-        }
-
-        const data = await response.json();
+        const data = await apiGet(`/clients/${clientId}`);
         clientData = data;
 
         // Store data for filtering
@@ -1334,36 +1096,7 @@ function openEditClientModal() {
 async function updateClient(clientId, clientData) {
     try {
         console.log('🔄 Updating client:', clientId, clientData);
-        console.log('📤 API URL:', `${API_BASE}/clients/${clientId}`);
-
-        const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/clients/${clientId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(clientData)
-        });
-
-        console.log('📥 Response status:', response.status, response.statusText);
-        console.log('📥 Response headers:', response.headers);
-
-        if (!response.ok) {
-            let errorMessage = 'فشل في تحديث بيانات العميل';
-            try {
-                const errorData = await response.json();
-                errorMessage = errorData.message || errorMessage;
-                console.error('❌ Server error data:', errorData);
-            } catch (e) {
-                const errorText = await response.text();
-                console.error('❌ Server error text:', errorText);
-                errorMessage = `خطأ في السيرفر (${response.status}): ${errorText}`;
-            }
-            throw new Error(errorMessage);
-        }
-
-        const result = await response.json();
-        console.log('✅ Update successful:', result);
-        return result;
+        return await apiPut(`/clients/${clientId}`, clientData);
     } catch (error) {
         console.error('❌ Update client error:', error);
         throw error;
@@ -1555,67 +1288,22 @@ document.addEventListener('click', function (e) {
 
 // Make functions available globally for onclick handlers
 window.closeModal = closeModal;
-window.viewPayment = function (paymentId) {
-    console.log('viewPayment called with ID:', paymentId);
-    // Call the actual async function directly
-    showPaymentDetails(paymentId).catch(error => {
-        console.error('Error in showPaymentDetails:', error);
-    });
-};
-window.editPayment = function (paymentId) {
-    console.log('editPayment called with ID:', paymentId);
-    return editPayment(paymentId);
-};
-window.deletePayment = function (paymentId) {
-    console.log('deletePayment called with ID:', paymentId);
-    return deletePayment(paymentId);
-};
-window.viewAdjustment = function (adjustmentId) {
-    console.log('viewAdjustment called with ID:', adjustmentId);
-    // Call the actual async function directly
-    showAdjustmentDetails(adjustmentId).catch(error => {
-        console.error('Error in showAdjustmentDetails:', error);
-    });
-};
-window.editAdjustment = function (adjustmentId) {
-    console.log('editAdjustment called with ID:', adjustmentId);
-    return editAdjustment(adjustmentId);
-};
-window.deleteAdjustment = function (adjustmentId) {
-    console.log('deleteAdjustment called with ID:', adjustmentId);
-    return deleteAdjustment(adjustmentId);
-};
-window.editDelivery = function (deliveryId) {
-    alert('تعديل التسليمات غير متاح حالياً لأسباب محاسبية. يرجى التواصل مع الإدارة.');
-};
-window.deleteDelivery = function (deliveryId) {
-    if (!confirm('هل أنت متأكد من حذف هذه التسليمة؟ تحذير: هذا سيؤثر على الحسابات المحاسبية.')) {
-        return;
-    }
+window.showImageModal = showImageModal;
+window.generateDeliveriesReport = generateDeliveriesReport;
+window.generateAccountStatement = generateAccountStatement;
+window.toggleDateRange = toggleDateRange;
+window.clearDeliveriesFilters = clearDeliveriesFilters;
+window.clearPaymentsFilters = clearPaymentsFilters;
+window.clearAdjustmentsFilters = clearAdjustmentsFilters;
+window.removeImage = removeImage;
 
-    authManager.makeAuthenticatedRequest(`${API_BASE}/deliveries/${deliveryId}`, {
-        method: 'DELETE'
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('فشل في حذف التسليمة');
-            }
-            return response.json();
-        })
-        .then(() => {
-            alert('تم حذف التسليمة بنجاح');
-            loadClientDetails();
-        })
-        .catch(error => {
-            console.error('Error deleting delivery:', error);
-            alert('خطأ في حذف التسليمة: ' + error.message);
-        });
-};
-window.removeImage = function (inputId, previewId) {
+// Define the missing functions
+function removeImage(inputId, previewId) {
     document.getElementById(inputId.replace('Preview', '')).value = '';
     document.getElementById(previewId).innerHTML = '';
-};
-window.showImageModal = function (imageData) {
+}
+
+function showImageModal(imageData) {
     const modalImage = document.getElementById('modalImage');
 
     console.log('Showing image modal with data:', imageData ? imageData.substring(0, 50) + '...' : 'null');
@@ -1691,10 +1379,10 @@ window.showImageModal = function (imageData) {
         console.error('Error processing image data:', error);
         alert('خطأ في معالجة بيانات الصورة: ' + error.message);
     }
-};
+}
 
 // PDF Report Functions
-window.generateDeliveriesReport = async function () {
+async function generateDeliveriesReport() {
     const clientId = getClientIdFromURL();
     const fromDate = document.getElementById('deliveriesFromDate').value;
     const toDate = document.getElementById('deliveriesToDate').value;
@@ -1711,9 +1399,9 @@ window.generateDeliveriesReport = async function () {
         console.error('Error generating deliveries report:', error);
         alert('حدث خطأ في إنشاء التقرير');
     }
-};
+}
 
-window.generateAccountStatement = async function () {
+async function generateAccountStatement() {
     const clientId = getClientIdFromURL();
     const useCustomRange = document.getElementById('useCustomDateRange').checked;
 
@@ -1743,10 +1431,10 @@ window.generateAccountStatement = async function () {
         console.error('Error generating account statement:', error);
         alert('حدث خطأ في إنشاء كشف الحساب');
     }
-};
+}
 
 // Toggle date range inputs
-window.toggleDateRange = function () {
+function toggleDateRange() {
     const checkbox = document.getElementById('useCustomDateRange');
     const dateInputs = document.getElementById('dateRangeInputs');
 
@@ -1760,86 +1448,34 @@ window.toggleDateRange = function () {
     } else {
         dateInputs.style.display = 'none';
     }
-};
+}
+// Form reset functions
+function resetPaymentForm() {
+    const form = document.getElementById('paymentForm');
+    form.reset();
+    delete form.dataset.editId;
 
-// Clear filter functions
-window.clearDeliveriesFilters = function () {
-    document.getElementById('deliveriesSearch').value = '';
-    document.getElementById('deliveriesDateFrom').value = '';
-    document.getElementById('deliveriesDateTo').value = '';
-    document.getElementById('deliveriesSort').value = 'date-desc';
-    filterDeliveries();
-};
+    // Reset UI elements
+    document.getElementById('paymentDetailsGroup').style.display = 'none';
+    document.getElementById('paymentImageGroup').style.display = 'none';
+    document.getElementById('paymentDetails').required = false;
+    document.getElementById('paymentImagePreview').innerHTML = '';
 
-window.clearPaymentsFilters = function () {
-    document.getElementById('paymentsSearch').value = '';
-    document.getElementById('paymentsDateFrom').value = '';
-    document.getElementById('paymentsDateTo').value = '';
-    document.getElementById('paymentsSort').value = 'date-desc';
-    filterPayments();
-};
+    // Reset modal title and button
+    document.querySelector('#paymentModal .modal-header').textContent = 'إضافة دفعة جديدة';
+    document.querySelector('#paymentForm button[type="submit"]').textContent = 'إضافة';
 
-window.clearAdjustmentsFilters = function () {
-    document.getElementById('adjustmentsSearch').value = '';
-    document.getElementById('adjustmentsDateFrom').value = '';
-    document.getElementById('adjustmentsDateTo').value = '';
-    document.getElementById('adjustmentsSort').value = 'date-desc';
-    filterAdjustments();
-};
+    // Set default date
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('paymentDate').value = today;
+}
 
-// CRUD functions for deliveries
-window.editDelivery = async function (deliveryId) {
-    console.log('editDelivery called with ID:', deliveryId);
+function resetAdjustmentForm() {
+    const form = document.getElementById('adjustmentForm');
+    form.reset();
+    delete form.dataset.editId;
 
-    try {
-        // Find delivery in current data
-        const delivery = allDeliveries.find(d => d.id === deliveryId);
-        if (!delivery) {
-            alert('لم يتم العثور على التسليم');
-            return;
-        }
-
-        // Populate form with existing data
-        document.getElementById('editDeliveryMaterial').value = delivery.material || '';
-        document.getElementById('editDeliveryVoucher').value = delivery.voucher || '';
-        document.getElementById('editDeliveryQuantity').value = delivery.quantity || '';
-        document.getElementById('editDeliveryPricePerMeter').value = delivery.price_per_meter || '';
-        document.getElementById('editDeliveryDriverName').value = delivery.driver_name || '';
-        document.getElementById('editDeliveryCarHead').value = delivery.car_head || '';
-        document.getElementById('editDeliveryCarTail').value = delivery.car_tail || '';
-
-        // Set form to edit mode
-        const form = document.getElementById('deliveryEditForm');
-        form.dataset.editId = deliveryId;
-
-        showModal('deliveryEditModal');
-    } catch (error) {
-        console.error('Error editing delivery:', error);
-        alert('حدث خطأ في تحميل بيانات التسليم');
-    }
-};
-
-window.deleteDelivery = function (deliveryId) {
-    console.log('deleteDelivery called with ID:', deliveryId);
-    if (!confirm('هل أنت متأكد من حذف هذه التسليمة؟ تحذير: هذا سيؤثر على الحسابات المحاسبية.')) {
-        return;
-    }
-
-    authManager.makeAuthenticatedRequest(`${API_BASE}/deliveries/${deliveryId}`, {
-        method: 'DELETE'
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('فشل في حذف التسليمة');
-            }
-            return response.json();
-        })
-        .then(() => {
-            alert('تم حذف التسليمة بنجاح');
-            loadClientDetails();
-        })
-        .catch(error => {
-            console.error('Error deleting delivery:', error);
-            alert('خطأ في حذف التسليمة: ' + error.message);
-        });
-};
+    // Reset modal title and button
+    document.querySelector('#adjustmentModal .modal-header').textContent = 'إضافة تسوية جديدة';
+    document.querySelector('#adjustmentForm button[type="submit"]').textContent = 'إضافة';
+}

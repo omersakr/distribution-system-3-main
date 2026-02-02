@@ -8,7 +8,7 @@ const authenticateToken = async (req, res, next) => {
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
     if (!token) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: 'Access token required',
         message: 'No authentication token provided'
       });
@@ -20,7 +20,7 @@ const authenticateToken = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('Authentication error:', error);
-    
+
     // Log failed authentication attempt (safely)
     try {
       await AuditLog.create({
@@ -38,7 +38,7 @@ const authenticateToken = async (req, res, next) => {
       console.error('Failed to log authentication failure:', auditError);
     }
 
-    return res.status(401).json({ 
+    return res.status(401).json({
       error: 'Invalid token',
       message: 'Authentication failed'
     });
@@ -50,7 +50,7 @@ const requireRole = (allowedRoles) => {
   return async (req, res, next) => {
     try {
       if (!req.user) {
-        return res.status(401).json({ 
+        return res.status(401).json({
           error: 'Authentication required',
           message: 'User not authenticated'
         });
@@ -65,7 +65,7 @@ const requireRole = (allowedRoles) => {
           entity_type: 'Authorization',
           entity_id: null,
           old_values: null,
-          new_values: { 
+          new_values: {
             required_roles: allowedRoles,
             user_role: req.user.role,
             endpoint: req.path,
@@ -75,7 +75,7 @@ const requireRole = (allowedRoles) => {
           user_agent: req.get('User-Agent')
         });
 
-        return res.status(403).json({ 
+        return res.status(403).json({
           error: 'Insufficient permissions',
           message: `Access denied. Required roles: ${allowedRoles.join(', ')}`
         });
@@ -84,7 +84,7 @@ const requireRole = (allowedRoles) => {
       next();
     } catch (error) {
       console.error('Authorization middleware error:', error);
-      return res.status(500).json({ 
+      return res.status(500).json({
         error: 'Authorization error',
         message: 'Internal server error during authorization'
       });
@@ -96,15 +96,15 @@ const requireRole = (allowedRoles) => {
 const auditLogger = (req, res, next) => {
   // Store original res.json to intercept responses
   const originalJson = res.json;
-  
-  res.json = function(data) {
+
+  res.json = function (data) {
     // Log the operation after successful completion
     if (req.user && res.statusCode < 400) {
       setImmediate(async () => {
         try {
           const actionType = getActionType(req.method);
           const entityType = getEntityType(req.path);
-          
+
           if (actionType && entityType) {
             await authService.logAuditEvent(
               req.user.id,
@@ -121,11 +121,11 @@ const auditLogger = (req, res, next) => {
         }
       });
     }
-    
+
     // Call original json method
     originalJson.call(this, data);
   };
-  
+
   next();
 };
 
@@ -170,9 +170,9 @@ const checkHistoricalDataAccess = async (req, res, next) => {
     if (req.user.role === 'accountant') {
       // Check if this is a price modification on existing data
       const entityId = req.params.id;
-      const isPriceModification = req.body.price !== undefined || 
-                                 req.body.material_price !== undefined ||
-                                 req.body.crusher_price !== undefined;
+      const isPriceModification = req.body.price !== undefined ||
+        req.body.material_price !== undefined ||
+        req.body.crusher_price !== undefined;
 
       if (entityId && isPriceModification) {
         // This is an attempt to modify existing price data
@@ -183,7 +183,7 @@ const checkHistoricalDataAccess = async (req, res, next) => {
           entity_type: getEntityType(req.path),
           entity_id: entityId,
           old_values: null,
-          new_values: { 
+          new_values: {
             attempted_modification: req.body,
             reason: 'accountant_cannot_modify_historical_prices'
           },

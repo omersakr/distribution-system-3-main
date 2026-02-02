@@ -1,4 +1,5 @@
 const contractorService = require('../services/contractorService');
+const PDFService = require('../services/pdfServiceUltraFast');
 
 class ContractorsController {
     // Get all contractors
@@ -247,9 +248,30 @@ class ContractorsController {
             // Generate HTML report
             const html = this.generateDeliveriesReportHTML(reportData);
 
-            res.setHeader('Content-Type', 'text/html; charset=utf-8');
-            res.send(html);
+            // Generate PDF using smart method for optimal performance
+            const pdfBuffer = await PDFService.generatePDFSmart(html);
+
+            // Create filename
+            const filename = PDFService.formatFilename(
+                'تقرير_المشاوير',
+                reportData.contractor.name,
+                from,
+                to
+            );
+
+            // Set headers for PDF download
+            const headers = PDFService.getDownloadHeaders(filename);
+            Object.entries(headers).forEach(([key, value]) => {
+                res.setHeader(key, value);
+            });
+
+            // Set content length
+            res.setHeader('Content-Length', pdfBuffer.length);
+
+            // Send the PDF buffer
+            res.end(pdfBuffer, 'binary');
         } catch (err) {
+            console.error('PDF generation error:', err);
             next(err);
         }
     }
@@ -266,14 +288,33 @@ class ContractorsController {
             // Generate HTML report
             const html = this.generateAccountStatementHTML(reportData);
 
-            res.setHeader('Content-Type', 'text/html; charset=utf-8');
-            res.send(html);
+            // Generate PDF using smart method for optimal performance
+            const pdfBuffer = await PDFService.generatePDFSmart(html);
+
+            // Create filename
+            const filename = PDFService.formatFilename(
+                'كشف_حساب',
+                reportData.contractor.name,
+                from,
+                to
+            );
+
+            // Set headers for PDF download
+            const headers = PDFService.getDownloadHeaders(filename);
+            Object.entries(headers).forEach(([key, value]) => {
+                res.setHeader(key, value);
+            });
+
+            // Set content length
+            res.setHeader('Content-Length', pdfBuffer.length);
+
+            // Send the PDF buffer
+            res.end(pdfBuffer, 'binary');
         } catch (err) {
+            console.error('PDF generation error:', err);
             next(err);
         }
     }
-
-    // Helper method to generate deliveries report HTML
     generateDeliveriesReportHTML(data) {
         const formatCurrency = (amount) => {
             return Number(amount || 0).toLocaleString('ar-EG') + ' جنيه';

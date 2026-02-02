@@ -183,7 +183,6 @@ class ReportService {
             crusher_id: crusherId,
             ...dateFilter
         })
-            .populate('client_id', 'name')
             .sort({ created_at: 1 });
 
         // Get payments
@@ -240,8 +239,7 @@ class ReportService {
                 net_quantity: (Number(d.car_volume || 0) - Number(d.discount_volume || 0)),
                 material_price_at_time: d.material_price_at_time,
                 crusher_total_cost: d.crusher_total_cost,
-                voucher: d.voucher,
-                client_name: d.client_id?.name || '-'
+                voucher: d.voucher
             })),
             payments: payments.map(p => ({
                 paid_at: p.paid_at,
@@ -392,8 +390,6 @@ class ReportService {
         table { width: 100%; border-collapse: collapse; margin: 20px 0; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
         th { background-color: #f8f9fa; font-weight: bold; }
-        .print-btn { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 10px; }
-        @media print { .print-btn { display: none; } }
     </style>
 </head>
 <body>
@@ -402,8 +398,6 @@ class ReportService {
         <div class="report-title">تقرير التوريدات المفصل</div>
         <div class="date-range">من ${this.formatDate(fromDate)} إلى ${this.formatDate(toDate)}</div>
     </div>
-    
-    <button class="print-btn" onclick="window.print()">🖨️ طباعة التقرير</button>
     
     <div class="summary">
         <h3>ملخص المواد</h3>
@@ -479,8 +473,6 @@ class ReportService {
         table { width: 100%; border-collapse: collapse; margin: 20px 0; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
         th { background-color: #f8f9fa; font-weight: bold; }
-        .print-btn { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 10px; }
-        @media print { .print-btn { display: none; } }
     </style>
 </head>
 <body>
@@ -489,8 +481,6 @@ class ReportService {
         <div class="report-title">تقرير التوريدات المفصل</div>
         <div class="date-range">من ${this.formatDate(fromDate)} إلى ${this.formatDate(toDate)}</div>
     </div>
-    
-    <button class="print-btn" onclick="window.print()">🖨️ طباعة التقرير</button>
     
     <div class="summary">
         <h3>ملخص المواد</h3>
@@ -566,22 +556,7 @@ class ReportService {
             background: #f8f9fa;
             color: #333;
         }
-        .print-button { 
-            position: fixed; 
-            top: 20px; 
-            left: 20px; 
-            background: #007bff; 
-            color: white; 
-            border: none; 
-            padding: 10px 20px; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            font-size: 14px;
-            z-index: 1000;
-        }
-        .print-button:hover { background: #0056b3; }
         @media print {
-            .print-button { display: none; }
             body { background: white; margin: 10px; }
         }
         .header { 
@@ -681,22 +656,6 @@ class ReportService {
         tr:hover {
             background-color: #e8f4fd;
         }
-        .print-btn { 
-            background: linear-gradient(135deg, #e67e22, #d35400);
-            color: white; 
-            padding: 12px 25px; 
-            border: none; 
-            border-radius: 25px; 
-            cursor: pointer; 
-            margin: 10px;
-            font-size: 16px;
-            box-shadow: 0 4px 15px rgba(230, 126, 34, 0.3);
-            transition: all 0.3s ease;
-        }
-        .print-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(230, 126, 34, 0.4);
-        }
         .footer {
             text-align: center;
             margin-top: 40px;
@@ -713,7 +672,6 @@ class ReportService {
             font-style: italic;
         }
         @media print { 
-            .print-btn { display: none; }
             body { background: white; }
             .section, .header, .summary { box-shadow: none; }
         }
@@ -725,8 +683,6 @@ class ReportService {
         <div class="report-title">كشف حساب شامل</div>
         <div class="date-range">${dateRangeText}</div>
     </div>
-    
-    <button class="print-btn" onclick="window.print()">🖨️ طباعة كشف الحساب</button>
     
     <div class="summary">
         <h3>ملخص الحساب الإجمالي</h3>
@@ -757,7 +713,6 @@ class ReportService {
             <thead>
                 <tr>
                     <th>التاريخ</th>
-                    <th>العميل</th>
                     <th>نوع المادة</th>
                     <th>الكمية الصافية</th>
                     <th>السعر</th>
@@ -769,7 +724,6 @@ class ReportService {
                 ${deliveries.map(d => `
                     <tr>
                         <td>${this.formatDate(d.created_at)}</td>
-                        <td>${d.client_name || '-'}</td>
                         <td>${d.material || '-'}</td>
                         <td>${this.formatQuantity(d.net_quantity)} م³</td>
                         <td>${this.formatCurrency(d.material_price_at_time)}</td>
@@ -867,22 +821,7 @@ class ReportService {
             background: #f8f9fa;
             color: #333;
         }
-        .print-button { 
-            position: fixed; 
-            top: 20px; 
-            left: 20px; 
-            background: #007bff; 
-            color: white; 
-            border: none; 
-            padding: 10px 20px; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            font-size: 14px;
-            z-index: 1000;
-        }
-        .print-button:hover { background: #0056b3; }
         @media print {
-            .print-button { display: none; }
             body { background: white; margin: 10px; }
         }
         .header { 
@@ -982,22 +921,6 @@ class ReportService {
         tr:hover {
             background-color: #e8f4fd;
         }
-        .print-btn { 
-            background: linear-gradient(135deg, #3498db, #2980b9);
-            color: white; 
-            padding: 12px 25px; 
-            border: none; 
-            border-radius: 25px; 
-            cursor: pointer; 
-            margin: 10px;
-            font-size: 16px;
-            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
-            transition: all 0.3s ease;
-        }
-        .print-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
-        }
         .footer {
             text-align: center;
             margin-top: 40px;
@@ -1014,7 +937,6 @@ class ReportService {
             font-style: italic;
         }
         @media print { 
-            .print-btn { display: none; }
             body { background: white; }
             .section, .header, .summary { box-shadow: none; }
         }
@@ -1026,8 +948,6 @@ class ReportService {
         <div class="report-title">كشف حساب شامل</div>
         <div class="date-range">${dateRangeText}</div>
     </div>
-    
-    <button class="print-btn" onclick="window.print()">🖨️ طباعة كشف الحساب</button>
     
     <div class="summary">
         <h3>ملخص الحساب الإجمالي</h3>

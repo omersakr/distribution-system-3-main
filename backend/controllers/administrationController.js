@@ -1,5 +1,5 @@
 const administrationService = require('../services/administrationService');
-const { Project } = require('../models');
+const { Client, Project } = require('../models');
 
 class AdministrationController {
     // Get all administration entities

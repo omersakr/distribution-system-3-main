@@ -1,30 +1,4 @@
-const API_BASE = (function () {
-    if (window.__API_BASE__) return window.__API_BASE__;
-    try {
-        const origin = window.location.origin;
-        if (!origin || origin === 'null') return 'http://localhost:5000/api';
-        return origin.replace(/\/$/, '') + '/api';
-    } catch (e) {
-        return 'http://localhost:5000/api';
-    }
-})();
-
-// --- Helpers ---
-
-function formatCurrency(amount) {
-    return Number(amount || 0).toLocaleString('ar-EG', {
-        style: 'currency',
-        currency: 'EGP',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    });
-}
-
-function formatDate(dateString) {
-    if (!dateString) return '—';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ar-EG');
-}
+// Utilities are loaded via utils/index.js - no need to redefine common functions
 
 /**
  * Creates a single employee card DOM node using unified CSS classes
@@ -212,9 +186,7 @@ function renderEmployees(employees) {
 }
 
 async function fetchEmployees() {
-    const resp = await authManager.makeAuthenticatedRequest(`${API_BASE}/employees`);
-    if (!resp.ok) throw new Error('تعذر تحميل الموظفين');
-    const data = await resp.json();
+    const data = await apiGet('/employees');
     // Handle both old format (direct array) and new format (object with employees property)
     return data.employees || data;
 }
@@ -248,18 +220,7 @@ async function deleteEmployee(employeeId, employeeName) {
             }
         });
 
-        const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/employees/${employeeId}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || 'فشل في حذف الموظف');
-        }
+        const data = await apiDelete(`/employees/${employeeId}`);
 
         // Show success message
         await Swal.fire({

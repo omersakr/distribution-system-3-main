@@ -82,7 +82,8 @@ function createCrusherCard(crusher) {
         { key: 'sand_price', label: 'رمل', value: crusher.sand_price },
         { key: 'aggregate1_price', label: 'سن 1', value: crusher.aggregate1_price },
         { key: 'aggregate2_price', label: 'سن 2', value: crusher.aggregate2_price },
-        { key: 'aggregate3_price', label: 'سن 3', value: crusher.aggregate3_price }
+        { key: 'aggregate3_price', label: 'سن 3', value: crusher.aggregate3_price },
+        { key: 'aggregate6_powder_price', label: 'سن 6 بودرة', value: crusher.aggregate6_powder_price }
     ];
 
     materials.forEach(material => {
@@ -197,6 +198,7 @@ function openEditPricesModal(crusher) {
     document.getElementById('editAggregate1Price').value = crusher.aggregate1_price || '';
     document.getElementById('editAggregate2Price').value = crusher.aggregate2_price || '';
     document.getElementById('editAggregate3Price').value = crusher.aggregate3_price || '';
+    document.getElementById('editAggregate6PowderPrice').value = crusher.aggregate6_powder_price || '';
     showModal('editPricesModal');
 }
 
@@ -256,7 +258,8 @@ function setupEventHandlers() {
             sand_price: parseFloat(formData.get('sand_price')) || 0,
             aggregate1_price: parseFloat(formData.get('aggregate1_price')) || 0,
             aggregate2_price: parseFloat(formData.get('aggregate2_price')) || 0,
-            aggregate3_price: parseFloat(formData.get('aggregate3_price')) || 0
+            aggregate3_price: parseFloat(formData.get('aggregate3_price')) || 0,
+            aggregate6_powder_price: parseFloat(formData.get('aggregate6_powder_price')) || 0
         };
 
         try {
@@ -283,7 +286,8 @@ function setupEventHandlers() {
             sand_price: parseFloat(formData.get('sand_price')) || 0,
             aggregate1_price: parseFloat(formData.get('aggregate1_price')) || 0,
             aggregate2_price: parseFloat(formData.get('aggregate2_price')) || 0,
-            aggregate3_price: parseFloat(formData.get('aggregate3_price')) || 0
+            aggregate3_price: parseFloat(formData.get('aggregate3_price')) || 0,
+            aggregate6_powder_price: parseFloat(formData.get('aggregate6_powder_price')) || 0
         };
 
         try {

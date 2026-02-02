@@ -21,7 +21,7 @@
                 <span>➕</span> إضافة كسارة جديدة
             </button>
         </div>
-        
+
         <div class="content-section">
             <div id="crushersContainer" class="crushers-grid"></div>
         </div>
@@ -39,31 +39,41 @@
                     <label for="crusherName">اسم الكسارة *</label>
                     <input type="text" id="crusherName" name="name" autocomplete="organization" required>
                 </div>
-                
+
                 <div class="form-section">
                     <h3>أسعار المواد (جنيه/م³)</h3>
                     <div class="price-grid">
                         <div class="form-group">
                             <label for="sandPrice">رمل</label>
-                            <input type="number" id="sandPrice" name="sand_price" step="0.01" min="0" placeholder="0.00" autocomplete="off">
+                            <input type="number" id="sandPrice" name="sand_price" step="0.01" min="0" placeholder="0.00"
+                                autocomplete="off">
                         </div>
                         <div class="form-group">
                             <label for="aggregate1Price">سن 1</label>
-                            <input type="number" id="aggregate1Price" name="aggregate1_price" step="0.01" min="0" placeholder="0.00" autocomplete="off">
+                            <input type="number" id="aggregate1Price" name="aggregate1_price" step="0.01" min="0"
+                                placeholder="0.00" autocomplete="off">
                         </div>
                         <div class="form-group">
                             <label for="aggregate2Price">سن 2</label>
-                            <input type="number" id="aggregate2Price" name="aggregate2_price" step="0.01" min="0" placeholder="0.00" autocomplete="off">
+                            <input type="number" id="aggregate2Price" name="aggregate2_price" step="0.01" min="0"
+                                placeholder="0.00" autocomplete="off">
                         </div>
                         <div class="form-group">
                             <label for="aggregate3Price">سن 3</label>
-                            <input type="number" id="aggregate3Price" name="aggregate3_price" step="0.01" min="0" placeholder="0.00" autocomplete="off">
+                            <input type="number" id="aggregate3Price" name="aggregate3_price" step="0.01" min="0"
+                                placeholder="0.00" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="aggregate6PowderPrice">سن 6 بودرة</label>
+                            <input type="number" id="aggregate6PowderPrice" name="aggregate6_powder_price" step="0.01"
+                                min="0" placeholder="0.00" autocomplete="off">
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" data-action="close-modal" data-target="addCrusherModal">إلغاء</button>
+                    <button type="button" class="btn btn-secondary" data-action="close-modal"
+                        data-target="addCrusherModal">إلغاء</button>
                     <button type="submit" class="btn btn-primary">إضافة الكسارة</button>
                 </div>
                 <div id="addCrusherMessage"></div>
@@ -81,7 +91,7 @@
             <div class="warning-box">
                 <div class="warning-icon">⚠️</div>
                 <div class="warning-text">
-                    <strong>تنبيه مهم:</strong> تعديل الأسعار سيؤثر فقط على التسليمات الجديدة. 
+                    <strong>تنبيه مهم:</strong> تعديل الأسعار سيؤثر فقط على التسليمات الجديدة.
                     جميع التسليمات السابقة ستحتفظ بالأسعار التاريخية المحفوظة وقت إنشائها.
                 </div>
             </div>
@@ -92,25 +102,35 @@
                     <div class="price-grid">
                         <div class="form-group">
                             <label for="editSandPrice">رمل</label>
-                            <input type="number" id="editSandPrice" name="sand_price" step="0.01" min="0" autocomplete="off">
+                            <input type="number" id="editSandPrice" name="sand_price" step="0.01" min="0"
+                                autocomplete="off">
                         </div>
                         <div class="form-group">
                             <label for="editAggregate1Price">سن 1</label>
-                            <input type="number" id="editAggregate1Price" name="aggregate1_price" step="0.01" min="0" autocomplete="off">
+                            <input type="number" id="editAggregate1Price" name="aggregate1_price" step="0.01" min="0"
+                                autocomplete="off">
                         </div>
                         <div class="form-group">
                             <label for="editAggregate2Price">سن 2</label>
-                            <input type="number" id="editAggregate2Price" name="aggregate2_price" step="0.01" min="0" autocomplete="off">
+                            <input type="number" id="editAggregate2Price" name="aggregate2_price" step="0.01" min="0"
+                                autocomplete="off">
                         </div>
                         <div class="form-group">
                             <label for="editAggregate3Price">سن 3</label>
-                            <input type="number" id="editAggregate3Price" name="aggregate3_price" step="0.01" min="0" autocomplete="off">
+                            <input type="number" id="editAggregate3Price" name="aggregate3_price" step="0.01" min="0"
+                                autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="editAggregate6PowderPrice">سن 6 بودرة</label>
+                            <input type="number" id="editAggregate6PowderPrice" name="aggregate6_powder_price"
+                                step="0.01" min="0" autocomplete="off">
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" data-action="close-modal" data-target="editPricesModal">إلغاء</button>
+                    <button type="button" class="btn btn-secondary" data-action="close-modal"
+                        data-target="editPricesModal">إلغاء</button>
                     <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
                 </div>
                 <div id="editPricesMessage"></div>
