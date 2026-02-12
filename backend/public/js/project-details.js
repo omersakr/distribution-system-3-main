@@ -92,6 +92,14 @@ async function displayFinancialSummary() {
         // Get client financial summary
         const data = await apiGet(`/clients/${currentClientId}`);
         const client = data.client;
+        const totals = data.totals || {};
+
+        // Get totals from the response
+        const totalDeliveries = totals.totalDeliveries || 0;
+        const totalPayments = totals.totalPayments || 0;
+        const totalAdjustments = totals.totalAdjustments || 0;
+        const openingBalance = totals.openingBalance || client.opening_balance || 0;
+        const balance = totals.balance || 0;
 
         // Get project-specific financial data
         let totalExpenses = 0;
@@ -130,21 +138,27 @@ async function displayFinancialSummary() {
         }
 
         const summaryContainer = document.getElementById('financialSummary');
-        const balance = client.balance || 0;
+
+        // Calculate capital difference
+        // Capital injections should cover: deliveries + withdrawals + expenses
+        const totalUsage = totalDeliveries + totalWithdrawals + totalExpenses + openingBalance + totalAdjustments;
+        const capitalDifference = totalCapitalInjections - totalUsage;
+
+        // Calculate net profit including opening balance and adjustments
+        // Net profit = payments - (deliveries + withdrawals + expenses + opening_balance + adjustments)
+        const netProfit = totalPayments - (totalUsage);
 
         summaryContainer.innerHTML = `
+        <div class="summary-item">
+            <div class="summary-value">${formatCurrency(totalCapitalInjections)}</div>
+            <div class="summary-label">رأس المال </div>
+        </div>
             <div class="summary-item">
-                <div class="summary-value ${balance >= 0 ? 'text-danger' : 'text-success'}">
-                    ${formatCurrency(Math.abs(balance))}
-                </div>
-                <div class="summary-label">${balance >= 0 ? 'مدين لنا' : 'دائن لدينا'}</div>
-            </div>
-            <div class="summary-item">
-                <div class="summary-value">${formatCurrency(client.totalDeliveries || 0)}</div>
+                <div class="summary-value">${formatCurrency(totalDeliveries)}</div>
                 <div class="summary-label">إجمالي التسليمات</div>
             </div>
             <div class="summary-item">
-                <div class="summary-value">${formatCurrency(client.totalPayments || 0)}</div>
+                <div class="summary-value">${formatCurrency(totalPayments)}</div>
                 <div class="summary-label">إجمالي المدفوعات</div>
             </div>
             <div class="summary-item">
@@ -152,12 +166,25 @@ async function displayFinancialSummary() {
                 <div class="summary-label">المصروفات المرتبطة</div>
             </div>
             <div class="summary-item">
-                <div class="summary-value">${formatCurrency(totalCapitalInjections)}</div>
-                <div class="summary-label">الحقن الرأسمالية</div>
+                <div class="summary-value">${formatCurrency(totalWithdrawals)}</div>
+                <div class="summary-label">المسحوبات</div>
+            </div>
+           
+            <div class="summary-item">
+                <div class="summary-value" style="color: ${capitalDifference < 0 ? '#dc2626' : '#16a34a'}">
+                    ${capitalDifference === 0 ? 'متوازن' : formatCurrency(Math.abs(capitalDifference))}
+                </div>
+                <div class="summary-label">
+                    ${capitalDifference === 0 ? 'رصيد رأس المال' : (capitalDifference > 0 ? 'فائض رأس المال' : 'عجز رأس المال')}
+                </div>
             </div>
             <div class="summary-item">
-                <div class="summary-value">${formatCurrency(totalWithdrawals)}</div>
-                <div class="summary-label">السحوبات</div>
+                <div class="summary-value" style="color: ${netProfit < 0 ? '#dc2626' : '#16a34a'}">
+                    ${formatCurrency(Math.abs(netProfit))}
+                </div>
+                <div class="summary-label">
+                    ${netProfit >= 0 ? 'صافي الربح' : 'صافي الخسارة'}
+                </div>
             </div>
         `;
     } catch (error) {

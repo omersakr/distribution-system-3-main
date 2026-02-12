@@ -24,6 +24,19 @@ router.put('/:id', supplierController.updateSupplier);
 router.delete('/:id', supplierController.deleteSupplier);
 
 // ============================================================================
+// SUPPLIER MATERIALS MANAGEMENT
+// ============================================================================
+
+// Add material to supplier
+router.post('/:id/materials', supplierController.addSupplierMaterial);
+
+// Update supplier material
+router.put('/:id/materials/:materialId', supplierController.updateSupplierMaterial);
+
+// Delete supplier material
+router.delete('/:id/materials/:materialId', supplierController.deleteSupplierMaterial);
+
+// ============================================================================
 // SUPPLIER PAYMENTS MANAGEMENT
 // ============================================================================
 

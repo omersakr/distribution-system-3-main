@@ -308,7 +308,11 @@ function populateCategories() {
 function editExpense(expense) {
     document.getElementById('editExpenseId').value = expense.id;
     document.getElementById('editExpenseProject').value = expense.project_id || '';
-    document.getElementById('editExpenseDate').value = expense.expense_date;
+
+    // Convert date to YYYY-MM-DD format for date input
+    const expenseDate = expense.expense_date ? new Date(expense.expense_date).toISOString().split('T')[0] : '';
+    document.getElementById('editExpenseDate').value = expenseDate;
+
     document.getElementById('editExpenseDescription').value = expense.description;
     document.getElementById('editExpenseAmount').value = expense.amount;
     document.getElementById('editExpenseNotes').value = expense.notes || '';

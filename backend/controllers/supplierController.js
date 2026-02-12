@@ -143,6 +143,93 @@ class SupplierController {
     }
 
     // ============================================================================
+    // SUPPLIER MATERIALS MANAGEMENT
+    // ============================================================================
+
+    // Add material to supplier
+    async addSupplierMaterial(req, res, next) {
+        try {
+            const { name, price_per_unit } = req.body;
+
+            if (!name || name.trim() === '') {
+                return res.status(400).json({ message: 'اسم المادة مطلوب' });
+            }
+
+            if (!price_per_unit || price_per_unit <= 0) {
+                return res.status(400).json({ message: 'سعر المادة مطلوب ويجب أن يكون أكبر من صفر' });
+            }
+
+            const material = await supplierService.addSupplierMaterial(req.params.id, {
+                name: name.trim(),
+                price_per_unit: parseFloat(price_per_unit)
+            });
+
+            res.status(201).json(material);
+        } catch (err) {
+            if (err.message.includes('موجودة بالفعل')) {
+                return res.status(400).json({ message: err.message });
+            }
+            next(err);
+        }
+    }
+
+    // Update supplier material
+    async updateSupplierMaterial(req, res, next) {
+        try {
+            const { name, price_per_unit } = req.body;
+
+            if (!name || name.trim() === '') {
+                return res.status(400).json({ message: 'اسم المادة مطلوب' });
+            }
+
+            if (!price_per_unit || price_per_unit <= 0) {
+                return res.status(400).json({ message: 'سعر المادة مطلوب ويجب أن يكون أكبر من صفر' });
+            }
+
+            const material = await supplierService.updateSupplierMaterial(
+                req.params.id,
+                req.params.materialId,
+                {
+                    name: name.trim(),
+                    price_per_unit: parseFloat(price_per_unit)
+                }
+            );
+
+            if (!material) {
+                return res.status(404).json({ message: 'المادة غير موجودة' });
+            }
+
+            res.json(material);
+        } catch (err) {
+            if (err.message.includes('موجودة بالفعل')) {
+                return res.status(400).json({ message: err.message });
+            }
+            next(err);
+        }
+    }
+
+    // Delete supplier material
+    async deleteSupplierMaterial(req, res, next) {
+        try {
+            const material = await supplierService.deleteSupplierMaterial(
+                req.params.id,
+                req.params.materialId
+            );
+
+            if (!material) {
+                return res.status(404).json({ message: 'المادة غير موجودة' });
+            }
+
+            res.json({ message: 'تم حذف المادة بنجاح' });
+        } catch (err) {
+            if (err.message.includes('لا يمكن حذف المادة')) {
+                return res.status(400).json({ message: err.message });
+            }
+            next(err);
+        }
+    }
+
+    // ============================================================================
     // SUPPLIER PAYMENTS MANAGEMENT
     // ============================================================================
 

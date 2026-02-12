@@ -187,6 +187,108 @@ class SupplierService {
         return supplier;
     }
 
+    // ============================================================================
+    // SUPPLIER MATERIALS MANAGEMENT
+    // ============================================================================
+
+    static async addSupplierMaterial(supplierId, materialData) {
+        const supplier = await Supplier.findById(supplierId);
+        if (!supplier) {
+            throw new Error('المورد غير موجود');
+        }
+
+        // Check if material name already exists for this supplier
+        const existingMaterial = supplier.materials.find(
+            m => m.name.toLowerCase() === materialData.name.toLowerCase()
+        );
+
+        if (existingMaterial) {
+            throw new Error('المادة موجودة بالفعل لهذا المورد');
+        }
+
+        // Add new material
+        supplier.materials.push(materialData);
+        await supplier.save();
+
+        // Return the newly added material
+        const newMaterial = supplier.materials[supplier.materials.length - 1];
+        return {
+            id: newMaterial._id,
+            name: newMaterial.name,
+            price_per_unit: newMaterial.price_per_unit
+        };
+    }
+
+    static async updateSupplierMaterial(supplierId, materialId, materialData) {
+        const supplier = await Supplier.findById(supplierId);
+        if (!supplier) {
+            throw new Error('المورد غير موجود');
+        }
+
+        // Find the material
+        const material = supplier.materials.id(materialId);
+        if (!material) {
+            return null;
+        }
+
+        // Check if new name conflicts with another material
+        if (materialData.name) {
+            const existingMaterial = supplier.materials.find(
+                m => m._id.toString() !== materialId &&
+                    m.name.toLowerCase() === materialData.name.toLowerCase()
+            );
+
+            if (existingMaterial) {
+                throw new Error('المادة موجودة بالفعل لهذا المورد');
+            }
+        }
+
+        // Update material
+        if (materialData.name) material.name = materialData.name;
+        if (materialData.price_per_unit) material.price_per_unit = materialData.price_per_unit;
+
+        await supplier.save();
+
+        return {
+            id: material._id,
+            name: material.name,
+            price_per_unit: material.price_per_unit
+        };
+    }
+
+    static async deleteSupplierMaterial(supplierId, materialId) {
+        const supplier = await Supplier.findById(supplierId);
+        if (!supplier) {
+            throw new Error('المورد غير موجود');
+        }
+
+        // Find the material
+        const material = supplier.materials.id(materialId);
+        if (!material) {
+            return null;
+        }
+
+        // Check if material has related deliveries
+        const deliveriesCount = await Delivery.countDocuments({
+            supplier_id: supplierId,
+            material_type: material.name
+        });
+
+        if (deliveriesCount > 0) {
+            throw new Error('لا يمكن حذف المادة لوجود تسليمات مرتبطة بها');
+        }
+
+        // Remove material
+        material.remove();
+        await supplier.save();
+
+        return {
+            id: material._id,
+            name: material.name,
+            price_per_unit: material.price_per_unit
+        };
+    }
+
     // Payment methods (same as crusher payments)
     static async addSupplierPayment(supplierId, paymentData) {
         const payment = new Payment({

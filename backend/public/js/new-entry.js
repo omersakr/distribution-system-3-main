@@ -206,8 +206,11 @@ function setupEventListeners() {
             document.getElementById('wheelContractor').required = true;
             document.querySelector('label[for="wheelContractor"]').innerHTML = '<span class="required">*</span>مقاول النقل';
 
-            // Show car-related fields for crusher deliveries
+            // Show car-related fields, contractor fields, and discount fields for crusher deliveries
             showCarFields(true);
+            showContractorFields(true);
+            showDiscountFields(true);
+            updateUnitLabels(true); // Update to cubic meters
 
             updateCrusherMaterials();
             updateCrusherPrice();
@@ -225,12 +228,14 @@ function setupEventListeners() {
             supplierSelect.required = true;
             crusherSelect.value = '';
 
-            // For supplier: contractor is optional
+            // For supplier: no contractor needed
             document.getElementById('wheelContractor').required = false;
-            document.querySelector('label[for="wheelContractor"]').innerHTML = 'مقاول النقل';
 
-            // Hide car-related fields for supplier deliveries
+            // Hide car-related fields, contractor fields, and discount fields for supplier deliveries
             showCarFields(false);
+            showContractorFields(false);
+            showDiscountFields(false);
+            updateUnitLabels(false); // Update to units
 
             updateSupplierMaterials();
             updateCrusherPrice();
@@ -300,10 +305,8 @@ function setupEventListeners() {
             requiredFields.push({ id: 'supplier', msg: 'يرجى اختيار المورد' });
         }
 
-        // Note: wheelContractor and contractorCharge are optional for suppliers but required for crushers
-        // This allows suppliers to also use contractors when needed
-
-        if (discountYes.checked) {
+        // Discount is only for crushers
+        if (supplierType === 'crusher' && discountYes.checked) {
             requiredFields.push({ id: 'deductAmount', msg: 'يرجى تحديد قيمة الخصم', type: 'number' });
         }
 
@@ -351,18 +354,18 @@ function setupEventListeners() {
             client_id: document.getElementById('client').value,
             crusher_id: supplierType === 'crusher' ? document.getElementById('crusher').value : null,
             supplier_id: supplierType === 'supplier' ? document.getElementById('supplier').value : null,
-            contractor_id: document.getElementById('wheelContractor').value || null, // Allow contractor for both types
+            contractor_id: supplierType === 'crusher' ? document.getElementById('wheelContractor').value : null, // Only for crushers
             material: material,
             voucher: document.getElementById('voucher').value,
             quantity: parseFloat(document.getElementById('quantity').value),
-            discount_volume: discountYes.checked ? (parseFloat(document.getElementById('deductAmount').value) || 0) : 0,
+            discount_volume: (supplierType === 'crusher' && discountYes.checked) ? (parseFloat(document.getElementById('deductAmount').value) || 0) : 0, // Only for crushers
             price_per_meter: parseFloat(document.getElementById('price').value),
             material_price_at_time: materialPrice, // Use actual price for historical preservation
             driver_name: supplierType === 'crusher' ? document.getElementById('driver').value : null,
             car_head: supplierType === 'crusher' ? document.getElementById('carHead').value : null,
             car_tail: supplierType === 'crusher' ? document.getElementById('carTail').value : null,
             car_volume: supplierType === 'crusher' ? (parseFloat(document.getElementById('carVolume').value) || null) : parseFloat(document.getElementById('quantity').value), // Use quantity as volume for suppliers
-            contractor_charge_per_meter: parseFloat(document.getElementById('contractorCharge').value) || 0 // Allow contractor charge for both types
+            contractor_charge_per_meter: supplierType === 'crusher' ? (parseFloat(document.getElementById('contractorCharge').value) || 0) : 0 // Only for crushers
         };
 
         try {
@@ -389,7 +392,7 @@ function setupEventListeners() {
                 client: document.getElementById('client').value,
                 crusher: document.getElementById('crusher').value,
                 supplier: document.getElementById('supplier').value,
-                wheelContractor: document.getElementById('wheelContractor').value, // Preserve contractor for both types
+                wheelContractor: supplierType === 'crusher' ? document.getElementById('wheelContractor').value : '', // Only preserve for crushers
                 supplierType: document.querySelector('input[name="supplierType"]:checked').value
             };
 
@@ -397,15 +400,18 @@ function setupEventListeners() {
 
             // Restore preserved values
             document.getElementById('client').value = preservedValues.client;
-            document.getElementById('wheelContractor').value = preservedValues.wheelContractor; // Restore for both types
 
             // Restore supplier type and show/hide fields accordingly
             if (preservedValues.supplierType === 'crusher') {
                 document.getElementById('supplierTypeCrusher').checked = true;
                 document.getElementById('crusher').value = preservedValues.crusher;
+                document.getElementById('wheelContractor').value = preservedValues.wheelContractor;
                 crusherGroup.style.display = '';
                 supplierGroup.style.display = 'none';
                 showCarFields(true);
+                showContractorFields(true);
+                showDiscountFields(true);
+                updateUnitLabels(true); // Cubic meters for crushers
                 updateCrusherMaterials();
             } else {
                 document.getElementById('supplierTypeSupplier').checked = true;
@@ -413,6 +419,9 @@ function setupEventListeners() {
                 crusherGroup.style.display = 'none';
                 supplierGroup.style.display = '';
                 showCarFields(false);
+                showContractorFields(false);
+                showDiscountFields(false);
+                updateUnitLabels(false); // Units for suppliers
                 updateSupplierMaterials();
             }
 
@@ -467,17 +476,76 @@ function showCarFields(show) {
             }
         }
     });
+}
 
-    // Contractor and contractor charge are always visible but requirements change
+// Show/hide contractor-related fields
+function showContractorFields(show) {
+    const contractorGroup = document.getElementById('contractorGroup');
+    const contractorChargeGroup = document.getElementById('contractorChargeGroup');
     const wheelContractor = document.getElementById('wheelContractor');
     const contractorCharge = document.getElementById('contractorCharge');
 
-    if (show) {
-        // For crusher: contractor is required
-        wheelContractor.required = true;
+    if (contractorGroup) {
+        contractorGroup.style.display = show ? '' : 'none';
+    }
+
+    if (contractorChargeGroup) {
+        contractorChargeGroup.style.display = show ? '' : 'none';
+    }
+
+    if (wheelContractor) {
+        wheelContractor.required = show;
+        if (!show) {
+            wheelContractor.value = '';
+        }
+    }
+
+    if (contractorCharge) {
+        if (!show) {
+            contractorCharge.value = '';
+        }
+    }
+}
+
+// Show/hide discount fields
+function showDiscountFields(show) {
+    const discountGroup = document.getElementById('discountGroup');
+    const deductAmountField = document.getElementById('deductAmountField');
+    const discountNo = document.getElementById('discountNo');
+    const deductAmount = document.getElementById('deductAmount');
+
+    if (discountGroup) {
+        discountGroup.style.display = show ? '' : 'none';
+    }
+
+    if (!show) {
+        // Reset discount fields when hiding
+        if (discountNo) {
+            discountNo.checked = true;
+        }
+        if (deductAmountField) {
+            deductAmountField.style.display = 'none';
+        }
+        if (deductAmount) {
+            deductAmount.value = '';
+            deductAmount.required = false;
+        }
+    }
+}
+
+// Update unit labels based on supplier type
+function updateUnitLabels(isCrusher) {
+    const quantityLabel = document.getElementById('quantityLabel');
+    const priceLabel = document.getElementById('priceLabel');
+
+    if (isCrusher) {
+        // For crushers: use cubic meters (م³)
+        quantityLabel.innerHTML = '<span class="required">*</span>كمية الحمولة (م³)';
+        priceLabel.innerHTML = '<span class="required">*</span>السعر لكل م³ (للعميل)';
     } else {
-        // For supplier: contractor is optional but can be used
-        wheelContractor.required = false;
+        // For suppliers: use units (وحدة)
+        quantityLabel.innerHTML = '<span class="required">*</span>كمية الحمولة (وحدة)';
+        priceLabel.innerHTML = '<span class="required">*</span>السعر لكل وحدة (للعميل)';
     }
 }
 
@@ -490,6 +558,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupEventListeners();
     loadDropdowns();
+
+    // Initialize form state based on default supplier type (crusher is checked by default)
+    const supplierType = document.querySelector('input[name="supplierType"]:checked').value;
+    if (supplierType === 'crusher') {
+        showCarFields(true);
+        showContractorFields(true);
+        showDiscountFields(true);
+        updateUnitLabels(true); // Cubic meters for crushers
+    } else {
+        showCarFields(false);
+        showContractorFields(false);
+        showDiscountFields(false);
+        updateUnitLabels(false); // Units for suppliers
+    }
 
     // Auto refresh dropdowns every 30 seconds
     setInterval(() => {

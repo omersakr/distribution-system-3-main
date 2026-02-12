@@ -219,11 +219,41 @@ class ClientService {
         const totalPayments = payments.reduce((sum, p) => sum + toNumber(p.amount), 0);
         const totalAdjustments = adjustments.reduce((sum, a) => sum + toNumber(a.amount), 0);
 
+        // Get project-specific financial data
+        let totalExpenses = 0;
+        let totalCapitalInjections = 0;
+        let totalWithdrawals = 0;
+
+        try {
+            // Get the project associated with this client
+            const { Project, Expense, CapitalInjection, Withdrawal } = require('../models');
+            const project = await Project.findOne({ client_id: clientId });
+
+            if (project) {
+                // Get expenses for this project
+                const expenses = await Expense.find({ project_id: clientId, is_deleted: { $ne: true } });
+                totalExpenses = expenses.reduce((sum, e) => sum + toNumber(e.amount), 0);
+
+                // Get capital injections for this project
+                const capitalInjections = await CapitalInjection.find({ project_id: project._id });
+                totalCapitalInjections = capitalInjections.reduce((sum, c) => sum + toNumber(c.amount), 0);
+
+                // Get withdrawals for this project
+                const withdrawals = await Withdrawal.find({ project_id: project._id });
+                totalWithdrawals = withdrawals.reduce((sum, w) => sum + toNumber(w.amount), 0);
+            }
+        } catch (error) {
+            console.error('Error loading project financial data:', error);
+        }
+
         return {
             openingBalance: opening,
             totalDeliveries,
             totalPayments,
             totalAdjustments,
+            totalExpenses,
+            totalCapitalInjections,
+            totalWithdrawals,
             balance: opening + totalDeliveries + totalAdjustments - totalPayments
         };
     }

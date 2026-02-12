@@ -113,10 +113,12 @@
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow);
             transition: transform 0.2s ease;
+            position: relative;
         }
 
         .material-card:hover {
             transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
         }
 
         .material-title {
@@ -214,6 +216,27 @@
 
         .btn-sm.btn-danger:hover {
             background: var(--danger-600);
+        }
+
+        .material-card .btn-sm {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .material-card .btn-sm:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .material-card .btn-sm.btn-danger {
+            background: rgba(220, 38, 38, 0.8);
+            border-color: rgba(220, 38, 38, 0.9);
+        }
+
+        .material-card .btn-sm.btn-danger:hover {
+            background: rgba(220, 38, 38, 1);
+            border-color: rgba(220, 38, 38, 1);
         }
 
         .form-help {

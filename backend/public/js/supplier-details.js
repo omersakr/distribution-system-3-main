@@ -92,11 +92,16 @@ function renderMaterials(materials) {
     materials.forEach(material => {
         const card = document.createElement('div');
         card.className = 'material-card';
+        card.style.position = 'relative';
         card.innerHTML = `
             <div class="material-title">${material.name}</div>
             <div class="material-stat">
                 <span>السعر لكل وحدة:</span>
                 <strong>${formatCurrency(material.price_per_unit)}</strong>
+            </div>
+            <div style="margin-top: 12px; display: flex; gap: 8px; justify-content: flex-end;">
+                <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="material" data-id="${material.id}" title="تعديل">✏️</button>
+                <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="material" data-id="${material.id}" title="حذف">🗑️</button>
             </div>
         `;
         container.appendChild(card);
@@ -369,6 +374,8 @@ function closeModal(modalId) {
             resetPaymentForm();
         } else if (modalId === 'adjustmentModal') {
             resetAdjustmentForm();
+        } else if (modalId === 'addMaterialModal') {
+            resetMaterialForm();
         }
     }
 }
@@ -394,6 +401,109 @@ function showMessage(elementId, message, type) {
     if (msgDiv) {
         msgDiv.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
     }
+}
+
+// Material CRUD Functions
+async function addMaterial(materialData) {
+    try {
+        const supplierId = getSupplierIdFromURL();
+        const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/suppliers/${supplierId}/materials`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(materialData)
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'فشل في إضافة المادة');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error adding material:', error);
+        throw error;
+    }
+}
+
+async function editMaterial(materialId) {
+    try {
+        // Find material in current data
+        const material = supplierData.supplier.materials.find(m => m.id === materialId);
+        if (!material) {
+            alert('لم يتم العثور على المادة');
+            return;
+        }
+
+        // Populate form with existing data
+        document.getElementById('materialName').value = material.name;
+        document.getElementById('materialPrice').value = material.price_per_unit;
+
+        // Change form to edit mode
+        const form = document.getElementById('addMaterialForm');
+        form.dataset.editId = materialId;
+
+        // Update modal title
+        document.querySelector('#addMaterialModal .modal-header h2').textContent = 'تعديل المادة';
+
+        showModal('addMaterialModal');
+    } catch (error) {
+        console.error('Error editing material:', error);
+        alert('حدث خطأ في تحميل بيانات المادة');
+    }
+}
+
+async function updateMaterial(materialId, materialData) {
+    try {
+        const supplierId = getSupplierIdFromURL();
+        const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/suppliers/${supplierId}/materials/${materialId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(materialData)
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'فشل في تحديث المادة');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error updating material:', error);
+        throw error;
+    }
+}
+
+async function deleteMaterial(materialId) {
+    if (!confirm('هل أنت متأكد من حذف هذه المادة؟ سيتم حذف جميع التسليمات المرتبطة بها.')) {
+        return;
+    }
+
+    try {
+        const supplierId = getSupplierIdFromURL();
+        const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/suppliers/${supplierId}/materials/${materialId}`, {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'فشل في حذف المادة');
+        }
+
+        alert('تم حذف المادة بنجاح');
+        loadSupplierDetails(); // Reload data
+    } catch (error) {
+        console.error('Error deleting material:', error);
+        alert('حدث خطأ في حذف المادة: ' + error.message);
+    }
+}
+
+function resetMaterialForm() {
+    const form = document.getElementById('addMaterialForm');
+    form.reset();
+    delete form.dataset.editId;
+
+    // Reset modal title
+    document.querySelector('#addMaterialModal .modal-header h2').textContent = 'إضافة مادة جديدة';
 }
 
 // CRUD Functions
@@ -688,6 +798,44 @@ async function loadSupplierDetails() {
 
 // Event Handlers
 function setupEventHandlers() {
+    // Add Material
+    document.getElementById('addMaterialBtn').addEventListener('click', () => {
+        resetMaterialForm();
+        showModal('addMaterialModal');
+    });
+
+    // Add Material Form
+    document.getElementById('addMaterialForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(e.target);
+        const materialData = {
+            name: formData.get('name'),
+            price_per_unit: parseFloat(formData.get('price_per_unit'))
+        };
+
+        try {
+            const form = e.target;
+            const editId = form.dataset.editId;
+
+            if (editId) {
+                // Update existing material
+                await updateMaterial(editId, materialData);
+                alert('تم تحديث المادة بنجاح');
+            } else {
+                // Add new material
+                await addMaterial(materialData);
+                alert('تم إضافة المادة بنجاح');
+            }
+
+            closeModal('addMaterialModal');
+            resetMaterialForm();
+            loadSupplierDetails();
+        } catch (error) {
+            alert('خطأ: ' + error.message);
+        }
+    });
+
     // Edit Supplier
     document.getElementById('editSupplierBtn').addEventListener('click', () => {
         if (supplierData) {
@@ -873,7 +1021,13 @@ document.addEventListener('click', function (e) {
         }
 
         try {
-            if (action === 'view' && type === 'payment') {
+            if (type === 'material') {
+                if (action === 'edit') {
+                    editMaterial(id);
+                } else if (action === 'delete') {
+                    deleteMaterial(id);
+                }
+            } else if (action === 'view' && type === 'payment') {
                 showPaymentDetails(id);
             } else if (action === 'edit' && type === 'payment') {
                 editPayment(id);
