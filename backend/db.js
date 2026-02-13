@@ -1,5 +1,9 @@
 const mongoose = require('mongoose');
+const dns = require('dns').promises;
 require('dotenv').config({ path: './.env' });
+
+// Force Node to use Google DNS for SRV resolution
+dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 /**
  * MongoDB connection using Mongoose
@@ -11,8 +15,8 @@ const connectDB = async () => {
     console.log('Connecting to MongoDB:', mongoURI.replace(/\/\/[^:]+:[^@]+@/, '//***:***@'));
 
     await mongoose.connect(mongoURI, {
-      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
-      socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+      serverSelectionTimeoutMS: 30000,
+      socketTimeoutMS: 45000,
     });
 
     console.log('✅ MongoDB connected successfully');
