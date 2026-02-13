@@ -71,4 +71,11 @@ router.put('/:id/attendance/:attendanceId', employeesController.updateAttendance
 // Delete attendance record
 router.delete('/:id/attendance/:attendanceId', employeesController.deleteAttendanceRecord);
 
+// ============================================================================
+// EMPLOYEE REPORTS
+// ============================================================================
+
+// Get employee account statement (HTML Report)
+router.get('/:id/reports/statement', employeesController.getEmployeeAccountStatement);
+
 module.exports = router;

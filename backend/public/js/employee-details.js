@@ -137,7 +137,7 @@ function displayFinancialSummary(totals) {
 
     summaryContainer.innerHTML = `
         <div class="summary-item">
-            <div class="summary-value balance-${balance >= 0 ? 'neutral' : 'negative'}">
+            <div class="summary-value" style="color: ${balance > 0 ? '#fbbf24' : balance < 0 ? '#ef4444' : 'white'} !important;">
                 ${balanceDisplay}
             </div>
             <div class="summary-label">${balanceLabel}</div>
@@ -151,7 +151,9 @@ function displayFinancialSummary(totals) {
             <div class="summary-label">إجمالي المدفوعات</div>
         </div>
         <div class="summary-item">
-            <div class="summary-value">${formatCurrency(totalAdjustments)}</div>
+            <div class="summary-value" style="color: ${totalAdjustments >= 0 ? '#10b981' : '#ef4444'} !important;">
+                ${formatCurrency(totalAdjustments)}
+            </div>
             <div class="summary-label">إجمالي التسويات</div>
         </div>
         <div class="summary-item">
@@ -924,15 +926,53 @@ async function handleEditEmployeeSubmit(event) {
 
 // --- Event Listeners ---
 
+// Toggle date range inputs
+function toggleDateRange() {
+    const checkbox = document.getElementById('useCustomDateRange');
+    const dateInputs = document.getElementById('dateRangeInputs');
+    dateInputs.style.display = checkbox.checked ? 'block' : 'none';
+}
+
+// Generate account statement
+function generateAccountStatement() {
+    const useCustomRange = document.getElementById('useCustomDateRange').checked;
+    let url = `/api/employees/${currentEmployeeId}/reports/statement`;
+    
+    if (useCustomRange) {
+        const fromDate = document.getElementById('statementFromDate').value;
+        const toDate = document.getElementById('statementToDate').value;
+        
+        if (!fromDate || !toDate) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'تنبيه',
+                text: 'يرجى تحديد تاريخ البداية والنهاية'
+            });
+            return;
+        }
+        
+        url += `?from=${fromDate}&to=${toDate}`;
+    }
+    
+    // Open in new tab to download PDF
+    window.open(url, '_blank');
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     // Check authentication first
     if (!authManager.checkAuth()) {
         return;
     }
 
-    // Load employee details and clients on page load
-    loadEmployeeDetails();
-    loadClients();
+    // Wait for utilities to load before initializing
+    const checkUtilities = setInterval(() => {
+        if (typeof apiGet !== 'undefined') {
+            clearInterval(checkUtilities);
+            // Load employee details and clients on page load
+            loadEmployeeDetails();
+            loadClients();
+        }
+    }, 100);
 
     // Radio button logic for attendance modal
     const recordTypeRadios = document.querySelectorAll('input[name="record_type"]');
@@ -1039,4 +1079,10 @@ document.addEventListener('DOMContentLoaded', function () {
             event.target.style.display = 'none';
         }
     });
+
+    // Account statement button
+    const generateAccountStatementBtn = document.getElementById('generateAccountStatementBtn');
+    if (generateAccountStatementBtn) {
+        generateAccountStatementBtn.addEventListener('click', generateAccountStatement);
+    }
 });

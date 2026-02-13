@@ -1073,6 +1073,350 @@ class ReportService {
 </body>
 </html>`;
     }
+
+    // ============================================================================
+    // EMPLOYEE ACCOUNT STATEMENT
+    // ============================================================================
+
+    static async getEmployeeAccountStatementData(employeeId, fromDate, toDate) {
+        const { Employee, EmployeePayment, Adjustment, Attendance } = require('../models');
+        const payrollService = require('./payrollService');
+
+        // Get employee
+        const employee = await Employee.findByPk(employeeId);
+        if (!employee) {
+            throw new Error('الموظف غير موجود');
+        }
+
+        // Build date filter
+        const dateFilter = {};
+        if (fromDate) dateFilter.$gte = new Date(fromDate);
+        if (toDate) {
+            const endDate = new Date(toDate);
+            endDate.setHours(23, 59, 59, 999);
+            dateFilter.$lte = endDate;
+        }
+
+        // Get attendance records
+        const attendance = await Attendance.findAll({
+            where: {
+                employee_id: employeeId,
+                ...(Object.keys(dateFilter).length > 0 && { period_start: dateFilter })
+            },
+            order: [['period_start', 'ASC']]
+        });
+
+        // Get payments
+        const payments = await EmployeePayment.findAll({
+            where: {
+                employee_id: employeeId,
+                ...(Object.keys(dateFilter).length > 0 && { paid_at: dateFilter })
+            },
+            order: [['paid_at', 'ASC']]
+        });
+
+        // Get adjustments
+        const adjustments = await Adjustment.findAll({
+            where: {
+                entity_type: 'employee',
+                entity_id: employeeId,
+                ...(Object.keys(dateFilter).length > 0 && { created_at: dateFilter })
+            },
+            order: [['created_at', 'ASC']]
+        });
+
+        // Calculate balance
+        const balanceData = await payrollService.calculateEmployeeBalance(employeeId);
+
+        // Format date range text
+        let dateRangeText = 'جميع الفترات';
+        if (fromDate && toDate) {
+            dateRangeText = `من ${new Date(fromDate).toLocaleDateString('ar-EG')} إلى ${new Date(toDate).toLocaleDateString('ar-EG')}`;
+        } else if (fromDate) {
+            dateRangeText = `من ${new Date(fromDate).toLocaleDateString('ar-EG')}`;
+        } else if (toDate) {
+            dateRangeText = `حتى ${new Date(toDate).toLocaleDateString('ar-EG')}`;
+        }
+
+        return {
+            employee: employee.toJSON(),
+            attendance,
+            payments,
+            adjustments,
+            totals: balanceData,
+            dateRangeText
+        };
+    }
+
+    static generateEmployeeAccountStatementHTML(data) {
+        const { employee, attendance, payments, adjustments, totals, dateRangeText } = data;
+
+        return `
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>كشف حساب موظف - ${employee.name}</title>
+    <style>
+        body { 
+            font-family: 'Arial', sans-serif; 
+            margin: 20px; 
+            direction: rtl; 
+            background: #f8f9fa;
+            color: #333;
+        }
+        @media print {
+            body { background: white; margin: 10px; }
+        }
+        .header { 
+            text-align: center; 
+            margin-bottom: 30px; 
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .employee-name { 
+            font-size: 28px; 
+            font-weight: bold; 
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .report-title { 
+            font-size: 22px; 
+            color: #8e44ad; 
+            margin: 10px 0; 
+        }
+        .date-range { 
+            font-size: 16px; 
+            color: #7f8c8d;
+            background: #ecf0f1;
+            padding: 10px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .summary { 
+            background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%);
+            color: white;
+            padding: 25px; 
+            border-radius: 10px; 
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(142, 68, 173, 0.3);
+        }
+        .summary h3 {
+            margin: 0 0 20px 0;
+            font-size: 20px;
+            text-align: center;
+        }
+        .summary-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+            gap: 20px; 
+        }
+        .summary-item { 
+            text-align: center;
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .summary-value { 
+            font-size: 20px; 
+            font-weight: bold; 
+            margin-bottom: 5px;
+        }
+        .summary-label { 
+            font-size: 14px; 
+            opacity: 0.9;
+        }
+        .balance-positive { color: #f39c12; }
+        .balance-negative { color: #e74c3c; }
+        .section { 
+            background: white;
+            margin: 20px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .section-title { 
+            font-size: 18px; 
+            font-weight: bold; 
+            padding: 20px;
+            background: #34495e;
+            color: white;
+            margin: 0;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse;
+        }
+        th, td { 
+            border: 1px solid #bdc3c7; 
+            padding: 12px 8px; 
+            text-align: center; 
+        }
+        th { 
+            background-color: #ecf0f1; 
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        tr:hover {
+            background-color: #e8f4fd;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        .no-data {
+            text-align: center;
+            padding: 30px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        .amount-positive { color: #27ae60; font-weight: bold; }
+        .amount-negative { color: #e74c3c; font-weight: bold; }
+        @media print { 
+            body { background: white; }
+            .section, .header, .summary { box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="employee-name">${employee.name}</div>
+        <div class="report-title">كشف حساب موظف شامل</div>
+        <div class="date-range">${dateRangeText}</div>
+    </div>
+
+    <div class="summary">
+        <h3>الملخص المالي</h3>
+        <div class="summary-grid">
+            <div class="summary-item">
+                <div class="summary-value ${totals.balance > 0 ? 'balance-positive' : totals.balance < 0 ? 'balance-negative' : ''}">
+                    ${Math.abs(totals.balance || 0).toLocaleString('ar-EG')} ج.م
+                </div>
+                <div class="summary-label">${totals.balance > 0 ? 'مدفوع زائد' : totals.balance < 0 ? 'مستحق للموظف' : 'متوازن'}</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-value">${(totals.total_earned_salary || 0).toLocaleString('ar-EG')} ج.م</div>
+                <div class="summary-label">إجمالي الراتب المستحق</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-value">${(totals.total_payments || 0).toLocaleString('ar-EG')} ج.م</div>
+                <div class="summary-label">إجمالي المدفوعات</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-value">${(totals.total_adjustments || 0).toLocaleString('ar-EG')} ج.م</div>
+                <div class="summary-label">إجمالي التسويات</div>
+            </div>
+        </div>
+    </div>
+
+    ${attendance && attendance.length > 0 ? `
+    <div class="section">
+        <h3 class="section-title">سجلات الحضور</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>الفترة</th>
+                    <th>أيام الشهر</th>
+                    <th>أيام العمل</th>
+                    <th>أيام الغياب</th>
+                    <th>نوع التسجيل</th>
+                    <th>ملاحظات</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${attendance.map(record => `
+                    <tr>
+                        <td>${new Date(record.period_start).toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' })}</td>
+                        <td>${record.period_days || 0}</td>
+                        <td>${record.worked_days || 0}</td>
+                        <td>${(record.period_days || 0) - (record.worked_days || 0)}</td>
+                        <td>${record.record_type === 'attendance' ? 'حضور' : 'غياب'}</td>
+                        <td>${record.notes || '—'}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    </div>
+    ` : ''}
+
+    ${payments && payments.length > 0 ? `
+    <div class="section">
+        <h3 class="section-title">المدفوعات</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>التاريخ</th>
+                    <th>المبلغ</th>
+                    <th>طريقة الدفع</th>
+                    <th>التفاصيل</th>
+                    <th>ملاحظات</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${payments.map(payment => `
+                    <tr>
+                        <td>${new Date(payment.paid_at).toLocaleDateString('ar-EG')}</td>
+                        <td>${(payment.amount || 0).toLocaleString('ar-EG')} ج.م</td>
+                        <td>${payment.method || '—'}</td>
+                        <td>${payment.details || '—'}</td>
+                        <td>${payment.note || '—'}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    </div>
+    ` : ''}
+
+    ${adjustments && adjustments.length > 0 ? `
+    <div class="section">
+        <h3 class="section-title">التسويات</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>التاريخ</th>
+                    <th>المبلغ</th>
+                    <th>النوع</th>
+                    <th>التفاصيل</th>
+                    <th>السبب</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${adjustments.map(adj => {
+                    const amount = parseFloat(adj.amount) || 0;
+                    const isPositive = amount >= 0;
+                    return `
+                    <tr>
+                        <td>${new Date(adj.created_at).toLocaleDateString('ar-EG')}</td>
+                        <td class="${isPositive ? 'amount-positive' : 'amount-negative'}">
+                            ${Math.abs(amount).toLocaleString('ar-EG')} ج.م
+                            ${isPositive ? '(إضافة)' : '(خصم)'}
+                        </td>
+                        <td>${adj.method || '—'}</td>
+                        <td>${adj.details || '—'}</td>
+                        <td>${adj.reason || '—'}</td>
+                    </tr>
+                `}).join('')}
+            </tbody>
+        </table>
+    </div>
+    ` : ''}
+
+    <div class="footer">
+        تم إنشاء هذا التقرير في ${new Date().toLocaleString('ar-EG')}
+    </div>
+</body>
+</html>`;
+    }
 }
 
 module.exports = ReportService;

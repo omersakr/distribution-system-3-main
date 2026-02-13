@@ -3,6 +3,7 @@ const clientsController = require('../controllers/clientsController');
 const suppliersController = require('../controllers/supplierController');
 const crushersController = require('../controllers/crushersController');
 const contractorsController = require('../controllers/contractorsController');
+const employeesController = require('../controllers/employeesController');
 
 const router = express.Router();
 
@@ -33,5 +34,9 @@ router.get('/contractors/:id/reports/deliveries', (req, res, next) => contractor
 router.post('/contractors/:id/reports/deliveries', (req, res, next) => contractorsController.generateDeliveriesReport(req, res, next));
 router.get('/contractors/:id/reports/statement', (req, res, next) => contractorsController.generateAccountStatement(req, res, next));
 router.post('/contractors/:id/reports/statement', (req, res, next) => contractorsController.generateAccountStatement(req, res, next));
+
+// Employee reports
+router.get('/employees/:id/reports/statement', (req, res, next) => employeesController.getEmployeeAccountStatement(req, res, next));
+router.post('/employees/:id/reports/statement', (req, res, next) => employeesController.getEmployeeAccountStatement(req, res, next));
 
 module.exports = router;

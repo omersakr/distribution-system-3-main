@@ -288,9 +288,13 @@ class PayrollService {
             };
         }
         
-        // Calculate balance: payments + adjustments - earned_salary
-        // Positive = overpaid, Negative = due to employee
-        const balance = totalPayments + totalAdjustments - salaryData.total_earned_salary;
+        // Calculate balance: payments - (earned_salary + adjustments)
+        // Adjustments are added to earned salary:
+        // - Positive adjustments (bonuses) increase what employee should get
+        // - Negative adjustments (deductions) decrease what employee should get
+        // Balance = payments - (earned + adjustments)
+        // Negative balance = due to employee, Positive balance = overpaid
+        const balance = totalPayments - (salaryData.total_earned_salary + totalAdjustments);
         
         return {
             employee_id: employeeId,
