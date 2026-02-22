@@ -215,6 +215,11 @@
             color: var(--red-700);
             border: 1px solid var(--red-200);
         }
+
+        /* Fix modal centering in RTL */
+        .modal-content {
+            margin: 0 auto;
+        }
     </style>
 </head>
 
@@ -360,14 +365,14 @@
     <script src="js/utils/formatters.js"></script>
     <script src="js/utils/validation.js"></script>
     <script src="js/utils/dom.js"></script>
-    
+
     <!-- Load auth before API utilities -->
     <script src="js/auth.js"></script>
-    
+
     <!-- Load API and modal utilities -->
     <script src="js/utils/api.js"></script>
     <script src="js/utils/modals.js"></script>
-    
+
     <!-- Load page-specific scripts -->
     <script src="js/sidebar.js"></script>
     <script src="js/expenses.js"></script>

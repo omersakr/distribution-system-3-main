@@ -99,12 +99,105 @@
         .section-content {
             padding: var(--space-6);
         }
+
+        /* Fix modal centering in RTL */
+        .modal-content {
+            margin: 0 auto;
+        }
+
+        /* Project Breakdown Styles */
+        .projects-breakdown-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: var(--space-6);
+        }
+
+        .project-breakdown-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--gray-200);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .project-breakdown-header {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: var(--space-4);
+            padding-bottom: var(--space-3);
+            border-bottom: 2px solid var(--primary-500);
+        }
+
+        .project-breakdown-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-4);
+        }
+
+        .project-stat-box {
+            background: var(--gray-50);
+            border-radius: var(--radius);
+            padding: var(--space-4);
+            text-align: center;
+        }
+
+        .project-stat-label {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            margin-bottom: var(--space-2);
+        }
+
+        .project-stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .project-stat-value.capital {
+            color: var(--success-600);
+        }
+
+        .project-stat-value.withdrawal {
+            color: var(--danger-600);
+        }
+
+        .project-net-balance {
+            margin-top: var(--space-4);
+            padding-top: var(--space-4);
+            border-top: 1px solid var(--gray-200);
+            text-align: center;
+        }
+
+        .project-net-label {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            margin-bottom: var(--space-2);
+        }
+
+        .project-net-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .project-net-value.positive {
+            color: var(--success-600);
+        }
+
+        .project-net-value.negative {
+            color: var(--danger-600);
+        }
+
+        @media (max-width: 768px) {
+            .projects-breakdown-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 
 <body>
     <div id="sidebar-placeholder"></div>
-    
+
     <div class="main-content">
         <div class="page-header">
             <h1 class="page-title" id="administrationName">تفاصيل الإدارة</h1>
@@ -192,34 +285,18 @@
             </div>
         </div>
 
-        <!-- Payments Section -->
+        <!-- Project Breakdown Section -->
         <div class="section">
             <div class="section-header">
-                <h3 class="section-title">المدفوعات</h3>
-                <button class="btn btn-primary" id="addPaymentBtn">
-                    <span>➕</span> إضافة دفعة
-                </button>
+                <h3 class="section-title">التفصيل حسب المشروع</h3>
             </div>
             <div class="section-content">
-                <div class="table-container">
-                    <table class="data-table" id="paymentsTable">
-                        <thead>
-                            <tr>
-                                <th>المبلغ</th>
-                                <th>طريقة الدفع</th>
-                                <th>التفاصيل</th>
-                                <th>ملاحظات</th>
-                                <th>تاريخ الدفع</th>
-                                <th>الإجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody id="paymentsTableBody">
-                            <!-- Payments will be populated here -->
-                        </tbody>
-                    </table>
+                <div id="projectBreakdownContainer" class="projects-breakdown-grid">
+                    <!-- Project breakdown cards will be populated here -->
                 </div>
             </div>
         </div>
+
     </div>
 
     <!-- Capital Injection Modal -->
@@ -251,7 +328,8 @@
                 </div>
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">حفظ</button>
-                    <button type="button" class="btn btn-secondary" onclick="closeCapitalInjectionModal()">إلغاء</button>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="closeCapitalInjectionModal()">إلغاء</button>
                 </div>
             </form>
         </div>
@@ -287,46 +365,6 @@
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">حفظ</button>
                     <button type="button" class="btn btn-secondary" onclick="closeWithdrawalModal()">إلغاء</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Payment Modal -->
-    <div id="paymentModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="paymentModalTitle">إضافة دفعة</h2>
-                <span class="close" onclick="closePaymentModal()">&times;</span>
-            </div>
-            <form id="paymentForm">
-                <div class="form-group">
-                    <label for="paymentAmount">المبلغ *</label>
-                    <input type="number" id="paymentAmount" name="amount" step="0.01" min="0" required>
-                </div>
-                <div class="form-group">
-                    <label for="paymentMethod">طريقة الدفع</label>
-                    <input type="text" id="paymentMethod" name="method" placeholder="نقدي، تحويل بنكي، إلخ">
-                </div>
-                <div class="form-group">
-                    <label for="paymentDetails">التفاصيل</label>
-                    <input type="text" id="paymentDetails" name="details" placeholder="تفاصيل إضافية">
-                </div>
-                <div class="form-group">
-                    <label for="paymentNote">ملاحظات</label>
-                    <textarea id="paymentNote" name="note" rows="3"></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="paymentDate">تاريخ الدفع</label>
-                    <input type="date" id="paymentDate" name="paid_at">
-                </div>
-                <div class="form-group">
-                    <label for="paymentImage">صورة الإيصال</label>
-                    <input type="file" id="paymentImage" accept="image/*">
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">حفظ</button>
-                    <button type="button" class="btn btn-secondary" onclick="closePaymentModal()">إلغاء</button>
                 </div>
             </form>
         </div>

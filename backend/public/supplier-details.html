@@ -288,6 +288,11 @@
             color: #333;
             font-weight: 600;
         }
+
+        /* Fix modal centering in RTL */
+        .modal-content {
+            margin: 0 auto;
+        }
     </style>
 </head>
 
@@ -405,7 +410,7 @@
             </div>
         </div>
 
-        <div class="section" style="display: none;">
+        <div class="section">
             <div class="section-header">
                 <h3 class="section-title">التسويات والتعديلات</h3>
                 <button class="btn btn-primary" id="addAdjustmentBtn">+ إضافة تسوية</button>

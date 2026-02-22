@@ -105,12 +105,27 @@ class ContractorService {
     }
 
     static async createContractor(data) {
+        const { ContractorOpeningBalance } = require('../models');
+
         const contractor = new Contractor({
             name: data.name,
             opening_balance: toNumber(data.opening_balance)
         });
 
         await contractor.save();
+
+        // Create opening balances if provided
+        if (data.opening_balances && Array.isArray(data.opening_balances) && data.opening_balances.length > 0) {
+            const openingBalanceDocs = data.opening_balances.map(balance => ({
+                contractor_id: contractor._id,
+                project_id: balance.project_id,
+                amount: toNumber(balance.amount),
+                description: balance.description || '',
+                date: balance.date || new Date()
+            }));
+
+            await ContractorOpeningBalance.insertMany(openingBalanceDocs);
+        }
 
         return {
             id: contractor._id,

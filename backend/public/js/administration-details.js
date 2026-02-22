@@ -64,13 +64,12 @@ async function loadAdministrationDetails() {
         // Store the full data for edit operations
         currentAdministration.capital_injections = data.capital_injections;
         currentAdministration.withdrawals = data.withdrawals;
-        currentAdministration.payments = data.payments;
 
         displayAdministrationInfo(data.administration);
         displayFinancialSummary(data.totals);
         displayCapitalInjections(data.capital_injections);
         displayWithdrawals(data.withdrawals);
-        displayPayments(data.payments);
+        displayProjectBreakdown(data.capital_injections, data.withdrawals);
 
         // Load projects for dropdowns
         await loadProjects();
@@ -157,12 +156,7 @@ function displayFinancialSummary(totals) {
     const balance = totals.balance || 0;
 
     summaryContainer.innerHTML = `
-        <div class="summary-item">
-            <div class="summary-value balance-${balance >= 0 ? 'positive' : 'negative'}">
-                ${formatCurrency(Math.abs(balance))}
-            </div>
-            <div class="summary-label">${totals.balance_description}</div>
-        </div>
+       
         <div class="summary-item">
             <div class="summary-value">${formatCurrency(totals.total_capital_injected)}</div>
             <div class="summary-label">إجمالي ضخ رأس المال</div>
@@ -170,10 +164,6 @@ function displayFinancialSummary(totals) {
         <div class="summary-item">
             <div class="summary-value">${formatCurrency(totals.total_withdrawals)}</div>
             <div class="summary-label">إجمالي المسحوبات</div>
-        </div>
-        <div class="summary-item">
-            <div class="summary-value">${formatCurrency(totals.total_payments)}</div>
-            <div class="summary-label">إجمالي المدفوعات</div>
         </div>
     `;
 }
@@ -230,32 +220,85 @@ function displayWithdrawals(withdrawals) {
     `).join('');
 }
 
-function displayPayments(payments) {
-    const tbody = document.getElementById('paymentsTableBody');
+function displayProjectBreakdown(capitalInjections, withdrawals) {
+    const container = document.getElementById('projectBreakdownContainer');
 
-    if (!payments || payments.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="6" class="empty-state">لا توجد مدفوعات</td>
-            </tr>
+    // Group data by project
+    const projectData = {};
+
+    // Process capital injections
+    if (capitalInjections && capitalInjections.length > 0) {
+        capitalInjections.forEach(injection => {
+            const projectId = injection.project_id;
+            const projectName = injection.project_name;
+
+            if (!projectData[projectId]) {
+                projectData[projectId] = {
+                    name: projectName,
+                    totalCapital: 0,
+                    totalWithdrawals: 0
+                };
+            }
+
+            projectData[projectId].totalCapital += parseFloat(injection.amount || 0);
+        });
+    }
+
+    // Process withdrawals
+    if (withdrawals && withdrawals.length > 0) {
+        withdrawals.forEach(withdrawal => {
+            const projectId = withdrawal.project_id;
+            const projectName = withdrawal.project_name;
+
+            if (!projectData[projectId]) {
+                projectData[projectId] = {
+                    name: projectName,
+                    totalCapital: 0,
+                    totalWithdrawals: 0
+                };
+            }
+
+            projectData[projectId].totalWithdrawals += parseFloat(withdrawal.amount || 0);
+        });
+    }
+
+    // Check if there's any data
+    if (Object.keys(projectData).length === 0) {
+        container.innerHTML = `
+            <div class="empty-state" style="text-align: center; padding: var(--space-8); color: var(--gray-500);">
+                لا توجد بيانات لعرضها
+            </div>
         `;
         return;
     }
 
-    tbody.innerHTML = payments.map(payment => `
-        <tr>
-            <td>${formatCurrency(payment.amount)}</td>
-            <td>${payment.method || '—'}</td>
-            <td>${payment.details || '—'}</td>
-            <td>${payment.note || '—'}</td>
-            <td>${formatDate(payment.paid_at)}</td>
-            <td>
-                <button class="btn btn-sm btn-secondary" onclick="editPayment('${payment.id}')">تعديل</button>
-                <button class="btn btn-sm btn-danger" onclick="deletePayment('${payment.id}')">حذف</button>
-                ${payment.payment_image ? `<button class="btn btn-sm btn-info" onclick="viewPaymentImage('${payment.payment_image}')">عرض الصورة</button>` : ''}
-            </td>
-        </tr>
-    `).join('');
+    // Generate cards for each project
+    container.innerHTML = Object.entries(projectData).map(([projectId, data]) => {
+        const netBalance = data.totalCapital - data.totalWithdrawals;
+        const balanceClass = netBalance >= 0 ? 'positive' : 'negative';
+
+        return `
+            <div class="project-breakdown-card">
+                <div class="project-breakdown-header">
+                    ${data.name}
+                </div>
+                <div class="project-breakdown-stats">
+                    <div class="project-stat-box">
+                        <div class="project-stat-label">إجمالي ضخ رأس المال</div>
+                        <div class="project-stat-value capital">${formatCurrency(data.totalCapital)}</div>
+                    </div>
+                    <div class="project-stat-box">
+                        <div class="project-stat-label">إجمالي المسحوبات</div>
+                        <div class="project-stat-value withdrawal">${formatCurrency(data.totalWithdrawals)}</div>
+                    </div>
+                </div>
+                <div class="project-net-balance">
+                    <div class="project-net-label">الصافي</div>
+                    <div class="project-net-value ${balanceClass}">${formatCurrency(Math.abs(netBalance))}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
 }
 
 // --- Modal Management ---
@@ -272,13 +315,6 @@ function closeWithdrawalModal() {
     document.getElementById('withdrawalForm').reset();
     delete document.getElementById('withdrawalForm').dataset.withdrawalId;
     document.getElementById('withdrawalModalTitle').textContent = 'إضافة مسحوبات';
-}
-
-function closePaymentModal() {
-    document.getElementById('paymentModal').style.display = 'none';
-    document.getElementById('paymentForm').reset();
-    delete document.getElementById('paymentForm').dataset.paymentId;
-    document.getElementById('paymentModalTitle').textContent = 'إضافة دفعة';
 }
 
 // --- CRUD Operations ---
@@ -342,7 +378,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('injectionDate').value = today;
     document.getElementById('withdrawalDate').value = today;
-    document.getElementById('paymentDate').value = today;
 
     // Modal buttons
     document.getElementById('addCapitalInjectionBtn').addEventListener('click', function () {
@@ -353,14 +388,9 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('withdrawalModal').style.display = 'block';
     });
 
-    document.getElementById('addPaymentBtn').addEventListener('click', function () {
-        document.getElementById('paymentModal').style.display = 'block';
-    });
-
     // Form submissions
     document.getElementById('capitalInjectionForm').addEventListener('submit', handleCapitalInjectionSubmit);
     document.getElementById('withdrawalForm').addEventListener('submit', handleWithdrawalSubmit);
-    document.getElementById('paymentForm').addEventListener('submit', handlePaymentSubmit);
 
     // Edit administration button
     document.getElementById('editAdministrationBtn').addEventListener('click', function () {
@@ -530,125 +560,4 @@ async function deleteWithdrawal(id) {
             text: 'تعذر حذف المسحوبات'
         });
     }
-}
-
-// Payment CRUD
-async function handlePaymentSubmit(event) {
-    event.preventDefault();
-
-    const form = event.target;
-    const formData = new FormData(form);
-    const paymentData = Object.fromEntries(formData.entries());
-
-    // Handle image upload if present
-    const imageFile = document.getElementById('paymentImage').files[0];
-    if (imageFile) {
-        const reader = new FileReader();
-        reader.onload = async function (e) {
-            paymentData.payment_image = e.target.result;
-            await submitPayment(paymentData, form.dataset.paymentId);
-        };
-        reader.readAsDataURL(imageFile);
-    } else {
-        await submitPayment(paymentData, form.dataset.paymentId);
-    }
-}
-
-async function submitPayment(paymentData, paymentId) {
-    const isEdit = !!paymentId;
-
-    try {
-        const url = isEdit
-            ? `${API_BASE}/administration/${currentAdministrationId}/payments/${paymentId}`
-            : `${API_BASE}/administration/${currentAdministrationId}/payments`;
-        const method = isEdit ? 'PUT' : 'POST';
-
-        const response = await authManager.makeAuthenticatedRequest(url, {
-            method: method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(paymentData)
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'فشل في حفظ الدفعة');
-        }
-
-        await Swal.fire({
-            icon: 'success',
-            title: 'تم الحفظ',
-            text: isEdit ? 'تم تحديث الدفعة بنجاح' : 'تم إضافة الدفعة بنجاح'
-        });
-
-        closePaymentModal();
-        loadAdministrationDetails();
-    } catch (error) {
-        console.error('Error saving payment:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'خطأ',
-            text: error.message || 'تعذر حفظ الدفعة'
-        });
-    }
-}
-
-function editPayment(id) {
-    const payment = currentAdministration?.payments?.find(p => p.id === id);
-    if (!payment) return;
-
-    document.getElementById('paymentModalTitle').textContent = 'تعديل الدفعة';
-    document.getElementById('paymentAmount').value = payment.amount;
-    document.getElementById('paymentMethod').value = payment.method || '';
-    document.getElementById('paymentDetails').value = payment.details || '';
-    document.getElementById('paymentNote').value = payment.note || '';
-    document.getElementById('paymentDate').value = payment.paid_at?.split('T')[0];
-    document.getElementById('paymentForm').dataset.paymentId = id;
-    document.getElementById('paymentModal').style.display = 'block';
-}
-
-async function deletePayment(id) {
-    const result = await Swal.fire({
-        title: 'هل أنت متأكد؟',
-        text: 'سيتم حذف الدفعة نهائياً',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'نعم، احذف',
-        cancelButtonText: 'إلغاء'
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-        const response = await authManager.makeAuthenticatedRequest(
-            `${API_BASE}/administration/${currentAdministrationId}/payments/${id}`,
-            { method: 'DELETE' }
-        );
-
-        if (!response.ok) throw new Error('فشل في حذف الدفعة');
-
-        await Swal.fire({
-            icon: 'success',
-            title: 'تم الحذف',
-            text: 'تم حذف الدفعة بنجاح'
-        });
-
-        loadAdministrationDetails();
-    } catch (error) {
-        console.error('Error deleting payment:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'خطأ',
-            text: 'تعذر حذف الدفعة'
-        });
-    }
-}
-
-function viewPaymentImage(imageData) {
-    Swal.fire({
-        title: 'صورة الإيصال',
-        imageUrl: imageData,
-        imageAlt: 'صورة الإيصال',
-        showCloseButton: true,
-        showConfirmButton: false
-    });
 }

@@ -96,10 +96,25 @@ function getCrusherPriceByMaterial(crusherId, material) {
 // Get supplier price by material
 function getSupplierPriceByMaterial(supplierId, material) {
     const supplier = suppliersData.find(s => s.id === supplierId);
-    if (!supplier || !supplier.materials) return 0;
+    if (!supplier) {
+        console.warn('Supplier not found:', supplierId);
+        return 0;
+    }
+
+    if (!supplier.materials || !Array.isArray(supplier.materials) || supplier.materials.length === 0) {
+        console.warn('Supplier has no materials:', supplier.name);
+        return 0;
+    }
 
     const supplierMaterial = supplier.materials.find(m => m.name === material);
-    return supplierMaterial ? supplierMaterial.price_per_unit : 0;
+    if (!supplierMaterial) {
+        console.warn('Material not found in supplier:', material, 'Available materials:', supplier.materials.map(m => m.name));
+        return 0;
+    }
+
+    const price = supplierMaterial.price_per_unit || 0;
+    console.log('Found supplier material price:', material, price);
+    return price;
 }
 
 // Update supplier materials dropdown based on selected supplier
@@ -144,18 +159,23 @@ function updateCrusherPrice() {
 
     let price = 0;
     let priceSource = '';
+    let sourceName = '';
 
     if (supplierType === 'crusher') {
         const crusherId = document.getElementById('crusher').value;
         if (crusherId && material) {
             price = getCrusherPriceByMaterial(crusherId, material);
             priceSource = 'الكسارة';
+            const crusher = crushersData.find(c => c.id === crusherId);
+            sourceName = crusher ? crusher.name : '';
         }
     } else if (supplierType === 'supplier') {
         const supplierId = document.getElementById('supplier').value;
         if (supplierId && material) {
             price = getSupplierPriceByMaterial(supplierId, material);
             priceSource = 'المورد';
+            const supplier = suppliersData.find(s => s.id === supplierId);
+            sourceName = supplier ? supplier.name : '';
         }
     }
 
@@ -171,15 +191,87 @@ function updateCrusherPrice() {
         crusherPriceValue.textContent = `${price.toLocaleString('ar-EG')} جنيه`;
         crusherPriceValue.style.color = '#1e4d72';
         crusherPriceDisplay.style.display = 'block';
-        crusherPriceDisplay.querySelector('label').textContent = `سعر ${priceSource} للمادة المختارة:`;
+        crusherPriceDisplay.querySelector('label').textContent = `سعر ${priceSource} للمادة "${material}":`;
     } else if (material && (document.getElementById('crusher').value || document.getElementById('supplier').value)) {
-        crusherPriceValue.textContent = `غير محدد - يرجى تحديث أسعار ${priceSource}`;
+        crusherPriceValue.textContent = `غير محدد - يرجى تحديث أسعار ${priceSource} "${sourceName}"`;
         crusherPriceValue.style.color = '#d32f2f';
         crusherPriceDisplay.style.display = 'block';
-        crusherPriceDisplay.querySelector('label').textContent = `سعر ${priceSource} للمادة المختارة:`;
+        crusherPriceDisplay.querySelector('label').textContent = `سعر ${priceSource} للمادة "${material}":`;
     } else {
         crusherPriceDisplay.style.display = 'none';
     }
+
+    // Check price warning after updating material price
+    checkPriceWarning();
+}
+
+// Check if client price is lower than cost or profit margin is less than 15%
+function checkPriceWarning() {
+    const supplierType = document.querySelector('input[name="supplierType"]:checked')?.value;
+    const clientPrice = parseFloat(document.getElementById('price').value) || 0;
+    const material = document.getElementById('material').value;
+
+    // Get warning container or create it if it doesn't exist
+    let warningDiv = document.getElementById('priceWarning');
+    if (!warningDiv) {
+        warningDiv = document.createElement('div');
+        warningDiv.id = 'priceWarning';
+        warningDiv.style.cssText = 'background: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 12px; border-radius: 6px; margin-top: 10px; display: none; font-size: 14px;';
+        document.getElementById('price').parentElement.appendChild(warningDiv);
+    }
+
+    if (!clientPrice || clientPrice <= 0 || !material) {
+        warningDiv.style.display = 'none';
+        return;
+    }
+
+    let materialCost = 0;
+    let transferCost = 0;
+
+    if (supplierType === 'crusher') {
+        const crusherId = document.getElementById('crusher').value;
+        if (crusherId) {
+            materialCost = getCrusherPriceByMaterial(crusherId, material);
+            transferCost = parseFloat(document.getElementById('contractorCharge').value) || 0;
+        }
+    } else if (supplierType === 'supplier') {
+        const supplierId = document.getElementById('supplier').value;
+        if (supplierId) {
+            materialCost = getSupplierPriceByMaterial(supplierId, material);
+            transferCost = parseFloat(document.getElementById('supplierTransferPrice').value) || 0;
+        }
+    }
+
+    const totalCost = materialCost + transferCost;
+    const profit = clientPrice - totalCost;
+    const profitMargin = totalCost > 0 ? (profit / totalCost) * 100 : 0;
+
+    let warningMessage = '';
+    let warningIcon = '⚠️';
+
+    if (clientPrice < totalCost) {
+        // Loss scenario
+        warningMessage = `${warningIcon} <strong>تحذير:</strong> السعر للعميل (${clientPrice.toFixed(2)} ج.م) أقل من التكلفة الإجمالية (${totalCost.toFixed(2)} ج.م). `;
+        warningMessage += `<br><strong>خسارة:</strong> ${Math.abs(profit).toFixed(2)} ج.م (${Math.abs(profitMargin).toFixed(1)}%)`;
+        warningDiv.style.background = '#f8d7da';
+        warningDiv.style.borderColor = '#dc3545';
+        warningDiv.style.color = '#721c24';
+    } else if (profitMargin < 15) {
+        // Low profit margin scenario
+        warningMessage = `${warningIcon} <strong>تحذير:</strong> هامش الربح منخفض (${profitMargin.toFixed(1)}%). `;
+        warningMessage += `<br><strong>الربح:</strong> ${profit.toFixed(2)} ج.م من إجمالي تكلفة ${totalCost.toFixed(2)} ج.م`;
+        warningMessage += `<br><em>يُنصح بهامش ربح لا يقل عن 15%</em>`;
+        warningDiv.style.background = '#fff3cd';
+        warningDiv.style.borderColor = '#ffc107';
+        warningDiv.style.color = '#856404';
+    } else {
+        // Good profit margin
+        warningDiv.style.display = 'none';
+        return;
+    }
+
+    warningDiv.innerHTML = warningMessage;
+    warningDiv.style.display = 'block';
 }
 
 function setupEventListeners() {
@@ -210,6 +302,7 @@ function setupEventListeners() {
             showCarFields(true);
             showContractorFields(true);
             showDiscountFields(true);
+            showSupplierTransferField(false); // Hide supplier transfer for crushers
             updateUnitLabels(true); // Update to cubic meters
 
             updateCrusherMaterials();
@@ -235,6 +328,7 @@ function setupEventListeners() {
             showCarFields(false);
             showContractorFields(false);
             showDiscountFields(false);
+            showSupplierTransferField(true); // Show supplier transfer for suppliers
             updateUnitLabels(false); // Update to units
 
             updateSupplierMaterials();
@@ -270,6 +364,11 @@ function setupEventListeners() {
         updateCrusherPrice();
     });
     document.getElementById('material').addEventListener('change', updateCrusherPrice);
+
+    // Add price validation warning
+    document.getElementById('price').addEventListener('input', checkPriceWarning);
+    document.getElementById('contractorCharge').addEventListener('input', checkPriceWarning);
+    document.getElementById('supplierTransferPrice').addEventListener('input', checkPriceWarning);
 
     // Form submission
     document.getElementById('newEntryForm').addEventListener('submit', async function (e) {
@@ -334,12 +433,28 @@ function setupEventListeners() {
         } else {
             const supplierId = document.getElementById('supplier').value;
             materialPrice = getSupplierPriceByMaterial(supplierId, material);
+
+            // Additional debugging for supplier materials
+            if (!materialPrice || materialPrice <= 0) {
+                const supplier = suppliersData.find(s => s.id === supplierId);
+                console.error('Material price validation failed:', {
+                    supplierId,
+                    material,
+                    supplier: supplier ? supplier.name : 'not found',
+                    materials: supplier ? supplier.materials : 'N/A',
+                    materialPrice
+                });
+            }
         }
 
         // Validate that material price is available
         if (!materialPrice || materialPrice <= 0) {
             valid = false;
-            err = `سعر المادة غير محدد في ${supplierType === 'crusher' ? 'الكسارة' : 'المورد'} المختار. يرجى تحديث الأسعار أولاً.`;
+            const sourceType = supplierType === 'crusher' ? 'الكسارة' : 'المورد';
+            const sourceName = supplierType === 'crusher'
+                ? (crushersData.find(c => c.id === document.getElementById('crusher').value)?.name || '')
+                : (suppliersData.find(s => s.id === document.getElementById('supplier').value)?.name || '');
+            err = `سعر المادة "${material}" غير محدد في ${sourceType} "${sourceName}". يرجى تحديث الأسعار أولاً.`;
         }
 
         const errorDiv = document.getElementById('formError');
@@ -365,7 +480,7 @@ function setupEventListeners() {
             car_head: supplierType === 'crusher' ? document.getElementById('carHead').value : null,
             car_tail: supplierType === 'crusher' ? document.getElementById('carTail').value : null,
             car_volume: supplierType === 'crusher' ? (parseFloat(document.getElementById('carVolume').value) || null) : parseFloat(document.getElementById('quantity').value), // Use quantity as volume for suppliers
-            contractor_charge_per_meter: supplierType === 'crusher' ? (parseFloat(document.getElementById('contractorCharge').value) || 0) : 0 // Only for crushers
+            contractor_charge_per_meter: supplierType === 'crusher' ? (parseFloat(document.getElementById('contractorCharge').value) || 0) : (parseFloat(document.getElementById('supplierTransferPrice').value) || 0) // Contractor charge for crushers, transfer price for suppliers
         };
 
         try {
@@ -411,6 +526,7 @@ function setupEventListeners() {
                 showCarFields(true);
                 showContractorFields(true);
                 showDiscountFields(true);
+                showSupplierTransferField(false);
                 updateUnitLabels(true); // Cubic meters for crushers
                 updateCrusherMaterials();
             } else {
@@ -421,6 +537,7 @@ function setupEventListeners() {
                 showCarFields(false);
                 showContractorFields(false);
                 showDiscountFields(false);
+                showSupplierTransferField(true);
                 updateUnitLabels(false); // Units for suppliers
                 updateSupplierMaterials();
             }
@@ -507,6 +624,20 @@ function showContractorFields(show) {
     }
 }
 
+// Show/hide supplier transfer price field
+function showSupplierTransferField(show) {
+    const supplierTransferGroup = document.getElementById('supplierTransferGroup');
+    const supplierTransferPrice = document.getElementById('supplierTransferPrice');
+
+    if (supplierTransferGroup) {
+        supplierTransferGroup.style.display = show ? '' : 'none';
+    }
+
+    if (supplierTransferPrice && !show) {
+        supplierTransferPrice.value = '';
+    }
+}
+
 // Show/hide discount fields
 function showDiscountFields(show) {
     const discountGroup = document.getElementById('discountGroup');
@@ -565,11 +696,13 @@ document.addEventListener('DOMContentLoaded', () => {
         showCarFields(true);
         showContractorFields(true);
         showDiscountFields(true);
+        showSupplierTransferField(false);
         updateUnitLabels(true); // Cubic meters for crushers
     } else {
         showCarFields(false);
         showContractorFields(false);
         showDiscountFields(false);
+        showSupplierTransferField(true);
         updateUnitLabels(false); // Units for suppliers
     }
 

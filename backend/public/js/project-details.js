@@ -3,7 +3,7 @@
 // Global variables
 let currentClientId = null;
 let currentClient = null;
-let currentProjectId = null; // Add project ID tracking
+let currentProjectId = null;
 
 // --- Helpers ---
 
@@ -31,22 +31,19 @@ async function loadProjectDetails() {
     }
 
     try {
-        // Load client details
         const clientData = await apiGet(`/clients/${currentClientId}`);
         currentClient = clientData.client;
 
-        // Load the associated project to get project_id
         const projectsData = await apiGet(`/projects?client_id=${currentClientId}`);
         const projects = projectsData.projects || [];
 
         if (projects.length > 0) {
-            currentProjectId = projects[0].id; // Get the first matching project
+            currentProjectId = projects[0].id;
         }
 
-        // Load project financial data
         await Promise.all([
             displayClientInfo(currentClient),
-            displayFinancialSummary(),
+            displayDetailedFinancialCards(),
             loadProjectExpenses(),
             loadCapitalInjections(),
             loadWithdrawals(),
@@ -87,35 +84,54 @@ function displayClientInfo(client) {
     `;
 }
 
-async function displayFinancialSummary() {
+async function displayDetailedFinancialCards() {
     try {
-        // Get client financial summary
         const data = await apiGet(`/clients/${currentClientId}`);
         const client = data.client;
+        const deliveries = data.deliveries || [];
         const totals = data.totals || {};
 
-        // Get totals from the response
-        const totalDeliveries = totals.totalDeliveries || 0;
-        const totalPayments = totals.totalPayments || 0;
-        const totalAdjustments = totals.totalAdjustments || 0;
         const openingBalance = totals.openingBalance || client.opening_balance || 0;
-        const balance = totals.balance || 0;
+        const totalAdjustments = totals.totalAdjustments || 0;
+        const totalPayments = totals.totalPayments || 0;
 
-        // Get project-specific financial data
+        let materialCosts = 0;
+        let contractorCosts = 0;
+        let totalRevenue = 0;
+
+        deliveries.forEach(delivery => {
+            const netQuantity = (delivery.net_quantity || delivery.quantity || 0);
+            const quantity = delivery.quantity || 0;
+            materialCosts += (delivery.material_price_at_time || 0) * netQuantity;
+            contractorCosts += (delivery.contractor_charge_per_meter || 0) * netQuantity;
+            totalRevenue += (delivery.price_per_meter || 0) * quantity;
+        });
+
         let totalExpenses = 0;
-        let totalCapitalInjections = 0;
-        let totalWithdrawals = 0;
+        let administrativeExpenses = 0;
+        let salaries = 0;
+        let operationalExpenses = 0;
 
-        // Load expenses for this project
         try {
             const expensesData = await apiGet(`/expenses?project_id=${currentClientId}`);
             const expenses = expensesData.expenses || [];
-            totalExpenses = expenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
+            expenses.forEach(expense => {
+                const amount = expense.amount || 0;
+                totalExpenses += amount;
+                const category = (expense.category || '').toLowerCase();
+                if (category.includes('إدار') || category.includes('admin')) {
+                    administrativeExpenses += amount;
+                } else if (category.includes('رواتب') || category.includes('salary')) {
+                    salaries += amount;
+                } else {
+                    operationalExpenses += amount;
+                }
+            });
         } catch (error) {
-            console.error('Error loading expenses for summary:', error);
+            console.error('Error loading expenses:', error);
         }
 
-        // Load capital injections for this project
+        let totalCapitalInjections = 0;
         if (currentProjectId) {
             try {
                 const injectionsData = await apiGet('/administration/capital-injections');
@@ -123,81 +139,124 @@ async function displayFinancialSummary() {
                 const projectInjections = allInjections.filter(inj => inj.project_id === currentProjectId);
                 totalCapitalInjections = projectInjections.reduce((sum, inj) => sum + (inj.amount || 0), 0);
             } catch (error) {
-                console.error('Error loading capital injections for summary:', error);
-            }
-
-            // Load withdrawals for this project
-            try {
-                const withdrawalsData = await apiGet('/administration/withdrawals');
-                const allWithdrawals = withdrawalsData.withdrawals || [];
-                const projectWithdrawals = allWithdrawals.filter(w => w.project_id === currentProjectId);
-                totalWithdrawals = projectWithdrawals.reduce((sum, w) => sum + (w.amount || 0), 0);
-            } catch (error) {
-                console.error('Error loading withdrawals for summary:', error);
+                console.error('Error loading capital injections:', error);
             }
         }
 
-        const summaryContainer = document.getElementById('financialSummary');
+        const receivables = openingBalance + totalAdjustments;
+        const netPosition = totalCapitalInjections - totalExpenses - materialCosts - contractorCosts - receivables;
 
-        // Calculate capital difference
-        // Capital injections should cover: deliveries + withdrawals + expenses
-        const totalUsage = totalDeliveries + totalWithdrawals + totalExpenses + openingBalance + totalAdjustments;
-        const capitalDifference = totalCapitalInjections - totalUsage;
-
-        // Calculate net profit including opening balance and adjustments
-        // Net profit = payments - (deliveries + withdrawals + expenses + opening_balance + adjustments)
-        const netProfit = totalPayments - (totalUsage);
-
-        summaryContainer.innerHTML = `
-        <div class="summary-item">
-            <div class="summary-value">${formatCurrency(totalCapitalInjections)}</div>
-            <div class="summary-label">رأس المال </div>
-        </div>
-            <div class="summary-item">
-                <div class="summary-value">${formatCurrency(totalDeliveries)}</div>
-                <div class="summary-label">إجمالي التسليمات</div>
-            </div>
-            <div class="summary-item">
-                <div class="summary-value">${formatCurrency(totalPayments)}</div>
-                <div class="summary-label">إجمالي المدفوعات</div>
-            </div>
-            <div class="summary-item">
-                <div class="summary-value">${formatCurrency(totalExpenses)}</div>
-                <div class="summary-label">المصروفات المرتبطة</div>
-            </div>
-            <div class="summary-item">
-                <div class="summary-value">${formatCurrency(totalWithdrawals)}</div>
-                <div class="summary-label">المسحوبات</div>
+        document.getElementById('capitalCard').innerHTML = `
+            <div class="card-line revenue">
+                <span class="card-line-value positive">${formatCurrency(totalCapitalInjections)}</span>
+                <span class="card-line-label">إجمالي رأس المال الفعلي:</span>
             </div>
            
-            <div class="summary-item">
-                <div class="summary-value" style="color: ${capitalDifference < 0 ? '#dc2626' : '#16a34a'}">
-                    ${capitalDifference === 0 ? 'متوازن' : formatCurrency(Math.abs(capitalDifference))}
-                </div>
-                <div class="summary-label">
-                    ${capitalDifference === 0 ? 'رصيد رأس المال' : (capitalDifference > 0 ? 'فائض رأس المال' : 'عجز رأس المال')}
-                </div>
+            <div class="card-line expense">
+                <span class="card-line-value negative">${formatCurrency(totalExpenses)}</span>
+                <span class="card-line-label">إجمالي المصروفات/الخصومات:</span>
             </div>
-            <div class="summary-item">
-                <div class="summary-value" style="color: ${netProfit < 0 ? '#dc2626' : '#16a34a'}">
-                    ${formatCurrency(Math.abs(netProfit))}
-                </div>
-                <div class="summary-label">
-                    ${netProfit >= 0 ? 'صافي الربح' : 'صافي الخسارة'}
-                </div>
+            <div class="card-line expense">
+                <span class="card-line-value negative">${formatCurrency(materialCosts)}</span>
+                <span class="card-line-label">المواد: إجمالي + مصاريف + مرتبات:</span>
+            </div>
+            <div class="card-line expense">
+                <span class="card-line-value negative">${formatCurrency(contractorCosts)}</span>
+                <span class="card-line-label">تشغيلية + مرتبات:</span>
+            </div>
+            <div class="card-line expense">
+                <span class="card-line-value negative">${formatCurrency(receivables)}</span>
+                <span class="card-line-label">إجمالي المتبقي (في حالة فترة + تحويل):</span>
+            </div>
+           
+            <div class="card-line total">
+                <span class="card-line-value ${netPosition >= 0 ? 'positive' : 'negative'}">${formatCurrency(Math.abs(netPosition))}</span>
+                <span class="card-line-label">صافي موقف رأس المال/تحويل: ${netPosition >= 0 ? 'فائض' : 'عجز'}</span>
             </div>
         `;
+
+        const totalCosts = materialCosts + contractorCosts;
+        const operatingResult = totalRevenue - totalCosts;
+
+        document.getElementById('operatingResultCard').innerHTML = `
+            <div class="card-line revenue">
+                <span class="card-line-value positive">${formatCurrency(totalRevenue)}</span>
+                <span class="card-line-label">إجمالي الإيرادات/التوريدات:</span>
+            </div>
+           
+            <div class="card-line expense">
+                <span class="card-line-value negative">${formatCurrency(materialCosts)}</span>
+                <span class="card-line-label">إجمالي تكلفة المواد سعر الكسارة أو المورد:</span>
+            </div>
+            <div class="card-line expense">
+                <span class="card-line-value negative">${formatCurrency(contractorCosts)}</span>
+                <span class="card-line-label">إجمالي المقاول (في حالة فترة + تحويل):</span>
+            </div>
+           
+            <div class="card-line total">
+                <span class="card-line-value ${operatingResult >= 0 ? 'positive' : 'negative'}">${formatCurrency(Math.abs(operatingResult))}</span>
+                <span class="card-line-label">صافي نتيجة التشغيل:</span>
+            </div>
+        `;
+
+        document.getElementById('generalExpensesCard').innerHTML = `
+            <div class="card-line expense">
+                <span class="card-line-value negative">${formatCurrency(administrativeExpenses)}</span>
+                <span class="card-line-label">إجمالي مصروفات الإدارية:</span>
+            </div>
+            <div class="card-line expense">
+                <span class="card-line-value negative">${formatCurrency(salaries)}</span>
+                <span class="card-line-label">إجمالي الرواتب:</span>
+            </div>
+            <div class="card-line expense">
+                <span class="card-line-value negative">${formatCurrency(operationalExpenses)}</span>
+                <span class="card-line-label">إجمالي المصروفات التشغيلية:</span>
+            </div>
+           
+            <div class="card-line total">
+                <span class="card-line-value negative">${formatCurrency(totalExpenses)}</span>
+                <span class="card-line-label">إجمالي المصاريف:</span>
+            </div>
+        `;
+
+        const netProfitLoss = operatingResult + receivables - totalExpenses;
+        const remaining = netProfitLoss - totalPayments;
+
+        document.getElementById('finalResultCard').innerHTML = `
+            <div class="card-line revenue">
+                <span class="card-line-value ${operatingResult >= 0 ? 'positive' : 'negative'}">${formatCurrency(Math.abs(operatingResult))}</span>
+                <span class="card-line-label">صافي نتيجة التشغيل:</span>
+            </div>
+            <div class="card-line expense">
+                <span class="card-line-value negative">${formatCurrency(totalExpenses)}</span>
+                <span class="card-line-label">إجمالي المصاريف:</span>
+            </div>
+           
+            <div class="card-line highlight">
+                <span class="card-line-value ${netProfitLoss >= 0 ? 'positive' : 'negative'}">${formatCurrency(Math.abs(netProfitLoss))}</span>
+                <span class="card-line-label">صافي الربح/الخسارة عند السداد:</span>
+            </div>
+           
+            <div class="card-line expense">
+                <span class="card-line-value negative">${formatCurrency(totalPayments)}</span>
+                <span class="card-line-label">إجمالي مدفوع:</span>
+            </div>
+           
+            <div class="card-line total">
+                <span class="card-line-value ${remaining >= 0 ? 'positive' : 'negative'}">${formatCurrency(Math.abs(remaining))}</span>
+                <span class="card-line-label">مستحق:</span>
+            </div>
+        `;
+
     } catch (error) {
-        console.error('Error loading financial summary:', error);
+        console.error('Error loading detailed financial cards:', error);
     }
 }
 
 async function loadProjectExpenses() {
     try {
-        // Load expenses related to this project (client)
         const data = await apiGet(`/expenses?project_id=${currentClientId}`);
         const expenses = data.expenses || [];
-
         displayExpenses(expenses);
     } catch (error) {
         console.error('Error loading project expenses:', error);
@@ -229,15 +288,9 @@ function displayExpenses(expenses) {
 
 async function loadCapitalInjections() {
     try {
-        // Load capital injections (from administration)
         const data = await apiGet('/administration/capital-injections');
         const allInjections = data.capital_injections || data.capitalInjections || [];
-
-        // Filter by current project (not client)
-        const injections = allInjections.filter(injection =>
-            injection.project_id === currentProjectId
-        );
-
+        const injections = allInjections.filter(injection => injection.project_id === currentProjectId);
         displayCapitalInjections(injections);
     } catch (error) {
         console.error('Error loading capital injections:', error);
@@ -269,15 +322,9 @@ function displayCapitalInjections(injections) {
 
 async function loadWithdrawals() {
     try {
-        // Load withdrawals (from administration)
         const data = await apiGet('/administration/withdrawals');
         const allWithdrawals = data.withdrawals || [];
-
-        // Filter by current project (not client)
-        const withdrawals = allWithdrawals.filter(withdrawal =>
-            withdrawal.project_id === currentProjectId
-        );
-
+        const withdrawals = allWithdrawals.filter(withdrawal => withdrawal.project_id === currentProjectId);
         displayWithdrawals(withdrawals);
     } catch (error) {
         console.error('Error loading withdrawals:', error);
@@ -309,16 +356,11 @@ function displayWithdrawals(withdrawals) {
 
 async function loadAssignedEmployees() {
     try {
-        // Load employees assigned to this project (client)
         const data = await apiGet('/employees');
         const allEmployees = data.employees || [];
-
-        // Filter employees assigned to this project
         const assignedEmployees = allEmployees.filter(employee => {
-            return employee.all_projects ||
-                (employee.assigned_projects && employee.assigned_projects.includes(currentClientId));
+            return employee.all_projects || (employee.assigned_projects && employee.assigned_projects.includes(currentClientId));
         });
-
         displayAssignedEmployees(assignedEmployees);
     } catch (error) {
         console.error('Error loading assigned employees:', error);
@@ -360,9 +402,6 @@ function displayAssignedEmployees(employees) {
 // --- Event Listeners ---
 
 document.addEventListener('DOMContentLoaded', function () {
-    // Load project details on page load
     loadProjectDetails();
-
-    // Make currentClientId available globally for onclick handlers
     window.currentClientId = currentClientId;
 });

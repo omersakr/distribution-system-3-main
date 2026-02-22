@@ -308,6 +308,91 @@ class SupplierController {
     }
 
     // ============================================================================
+    // SUPPLIER ADJUSTMENTS
+    // ============================================================================
+
+    // Get supplier adjustments
+    async getSupplierAdjustments(req, res, next) {
+        try {
+            const adjustments = await supplierService.getSupplierAdjustments(req.params.id);
+            res.json({ adjustments });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    // Add supplier adjustment
+    async addSupplierAdjustment(req, res, next) {
+        try {
+            const { amount, reason, method, details } = req.body;
+
+            // Validate required fields
+            if (amount === undefined || amount === null || amount === '') {
+                return res.status(400).json({ message: 'المبلغ مطلوب' });
+            }
+
+            if (!reason || reason.trim() === '') {
+                return res.status(400).json({ message: 'السبب مطلوب' });
+            }
+
+            const adjustment = await supplierService.addSupplierAdjustment(req.params.id, {
+                amount: parseFloat(amount),
+                reason: reason?.trim() || '',
+                method: method?.trim() || '',
+                details: details?.trim() || ''
+            });
+
+            res.status(201).json(adjustment);
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    // Update supplier adjustment
+    async updateSupplierAdjustment(req, res, next) {
+        try {
+            const { amount, reason, method, details } = req.body;
+
+            const adjustment = await supplierService.updateSupplierAdjustment(
+                req.params.id,
+                req.params.adjustmentId,
+                {
+                    amount,
+                    reason: reason?.trim() || '',
+                    method: method?.trim() || '',
+                    details: details?.trim() || ''
+                }
+            );
+
+            if (!adjustment) {
+                return res.status(404).json({ message: 'التسوية غير موجودة' });
+            }
+
+            res.json(adjustment);
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    // Delete supplier adjustment
+    async deleteSupplierAdjustment(req, res, next) {
+        try {
+            const adjustment = await supplierService.deleteSupplierAdjustment(
+                req.params.id,
+                req.params.adjustmentId
+            );
+
+            if (!adjustment) {
+                return res.status(404).json({ message: 'التسوية غير موجودة' });
+            }
+
+            res.json({ message: 'تم حذف التسوية بنجاح' });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    // ============================================================================
     // SUPPLIER REPORTS
     // ============================================================================
 
@@ -543,12 +628,7 @@ class SupplierController {
     // Helper method to generate account statement HTML
     generateAccountStatementHTML(data) {
         const formatCurrency = (amount) => {
-            return Number(amount || 0).toLocaleString('ar-EG', {
-                style: 'currency',
-                currency: 'EGP',
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            });
+            return Number(amount || 0).toLocaleString('ar-EG') + ' جنيه';
         };
 
         const formatDate = (dateStr) => {
@@ -572,118 +652,287 @@ class SupplierController {
             ? 'كامل التاريخ'
             : `من ${formatDate(data.period.from)} إلى ${formatDate(data.period.to)}`;
 
-        let transactionsHTML = '';
-        data.transactions.forEach(transaction => {
-            const balanceClass = transaction.balance > 0 ? 'text-danger' : transaction.balance < 0 ? 'text-success' : '';
-            transactionsHTML += `
-                <tr>
-                    <td>${formatDate(transaction.date)}</td>
-                    <td>${transaction.description}</td>
-                    <td>${transaction.voucher || '-'}</td>
-                    <td>${transaction.quantity ? formatQuantity(transaction.quantity) + ' م³' : '-'}</td>
-                    <td>${transaction.price ? formatCurrency(transaction.price) : '-'}</td>
-                    <td>${transaction.debit > 0 ? formatCurrency(transaction.debit) : '-'}</td>
-                    <td>${transaction.credit > 0 ? formatCurrency(transaction.credit) : '-'}</td>
-                    <td class="${balanceClass}">${formatCurrency(Math.abs(transaction.balance))}</td>
-                </tr>
-            `;
-        });
+        // Build deliveries section
+        let deliveriesHTML = '';
+        if (data.deliveries && data.deliveries.length > 0) {
+            deliveriesHTML = `
+            <div class="section">
+                <h3 class="section-title">📦 التوريدات</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>المادة</th>
+                            <th>الكمية</th>
+                            <th>السعر</th>
+                            <th>الإجمالي</th>
+                            <th>رقم البون</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.deliveries.map(d => `
+                            <tr>
+                                <td>${formatDate(d.date)}</td>
+                                <td>${d.material || '-'}</td>
+                                <td>${formatQuantity(d.quantity)} م³</td>
+                                <td>${formatCurrency(d.price)}</td>
+                                <td class="balance-negative"><strong>${formatCurrency(d.total)}</strong></td>
+                                <td>${d.voucher || '-'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>`;
+        }
 
-        const balanceClass = data.summary.balance > 0 ? 'text-danger' : data.summary.balance < 0 ? 'text-success' : '';
+        // Build payments section
+        let paymentsHTML = '';
+        if (data.payments && data.payments.length > 0) {
+            paymentsHTML = `
+            <div class="section">
+                <h3 class="section-title">💰 المدفوعات</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>المبلغ</th>
+                            <th>طريقة الدفع</th>
+                            <th>التفاصيل</th>
+                            <th>ملاحظات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.payments.map(p => `
+                            <tr>
+                                <td>${formatDate(p.paid_at)}</td>
+                                <td class="balance-positive"><strong>${formatCurrency(p.amount)}</strong></td>
+                                <td>${p.method || '-'}</td>
+                                <td>${p.details || '-'}</td>
+                                <td>${p.note || '-'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>`;
+        }
+
+        // Build adjustments section
+        let adjustmentsHTML = '';
+        if (data.adjustments && data.adjustments.length > 0) {
+            adjustmentsHTML = `
+            <div class="section">
+                <h3 class="section-title">⚖️ التسويات والتعديلات</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>المبلغ</th>
+                            <th>النوع</th>
+                            <th>السبب</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.adjustments.map(a => {
+                const amount = Number(a.amount || 0);
+                const isPositive = amount > 0;
+                return `
+                                <tr>
+                                    <td>${formatDate(a.created_at)}</td>
+                                    <td class="${isPositive ? 'balance-negative' : 'balance-positive'}">
+                                        <strong>${formatCurrency(Math.abs(amount))}</strong>
+                                        <br><small style="font-size: 12px;">${isPositive ? '(مستحق للمورد)' : '(مستحق لنا)'}</small>
+                                    </td>
+                                    <td>${a.method || '-'}</td>
+                                    <td>${a.reason || '-'}</td>
+                                </tr>
+                            `;
+            }).join('')}
+                    </tbody>
+                </table>
+            </div>`;
+        }
+
+        const balanceClass = data.summary.balance > 0 ? 'balance-negative' : data.summary.balance < 0 ? 'balance-positive' : '';
 
         return `
-            <!DOCTYPE html>
-            <html lang="ar" dir="rtl">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>كشف حساب المورد - ${data.supplier.name}</title>
-                <style>
-                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
-                    .container { max-width: 1400px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-                    .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #007bff; padding-bottom: 20px; }
-                    .header h1 { color: #007bff; margin: 0; font-size: 2rem; }
-                    .header h2 { color: #666; margin: 10px 0 0 0; font-size: 1.2rem; }
-                    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 30px 0; }
-                    .info-card { background: #f8f9fa; padding: 15px; border-radius: 6px; text-align: center; }
-                    .info-card .value { font-size: 1.5rem; font-weight: bold; color: #007bff; }
-                    .info-card .label { color: #666; margin-top: 5px; }
-                    .balance-card { background: linear-gradient(135deg, #28a745, #20c997); color: white; }
-                    .balance-card.negative { background: linear-gradient(135deg, #dc3545, #e74c3c); }
-                    table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.9rem; }
-                    th, td { padding: 8px; text-align: right; border-bottom: 1px solid #ddd; }
-                    th { background: #007bff; color: white; font-weight: bold; }
-                    tr:nth-child(even) { background: #f8f9fa; }
-                    .section-title { color: #007bff; font-size: 1.3rem; margin: 30px 0 15px 0; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
-                    .text-danger { color: #dc3545; }
-                    .text-success { color: #28a745; }
-                    .print-btn { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 20px 0; }
-                    @media print { .print-btn { display: none; } }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="header">
-                        <h1>كشف حساب المورد</h1>
-                        <h2>${data.supplier.name}</h2>
-                        ${data.supplier.phone_number ? `<p>الهاتف: ${data.supplier.phone_number}</p>` : ''}
-                        <p>الفترة: ${periodText}</p>
-                        <p>تاريخ الإنشاء: ${formatDate(new Date())}</p>
-                    </div>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>كشف حساب مورد - ${data.supplier.name}</title>
+    <style>
+        body { 
+            font-family: 'Arial', sans-serif; 
+            margin: 20px; 
+            direction: rtl; 
+            background: #f8f9fa;
+            color: #333;
+        }
+        @media print {
+            body { background: white; margin: 10px; }
+        }
+        .header { 
+            text-align: center; 
+            margin-bottom: 30px; 
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .supplier-name { 
+            font-size: 28px; 
+            font-weight: bold; 
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .report-title { 
+            font-size: 22px; 
+            color: #27ae60; 
+            margin: 10px 0; 
+        }
+        .date-range { 
+            font-size: 16px; 
+            color: #7f8c8d;
+            background: #ecf0f1;
+            padding: 10px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .summary { 
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            padding: 25px; 
+            border-radius: 10px; 
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+        }
+        .summary h3 {
+            margin: 0 0 20px 0;
+            font-size: 20px;
+            text-align: center;
+        }
+        .summary-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+            gap: 20px; 
+        }
+        .summary-item { 
+            text-align: center;
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .summary-value { 
+            font-size: 20px; 
+            font-weight: bold; 
+            margin-bottom: 5px;
+        }
+        .summary-label { 
+            font-size: 14px; 
+            opacity: 0.9;
+        }
+        .balance-positive { color: #27ae60; }
+        .balance-negative { color: #e74c3c; }
+        .section { 
+            background: white;
+            margin: 20px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .section-title { 
+            font-size: 18px; 
+            font-weight: bold; 
+            padding: 20px;
+            background: #34495e;
+            color: white;
+            margin: 0;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse;
+        }
+        th, td { 
+            border: 1px solid #bdc3c7; 
+            padding: 12px 8px; 
+            text-align: center; 
+        }
+        th { 
+            background-color: #ecf0f1; 
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        tr:hover {
+            background-color: #e8f4fd;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        .no-data {
+            text-align: center;
+            padding: 30px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        @media print { 
+            body { background: white; }
+            .section, .header, .summary { box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="supplier-name">${data.supplier.name}</div>
+        <div class="report-title">كشف حساب مورد شامل</div>
+        <div class="date-range">${periodText}</div>
+    </div>
+    
+    <div class="summary">
+        <h3>ملخص الحساب الإجمالي</h3>
+        <div class="summary-grid">
+            <div class="summary-item">
+                <div class="summary-value">${formatCurrency(data.summary.openingBalance || 0)}</div>
+                <div class="summary-label">الرصيد الافتتاحي</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-value balance-negative">${formatCurrency(data.summary.totalDue || 0)}</div>
+                <div class="summary-label">إجمالي المستحق</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-value balance-positive">${formatCurrency(data.summary.totalPaid || 0)}</div>
+                <div class="summary-label">المدفوع للمورد</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-value ${(data.summary.totalAdjustments || 0) > 0 ? 'balance-negative' : (data.summary.totalAdjustments || 0) < 0 ? 'balance-positive' : ''}">${formatCurrency(Math.abs(data.summary.totalAdjustments || 0))}</div>
+                <div class="summary-label">التسويات ${(data.summary.totalAdjustments || 0) > 0 ? '(مستحق للمورد)' : (data.summary.totalAdjustments || 0) < 0 ? '(مستحق لنا)' : '(متوازنة)'}</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-value ${balanceClass}">${formatCurrency(Math.abs(data.summary.balance || 0))}</div>
+                <div class="summary-label">الرصيد الصافي ${(data.summary.balance || 0) > 0 ? '(مستحق للمورد)' : (data.summary.balance || 0) < 0 ? '(مستحق لنا)' : '(متوازن)'}</div>
+            </div>
+        </div>
+    </div>
+    
+    ${deliveriesHTML || '<div class="no-data">لا توجد توريدات في هذه الفترة</div>'}
+    
+    ${paymentsHTML || '<div class="no-data">لا توجد مدفوعات في هذه الفترة</div>'}
+    
+    ${adjustmentsHTML}
 
-                    <div class="info-grid">
-                        <div class="info-card">
-                            <div class="value text-danger">${formatCurrency(data.summary.totalDue)}</div>
-                            <div class="label">إجمالي المستحق</div>
-                        </div>
-                        <div class="info-card">
-                            <div class="value text-success">${formatCurrency(data.summary.totalPaid)}</div>
-                            <div class="label">إجمالي المدفوع</div>
-                        </div>
-                        <div class="info-card ${data.summary.balance < 0 ? 'balance-card negative' : 'balance-card'}">
-                            <div class="value">${formatCurrency(Math.abs(data.summary.balance))}</div>
-                            <div class="label">${data.summary.balanceDescription}</div>
-                        </div>
-                        <div class="info-card">
-                            <div class="value">${data.summary.deliveriesCount}</div>
-                            <div class="label">عدد التسليمات</div>
-                        </div>
-                        <div class="info-card">
-                            <div class="value">${data.summary.paymentsCount}</div>
-                            <div class="label">عدد المدفوعات</div>
-                        </div>
-                    </div>
-
-                    <h3 class="section-title">تفاصيل الحساب</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>التاريخ</th>
-                                <th>البيان</th>
-                                <th>رقم البون</th>
-                                <th>الكمية</th>
-                                <th>السعر</th>
-                                <th>مدين</th>
-                                <th>دائن</th>
-                                <th>الرصيد</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${transactionsHTML}
-                        </tbody>
-                    </table>
-
-                    <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 6px;">
-                        <h4 style="margin: 0 0 10px 0; color: #007bff;">الرصيد النهائي</h4>
-                        <p style="margin: 0; font-size: 1.2rem;">
-                            <strong class="${balanceClass}">${formatCurrency(Math.abs(data.summary.balance))} - ${data.summary.balanceDescription}</strong>
-                        </p>
-                    </div>
-
-                    <button class="print-btn" onclick="window.print()">طباعة كشف الحساب</button>
-                </div>
-            </body>
-            </html>
+    <div class="footer">
+        تم إنشاء هذا التقرير في ${new Date().toLocaleString('ar-EG')}
+    </div>
+</body>
+</html>
         `;
     }
 }

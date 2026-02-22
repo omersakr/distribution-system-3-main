@@ -126,7 +126,7 @@
             .info-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .info-grid::before {
                 display: none;
             }
@@ -397,6 +397,11 @@
             .summary-grid {
                 grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             }
+        }
+
+        /* Fix modal centering in RTL */
+        .modal-content {
+            margin: 0 auto;
         }
     </style>
 </head>

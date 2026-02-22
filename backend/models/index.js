@@ -3,10 +3,12 @@ const Client = require('./Client');
 const Project = require('./Project');
 const Crusher = require('./Crusher');
 const Contractor = require('./Contractor');
+const ContractorOpeningBalance = require('./ContractorOpeningBalance');
 const Delivery = require('./Delivery');
 const Payment = require('./Payment');
 const ContractorPayment = require('./ContractorPayment');
 const CrusherPayment = require('./CrusherPayment');
+const SupplierPayment = require('./SupplierPayment');
 const Adjustment = require('./Adjustment');
 const Expense = require('./Expense');
 const Employee = require('./Employee');
@@ -26,10 +28,12 @@ module.exports = {
     Project,
     Crusher,
     Contractor,
+    ContractorOpeningBalance,
     Delivery,
     Payment,
     ContractorPayment,
     CrusherPayment,
+    SupplierPayment,
     Adjustment,
     Expense,
     Employee,

@@ -40,6 +40,125 @@
             margin-bottom: var(--space-2);
         }
 
+        /* Financial Cards Grid */
+        .financial-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-6);
+            margin-bottom: var(--space-8);
+        }
+
+        .financial-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid var(--gray-200);
+        }
+
+        .financial-card .card-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: var(--space-4);
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            text-align: center;
+            border-bottom: 2px solid var(--gray-300);
+        }
+
+        .financial-card .card-body {
+            padding: var(--space-5);
+        }
+
+        .card-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-2) 0;
+            border-bottom: 1px solid #e5e7eb;
+            gap: var(--space-3);
+            min-height: 32px;
+        }
+
+        .card-line:last-child {
+            border-bottom: none;
+        }
+
+        .card-line-label {
+            flex: 1;
+            font-size: 0.875rem;
+            color: var(--gray-700);
+            line-height: 1.2;
+            text-align: right;
+        }
+
+        .card-line-value {
+            font-size: 1rem;
+            font-weight: 600;
+            white-space: nowrap;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        /* Color coding for values */
+        .card-line-value.positive,
+        .card-line.revenue .card-line-value {
+            color: #16a34a !important;
+        }
+
+        .card-line-value.negative,
+        .card-line.expense .card-line-value {
+            color: #dc2626 !important;
+        }
+
+        .card-line-value.neutral {
+            color: var(--gray-900);
+        }
+
+        .card-line.total {
+            margin-top: var(--space-3);
+            padding-top: var(--space-3);
+            padding-bottom: var(--space-3);
+            border-top: 2px solid var(--gray-300);
+            border-bottom: 2px solid var(--gray-300);
+            background: #f9fafb;
+        }
+
+        .card-line.total .card-line-label {
+            font-weight: 600;
+            font-size: 0.9375rem;
+            color: var(--gray-900);
+        }
+
+        .card-line.total .card-line-value {
+            font-size: 1.125rem;
+            font-weight: 700;
+        }
+
+        .card-line.highlight {
+            background: #f0fdf4;
+            padding: var(--space-3) var(--space-4);
+            margin: var(--space-3) calc(-1 * var(--space-5));
+            padding-right: var(--space-5);
+            padding-left: var(--space-5);
+            border-bottom: none;
+            border-radius: var(--radius);
+        }
+
+        .card-line.highlight .card-line-value {
+            color: #16a34a !important;
+            font-weight: 700;
+            font-size: 1.125rem;
+        }
+
+        /* Separator line for visual grouping */
+        .card-line.separator {
+            height: 1px;
+            background: var(--gray-200);
+            padding: 0;
+            margin: var(--space-3) 0;
+            border: none;
+        }
+
         .summary-card {
             background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-800) 100%);
             color: white;
@@ -99,6 +218,11 @@
         .section-content {
             padding: var(--space-6);
         }
+
+        /* Fix modal centering in RTL */
+        .modal-content {
+            margin: 0 auto;
+        }
     </style>
 </head>
 
@@ -113,11 +237,38 @@
             </button>
         </div>
 
-        <!-- Financial Summary Card -->
-        <div class="summary-card">
-            <h2>الملخص المالي للمشروع</h2>
-            <div class="summary-grid" id="financialSummary">
-                <!-- Financial summary will be populated here -->
+        <!-- Financial Cards Grid -->
+        <div class="financial-cards-grid">
+            <!-- Card 1: Capital Card -->
+            <div class="financial-card">
+                <div class="card-header">رأس المال</div>
+                <div id="capitalCard" class="card-body">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+
+            <!-- Card 2: Operating Result Card -->
+            <div class="financial-card">
+                <div class="card-header">نتيجة التشغيل</div>
+                <div id="operatingResultCard" class="card-body">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+
+            <!-- Card 3: General Expenses Card -->
+            <div class="financial-card">
+                <div class="card-header">المصاريف العامة</div>
+                <div id="generalExpensesCard" class="card-body">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+
+            <!-- Card 4: Final Result Card -->
+            <div class="financial-card">
+                <div class="card-header">النتيجة النهائية للمشروع</div>
+                <div id="finalResultCard" class="card-body">
+                    <!-- Will be populated by JS -->
+                </div>
             </div>
         </div>
 

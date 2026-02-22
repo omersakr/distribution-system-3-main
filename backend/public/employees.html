@@ -225,6 +225,11 @@
             text-align: right;
             direction: rtl;
         }
+
+        /* Fix modal centering in RTL */
+        .modal-content {
+            margin: 0 auto;
+        }
     </style>
 </head>
 
@@ -240,7 +245,9 @@
         </div>
 
         <div class="content-section">
-            <div id="employeesContainer" class="employees-grid"></div>
+            <div id="employeesContainer" class="employees-grid">
+                جاري تحميل العملاء
+            </div>
         </div>
     </div>
 
