@@ -6,6 +6,12 @@ const crusherSchema = new mongoose.Schema({
         required: true,
         maxlength: 255
     },
+    opening_balance: {
+        type: Number,
+        default: 0,
+        get: v => Math.round(v * 100) / 100,
+        set: v => Math.round(v * 100) / 100
+    },
     sand_price: {
         type: Number,
         default: 0,

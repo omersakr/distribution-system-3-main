@@ -172,20 +172,20 @@ function renderEmployees(employees) {
     const container = document.getElementById('employeesContainer');
     if (!container) return;
 
-    container.innerHTML = '';
 
     if (!employees || employees.length === 0) {
         container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">👷</div>
-                <div class="empty-text">لا توجد موظفين مسجلين</div>
-                <button class="btn btn-primary" onclick="document.getElementById('addEmployeeBtn').click()">
-                    إضافة موظف جديد
-                </button>
-            </div>
+        <div class="empty-state">
+        <div class="empty-icon">👷</div>
+        <div class="empty-text">لا توجد موظفين مسجلين</div>
+        <button class="btn btn-primary" onclick="document.getElementById('addEmployeeBtn').click()">
+        إضافة موظف جديد
+        </button>
+        </div>
         `;
         return;
     }
+    container.innerHTML = '';
 
     employees.forEach(employee => {
         container.appendChild(createEmployeeCard(employee));
@@ -255,12 +255,12 @@ async function deleteEmployee(employeeId, employeeName) {
 
 // Global function to load and render employees
 window.loadEmployees = async function () {
+    const container = document.getElementById('employeesContainer');
     try {
         const employees = await fetchEmployees();
         renderEmployees(employees);
     } catch (error) {
         console.error('Error loading employees:', error);
-        const container = document.getElementById('employeesContainer');
         if (container) {
             container.innerHTML = `<div class="error-message">خطأ في تحميل البيانات: ${error.message}</div>`;
         }

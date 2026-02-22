@@ -502,7 +502,6 @@ class ReportService {
         <thead>
             <tr>
                 <th>التاريخ</th>
-                <th>العميل</th>
                 <th>نوع المادة</th>
                 <th>تكعيب السيارة</th>
                 <th>الخصم</th>
@@ -517,7 +516,6 @@ class ReportService {
             ${deliveries.map(d => `
                 <tr>
                     <td>${this.formatDate(d.created_at)}</td>
-                    <td>${d.client_name || '-'}</td>
                     <td>${d.material || '-'}</td>
                     <td>${this.formatQuantity(d.car_volume)}</td>
                     <td>${this.formatQuantity(d.discount_volume)}</td>
@@ -1083,47 +1081,47 @@ class ReportService {
         const payrollService = require('./payrollService');
 
         // Get employee
-        const employee = await Employee.findByPk(employeeId);
+        const employee = await Employee.findById(employeeId);
         if (!employee) {
             throw new Error('الموظف غير موجود');
         }
 
-        // Build date filter
+        // Build date filter for MongoDB
         const dateFilter = {};
-        if (fromDate) dateFilter.$gte = new Date(fromDate);
-        if (toDate) {
-            const endDate = new Date(toDate);
-            endDate.setHours(23, 59, 59, 999);
+        if (fromDate && toDate) {
+            const startDate = new Date(fromDate + 'T00:00:00.000Z');
+            const endDate = new Date(toDate + 'T23:59:59.999Z');
+            dateFilter.$gte = startDate;
             dateFilter.$lte = endDate;
+        } else if (fromDate) {
+            dateFilter.$gte = new Date(fromDate + 'T00:00:00.000Z');
+        } else if (toDate) {
+            dateFilter.$lte = new Date(toDate + 'T23:59:59.999Z');
         }
 
         // Get attendance records
-        const attendance = await Attendance.findAll({
-            where: {
-                employee_id: employeeId,
-                ...(Object.keys(dateFilter).length > 0 && { period_start: dateFilter })
-            },
-            order: [['period_start', 'ASC']]
-        });
+        const attendanceQuery = { employee_id: employeeId };
+        if (Object.keys(dateFilter).length > 0) {
+            attendanceQuery.period_start = dateFilter;
+        }
+        const attendance = await Attendance.find(attendanceQuery).sort({ period_start: 1 });
 
         // Get payments
-        const payments = await EmployeePayment.findAll({
-            where: {
-                employee_id: employeeId,
-                ...(Object.keys(dateFilter).length > 0 && { paid_at: dateFilter })
-            },
-            order: [['paid_at', 'ASC']]
-        });
+        const paymentsQuery = { employee_id: employeeId };
+        if (Object.keys(dateFilter).length > 0) {
+            paymentsQuery.paid_at = dateFilter;
+        }
+        const payments = await EmployeePayment.find(paymentsQuery).sort({ paid_at: 1 });
 
         // Get adjustments
-        const adjustments = await Adjustment.findAll({
-            where: {
-                entity_type: 'employee',
-                entity_id: employeeId,
-                ...(Object.keys(dateFilter).length > 0 && { created_at: dateFilter })
-            },
-            order: [['created_at', 'ASC']]
-        });
+        const adjustmentsQuery = {
+            entity_type: 'employee',
+            entity_id: employeeId
+        };
+        if (Object.keys(dateFilter).length > 0) {
+            adjustmentsQuery.created_at = dateFilter;
+        }
+        const adjustments = await Adjustment.find(adjustmentsQuery).sort({ created_at: 1 });
 
         // Calculate balance
         const balanceData = await payrollService.calculateEmployeeBalance(employeeId);
@@ -1139,7 +1137,7 @@ class ReportService {
         }
 
         return {
-            employee: employee.toJSON(),
+            employee: employee.toObject ? employee.toObject() : employee,
             attendance,
             payments,
             adjustments,
@@ -1392,9 +1390,9 @@ class ReportService {
             </thead>
             <tbody>
                 ${adjustments.map(adj => {
-                    const amount = parseFloat(adj.amount) || 0;
-                    const isPositive = amount >= 0;
-                    return `
+            const amount = parseFloat(adj.amount) || 0;
+            const isPositive = amount >= 0;
+            return `
                     <tr>
                         <td>${new Date(adj.created_at).toLocaleDateString('ar-EG')}</td>
                         <td class="${isPositive ? 'amount-positive' : 'amount-negative'}">

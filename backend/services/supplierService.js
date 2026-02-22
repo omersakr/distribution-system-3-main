@@ -1,4 +1,4 @@
-const { Supplier, Delivery, Payment } = require('../models');
+const { Supplier, Delivery, SupplierPayment } = require('../models');
 
 const toNumber = (v) => Number(v || 0);
 
@@ -10,7 +10,7 @@ class SupplierService {
         const result = await Promise.all(
             suppliers.map(async (supplier) => {
                 try {
-                    // Get deliveries for this squpplier
+                    // Get deliveries for this supplier
                     const deliveries = await Delivery.find({
                         supplier_id: supplier._id
                     });
@@ -23,19 +23,29 @@ class SupplierService {
                     }, 0);
 
                     // Get payments made to supplier
-                    const payments = await Payment.find({
-                        entity_type: 'supplier',
-                        entity_id: supplier._id
+                    const payments = await SupplierPayment.find({
+                        supplier_id: supplier._id
                     });
                     const totalPaid = payments.reduce((sum, p) => sum + toNumber(p.amount), 0);
 
-                    // Calculate balance
-                    const balance = totalDue - totalPaid;
+                    // Get adjustments
+                    const { Adjustment } = require('../models');
+                    const adjustments = await Adjustment.find({
+                        entity_type: 'supplier',
+                        entity_id: supplier._id
+                    });
+                    const totalAdjustments = adjustments.reduce((sum, a) => sum + toNumber(a.amount), 0);
+
+                    // Calculate balance (including opening balance and adjustments)
+                    const openingBalance = toNumber(supplier.opening_balance);
+                    const balance = openingBalance + totalDue + totalAdjustments - totalPaid;
+
                     return {
                         id: supplier._id,
                         name: supplier.name,
                         phone_number: supplier.phone_number,
                         notes: supplier.notes,
+                        opening_balance: supplier.opening_balance,
                         materials: supplier.materials,
                         status: supplier.status,
                         created_at: supplier.created_at,
@@ -53,6 +63,7 @@ class SupplierService {
                         name: supplier.name,
                         phone_number: supplier.phone_number,
                         notes: supplier.notes,
+                        opening_balance: supplier.opening_balance,
                         materials: supplier.materials,
                         status: supplier.status,
                         created_at: supplier.created_at,
@@ -83,12 +94,18 @@ class SupplierService {
             supplier_id: id
         }).populate('client_id', 'name').sort({ created_at: -1 });
 
-        const payments = await Payment.find({
-            entity_type: 'supplier',
-            entity_id: id
+        const payments = await SupplierPayment.find({
+            supplier_id: id
         }).sort({ paid_at: -1 });
 
-        // Calculate totals
+        const { Adjustment } = require('../models');
+        const adjustments = await Adjustment.find({
+            entity_type: 'supplier',
+            entity_id: id
+        }).sort({ created_at: -1 });
+
+        // Calculate totals (including opening balance)
+        const openingBalance = toNumber(supplier.opening_balance);
         const totalDue = deliveries.reduce((sum, delivery) => {
             const netQuantity = toNumber(delivery.car_volume) - toNumber(delivery.discount_volume);
             const materialPrice = toNumber(delivery.material_price_at_time);
@@ -96,7 +113,8 @@ class SupplierService {
         }, 0);
 
         const totalPaid = payments.reduce((sum, p) => sum + toNumber(p.amount), 0);
-        const balance = totalDue - totalPaid;
+        const totalAdjustments = adjustments.reduce((sum, a) => sum + toNumber(a.amount), 0);
+        const balance = openingBalance + totalDue + totalAdjustments - totalPaid;
 
         return {
             supplier: {
@@ -104,6 +122,7 @@ class SupplierService {
                 name: supplier.name,
                 phone_number: supplier.phone_number,
                 notes: supplier.notes,
+                opening_balance: supplier.opening_balance,
                 materials: supplier.materials,
                 status: supplier.status,
                 created_at: supplier.created_at
@@ -131,12 +150,22 @@ class SupplierService {
                 paid_at: p.paid_at,
                 created_at: p.created_at
             })),
+            adjustments: adjustments.map(a => ({
+                id: a._id,
+                amount: a.amount,
+                reason: a.reason,
+                method: a.method,
+                details: a.details,
+                payment_image: a.payment_image,
+                created_at: a.created_at
+            })),
             totals: {
                 balance: Math.round(balance * 100) / 100,
                 balance_status: balance > 0 ? 'payable' : balance < 0 ? 'overpaid' : 'balanced',
                 balance_description: balance > 0 ? 'مستحق الدفع' : balance < 0 ? 'مدفوع زائد' : 'متوازن',
                 total_due: Math.round(totalDue * 100) / 100,
                 total_paid: Math.round(totalPaid * 100) / 100,
+                total_adjustments: Math.round(totalAdjustments * 100) / 100,
                 deliveries_count: deliveries.length
             }
         };
@@ -174,9 +203,8 @@ class SupplierService {
     static async deleteSupplier(id) {
         // Check if supplier has related records
         const deliveriesCount = await Delivery.countDocuments({ supplier_id: id });
-        const paymentsCount = await Payment.countDocuments({
-            entity_type: 'supplier',
-            entity_id: id
+        const paymentsCount = await SupplierPayment.countDocuments({
+            supplier_id: id
         });
 
         if (deliveriesCount > 0 || paymentsCount > 0) {
@@ -291,9 +319,8 @@ class SupplierService {
 
     // Payment methods (same as crusher payments)
     static async addSupplierPayment(supplierId, paymentData) {
-        const payment = new Payment({
-            entity_type: 'supplier',
-            entity_id: supplierId,
+        const payment = new SupplierPayment({
+            supplier_id: supplierId,
             ...paymentData
         });
         await payment.save();
@@ -301,11 +328,10 @@ class SupplierService {
     }
 
     static async updateSupplierPayment(supplierId, paymentId, paymentData) {
-        const payment = await Payment.findOneAndUpdate(
+        const payment = await SupplierPayment.findOneAndUpdate(
             {
                 _id: paymentId,
-                entity_type: 'supplier',
-                entity_id: supplierId
+                supplier_id: supplierId
             },
             paymentData,
             { new: true }
@@ -314,12 +340,82 @@ class SupplierService {
     }
 
     static async deleteSupplierPayment(supplierId, paymentId) {
-        const payment = await Payment.findOneAndDelete({
+        const payment = await SupplierPayment.findOneAndDelete({
             _id: paymentId,
+            supplier_id: supplierId
+        });
+        return payment;
+    }
+
+    // ============================================================================
+    // SUPPLIER ADJUSTMENTS MANAGEMENT
+    // ============================================================================
+
+    static async getSupplierAdjustments(supplierId) {
+        const { Adjustment } = require('../models');
+        return await Adjustment.find({
+            entity_type: 'supplier',
+            entity_id: supplierId
+        }).sort({ created_at: -1 });
+    }
+
+    static async addSupplierAdjustment(supplierId, data) {
+        const { Adjustment } = require('../models');
+        const adjustment = new Adjustment({
+            entity_type: 'supplier',
+            entity_id: supplierId,
+            ...data
+        });
+
+        await adjustment.save();
+
+        return {
+            id: adjustment._id,
+            entity_type: adjustment.entity_type,
+            entity_id: adjustment.entity_id,
+            amount: adjustment.amount,
+            reason: adjustment.reason,
+            method: adjustment.method,
+            details: adjustment.details,
+            created_at: adjustment.created_at
+        };
+    }
+
+    static async updateSupplierAdjustment(supplierId, adjustmentId, data) {
+        const { Adjustment } = require('../models');
+        const adjustment = await Adjustment.findOneAndUpdate(
+            {
+                _id: adjustmentId,
+                entity_type: 'supplier',
+                entity_id: supplierId
+            },
+            data,
+            { new: true }
+        );
+
+        if (!adjustment) {
+            return null;
+        }
+
+        return {
+            id: adjustment._id,
+            entity_type: adjustment.entity_type,
+            entity_id: adjustment.entity_id,
+            amount: adjustment.amount,
+            reason: adjustment.reason,
+            method: adjustment.method,
+            details: adjustment.details,
+            created_at: adjustment.created_at
+        };
+    }
+
+    static async deleteSupplierAdjustment(supplierId, adjustmentId) {
+        const { Adjustment } = require('../models');
+        return await Adjustment.findOneAndDelete({
+            _id: adjustmentId,
             entity_type: 'supplier',
             entity_id: supplierId
         });
-        return payment;
     }
 
     // Report generation methods
@@ -416,33 +512,42 @@ class SupplierService {
 
         // Build date filter
         let dateFilter = { supplier_id: supplierId };
-        let paymentDateFilter = { entity_type: 'supplier', entity_id: supplierId };
+        let paymentDateFilter = { supplier_id: supplierId };
+        let adjustmentDateFilter = { entity_type: 'supplier', entity_id: supplierId };
 
         if (fromDate || toDate) {
             dateFilter.created_at = {};
             paymentDateFilter.paid_at = {};
+            adjustmentDateFilter.created_at = {};
 
             if (fromDate) {
                 dateFilter.created_at.$gte = new Date(fromDate);
                 paymentDateFilter.paid_at.$gte = new Date(fromDate);
+                adjustmentDateFilter.created_at.$gte = new Date(fromDate);
             }
             if (toDate) {
                 const toDateObj = new Date(toDate);
                 toDateObj.setDate(toDateObj.getDate() + 1);
                 dateFilter.created_at.$lt = toDateObj;
                 paymentDateFilter.paid_at.$lt = toDateObj;
+                adjustmentDateFilter.created_at.$lt = toDateObj;
             }
         }
 
-        // Get deliveries and payments
+        // Get deliveries, payments, and adjustments
         const deliveries = await Delivery.find(dateFilter)
             .populate('client_id', 'name')
             .sort({ created_at: 1 });
 
-        const payments = await Payment.find(paymentDateFilter)
+        const payments = await SupplierPayment.find(paymentDateFilter)
             .sort({ paid_at: 1 });
 
-        // Calculate totals
+        const { Adjustment } = require('../models');
+        const adjustments = await Adjustment.find(adjustmentDateFilter)
+            .sort({ created_at: 1 });
+
+        // Calculate totals (including opening balance)
+        const openingBalance = toNumber(supplier.opening_balance);
         const totalDue = deliveries.reduce((sum, delivery) => {
             const netQuantity = toNumber(delivery.car_volume) - toNumber(delivery.discount_volume);
             const materialPrice = toNumber(delivery.material_price_at_time);
@@ -450,73 +555,90 @@ class SupplierService {
         }, 0);
 
         const totalPaid = payments.reduce((sum, p) => sum + toNumber(p.amount), 0);
-        const balance = totalDue - totalPaid;
+        const totalAdjustments = adjustments.reduce((sum, a) => sum + toNumber(a.amount), 0);
+        const balance = openingBalance + totalDue + totalAdjustments - totalPaid;
 
-        // Create transaction history (chronological order)
-        const transactions = [];
+        // Determine date range text
+        let dateRangeText = '';
+        if (fromDate && toDate) {
+            const formatDate = (dateStr) => {
+                const date = new Date(dateStr);
+                return date.toLocaleDateString('ar-EG', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            };
+            dateRangeText = `من ${formatDate(fromDate)} إلى ${formatDate(toDate)}`;
+        } else {
+            const allDates = [
+                ...deliveries.map(d => d.created_at),
+                ...payments.map(p => p.paid_at),
+                ...adjustments.map(a => a.created_at)
+            ].filter(Boolean).sort();
 
-        // Add deliveries as transactions
-        deliveries.forEach(delivery => {
-            const netQuantity = toNumber(delivery.car_volume) - toNumber(delivery.discount_volume);
-            const amount = netQuantity * toNumber(delivery.material_price_at_time);
-
-            transactions.push({
-                date: delivery.created_at,
-                type: 'delivery',
-                description: `توريد ${delivery.material} - ${delivery.client_id?.name || 'عميل محذوف'}`,
-                voucher: delivery.voucher,
-                quantity: netQuantity,
-                price: delivery.material_price_at_time,
-                debit: amount, // مدين (ما نحن مدينون به للمورد)
-                credit: 0,
-                balance: 0 // Will be calculated later
-            });
-        });
-
-        // Add payments as transactions
-        payments.forEach(payment => {
-            transactions.push({
-                date: payment.paid_at || payment.created_at,
-                type: 'payment',
-                description: `دفعة - ${payment.method || 'نقدي'}`,
-                details: payment.details,
-                debit: 0,
-                credit: payment.amount, // دائن (ما دفعناه للمورد)
-                balance: 0 // Will be calculated later
-            });
-        });
-
-        // Sort transactions by date
-        transactions.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-        // Calculate running balance
-        let runningBalance = 0;
-        transactions.forEach(transaction => {
-            runningBalance += (transaction.debit - transaction.credit);
-            transaction.balance = Math.round(runningBalance * 100) / 100;
-        });
+            if (allDates.length > 0) {
+                const firstDate = allDates[0];
+                const lastDate = allDates[allDates.length - 1];
+                const formatDate = (date) => {
+                    return date.toLocaleDateString('ar-EG', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                };
+                dateRangeText = `من ${formatDate(firstDate)} إلى ${formatDate(lastDate)}`;
+            } else {
+                dateRangeText = 'جميع البيانات';
+            }
+        }
 
         return {
             supplier: {
                 id: supplier._id,
                 name: supplier.name,
-                phone_number: supplier.phone_number
+                phone_number: supplier.phone_number,
+                opening_balance: supplier.opening_balance
             },
             period: {
                 from: fromDate,
                 to: toDate,
                 isFullHistory: !fromDate && !toDate
             },
+            deliveries: deliveries.map(d => ({
+                date: d.created_at,
+                material: d.material,
+                quantity: toNumber(d.car_volume) - toNumber(d.discount_volume),
+                price: d.material_price_at_time,
+                total: (toNumber(d.car_volume) - toNumber(d.discount_volume)) * toNumber(d.material_price_at_time),
+                voucher: d.voucher,
+                client_name: d.client_id?.name || '-'
+            })),
+            payments: payments.map(p => ({
+                paid_at: p.paid_at,
+                amount: p.amount,
+                method: p.method,
+                details: p.details,
+                note: p.note
+            })),
+            adjustments: adjustments.map(a => ({
+                created_at: a.created_at,
+                amount: a.amount,
+                method: a.method,
+                reason: a.reason
+            })),
             summary: {
+                openingBalance: Math.round(openingBalance * 100) / 100,
                 totalDue: Math.round(totalDue * 100) / 100,
                 totalPaid: Math.round(totalPaid * 100) / 100,
+                totalAdjustments: Math.round(totalAdjustments * 100) / 100,
                 balance: Math.round(balance * 100) / 100,
                 balanceStatus: balance > 0 ? 'payable' : balance < 0 ? 'overpaid' : 'balanced',
                 balanceDescription: balance > 0 ? 'مستحق للمورد' : balance < 0 ? 'مدفوع زائد' : 'متوازن',
                 deliveriesCount: deliveries.length,
                 paymentsCount: payments.length
             },
-            transactions
+            dateRangeText
         };
     }
 }

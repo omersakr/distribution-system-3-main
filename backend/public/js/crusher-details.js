@@ -108,18 +108,18 @@ function formatQuantity(amount) {
 function renderSummary(totals) {
     const container = document.getElementById('summaryGrid');
     const net = totals.net || 0;
-    // POSITIVE net = WE OWE THEM (RED), NEGATIVE net = THEY OWE US (GREEN)
+    // POSITIVE net = WE OWE THEM (RED - مستحق للكسارة), NEGATIVE net = THEY OWE US (GREEN - مستحق لنا)
     const netClass = net > 0 ? 'text-danger' : net < 0 ? 'text-success' : '';
-    const netLabel = net > 0 ? 'مستحق للكسارة' : net < 0 ? 'مستحق لنا' : 'متوازن';
+    const netLabel = net > 0 ? '<span style="color: #e74c3c;">مستحق للكسارة</span>' : net < 0 ? '<span style="color: #27ae60;">مستحق لنا</span>' : 'متوازن';
 
     container.innerHTML = `
         <div class="summary-item">
-            <div class="summary-value text-danger">${formatCurrency(totals.totalNeeded || 0)}</div>
-            <div class="summary-label">إجمالي المطلوب</div>
+            <div class="summary-value" style="color: #e74c3c;">${formatCurrency(totals.totalNeeded || 0)}</div>
+            <div class="summary-label">إجمالي المطلوب <span style="color: #e74c3c;">(عليه)</span></div>
         </div>
         <div class="summary-item">
-            <div class="summary-value text-success">${formatCurrency(totals.totalPaid || 0)}</div>
-            <div class="summary-label">إجمالي المدفوع</div>
+            <div class="summary-value" style="color: #27ae60;">${formatCurrency(totals.totalPaid || 0)}</div>
+            <div class="summary-label">إجمالي المدفوع <span style="color: #27ae60;">(له)</span></div>
         </div>
         <div class="summary-item">
             <div class="summary-value ${netClass}">${formatCurrency(Math.abs(net))}</div>

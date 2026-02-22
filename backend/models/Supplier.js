@@ -13,6 +13,12 @@ const supplierSchema = new mongoose.Schema({
     notes: {
         type: String
     },
+    opening_balance: {
+        type: Number,
+        default: 0,
+        get: v => Math.round(v * 100) / 100,
+        set: v => Math.round(v * 100) / 100
+    },
     materials: [{
         name: {
             type: String,

@@ -51,12 +51,7 @@ const usersRouter = require('./routes/users');
 const userController = require('./controllers/userController');
 const publicReportsRouter = require('./routes/public-reports');
 
-// Import old routes for backward compatibility (v1)
-const clientsApiRouterV1 = require('./routes/clients-v1');
-const crushersApiRouterV1 = require('./routes/crushers-v1');
-const contractorsApiRouterV1 = require('./routes/contractors-v1');
-const deliveriesApiRouterV1 = require('./routes/deliveries-v1');
-const expensesApiRouterV1 = require('./routes/expenses-v1');
+
 
 // Import Web routes (SSR)
 // const webRouter = require('./routes/web');
@@ -76,6 +71,7 @@ async function bootstrap() {
   }
 
   const app = express();
+
   app.use(morgan('dev'));
 
   // Enable CORS for all routes
@@ -136,14 +132,32 @@ async function bootstrap() {
 
   // API routes (consolidated - all methods in single files with MVC architecture)
   // All routes now require authentication due to middleware above
+
+  // Clients - accountant can view and add payments, but manager can edit
   app.use('/api/clients', requireRole(['manager', 'accountant']), clientsApiRouter);
+
+  // Projects - accountant can view, manager can edit
   app.use('/api/projects', requireRole(['manager', 'accountant']), projectsApiRouter);
+
+  // Crushers - accountant can only view, manager can edit prices
   app.use('/api/crushers', requireRole(['manager', 'accountant']), crushersApiRouter);
+
+  // Contractors - accountant can view and add payments, manager can edit
   app.use('/api/contractors', requireRole(['manager', 'accountant']), contractorsApiRouter);
+
+  // Deliveries - accountant can add new, but only manager can edit/delete
   app.use('/api/deliveries', requireRole(['manager', 'accountant']), deliveriesApiRouter);
+
+  // Expenses - accountant can add, manager can edit/delete
   app.use('/api/expenses', requireRole(['manager', 'accountant']), expensesApiRouter);
+
+  // Employees - accountant can view and add payments, manager can edit
   app.use('/api/employees', requireRole(['manager', 'accountant']), employeesApiRouter);
+
+  // Administration - accountant can view, manager can edit
   app.use('/api/administration', requireRole(['manager', 'accountant']), administrationApiRouter);
+
+  // Suppliers - accountant can only view, manager can edit prices
   app.use('/api/suppliers', requireRole(['manager', 'accountant']), suppliersApiRouter);
 
   // API metrics endpoint - Updated for MongoDB (Manager + Accountant only)
@@ -279,9 +293,9 @@ async function bootstrap() {
     }
   });
 
-  // System management routes
-  app.use('/api', auditRouter);
-  app.use('/api', recycleBinRouter);
+  // System management routes - MANAGER ONLY
+  app.use('/api/audit', requireRole(['manager']), auditRouter);
+  app.use('/api/recycle-bin', requireRole(['manager']), recycleBinRouter);
 
   // Manual sync endpoint for client-project synchronization
   app.post('/api/sync/clients-projects', requireRole(['manager']), async (req, res) => {
@@ -305,13 +319,6 @@ async function bootstrap() {
   app.post('/api/users/:id/reset-password', requireRole(['system_maintenance']), userController.resetPassword);
   app.put('/api/users/:id/activate', requireRole(['system_maintenance']), userController.activateUser);
   app.put('/api/users/:id/deactivate', requireRole(['system_maintenance']), userController.deactivateUser);
-
-  // API routes v1 (legacy old routes - for backward compatibility)
-  app.use('/api/v1/clients', requireRole(['manager', 'accountant']), clientsApiRouterV1);
-  app.use('/api/v1/crushers', requireRole(['manager', 'accountant']), crushersApiRouterV1);
-  app.use('/api/v1/contractors', requireRole(['manager', 'accountant']), contractorsApiRouterV1);
-  app.use('/api/v1/deliveries', requireRole(['manager', 'accountant']), deliveriesApiRouterV1);
-  app.use('/api/v1/expenses', requireRole(['manager', 'accountant']), expensesApiRouterV1);
 
   // 404 handler
   app.use((req, res) => {

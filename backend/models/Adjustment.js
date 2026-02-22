@@ -4,7 +4,7 @@ const adjustmentSchema = new mongoose.Schema({
     entity_type: {
         type: String,
         required: true,
-        enum: ['client', 'crusher', 'contractor', 'employee'],
+        enum: ['client', 'crusher', 'contractor', 'employee', 'supplier'],
         maxlength: 20
     },
     entity_id: {
@@ -41,7 +41,8 @@ adjustmentSchema.virtual('entityModel').get(function () {
         'client': 'Client',
         'crusher': 'Crusher',
         'contractor': 'Contractor',
-        'employee': 'Employee'
+        'employee': 'Employee',
+        'supplier': 'Supplier'
     };
     return modelMap[this.entity_type];
 });

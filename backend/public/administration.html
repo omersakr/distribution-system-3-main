@@ -9,11 +9,17 @@
     <link rel="stylesheet" href="css/modern-theme.css">
     <link rel="stylesheet" href="css/sidebar.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <style>
+        /* Fix modal centering in RTL */
+        .modal-content {
+            margin: 0 auto;
+        }
+    </style>
 </head>
 
 <body>
     <div id="sidebar-placeholder"></div>
-    
+
     <div class="main-content">
         <div class="page-header">
             <h1 class="page-title">إدارة الشركاء والممولين</h1>
@@ -21,7 +27,7 @@
                 <span>➕</span> إضافة شريك/ممول جديد
             </button>
         </div>
-        
+
         <div class="content-section">
             <div id="administrationContainer" class="contractors-grid"></div>
         </div>
@@ -33,38 +39,38 @@
     <script>
         // Add administration button - using SweetAlert2 like contractors
         document.getElementById('addAdministrationBtn').addEventListener('click', async function () {
-            const { value: name } = await Swal.fire({ 
-                title: 'اسم الشريك/الممول', 
-                input: 'text', 
-                inputPlaceholder: 'اسم الشريك/الممول؟', 
-                showCancelButton: true 
+            const { value: name } = await Swal.fire({
+                title: 'اسم الشريك/الممول',
+                input: 'text',
+                inputPlaceholder: 'اسم الشريك/الممول؟',
+                showCancelButton: true
             });
             if (!name) return;
 
-            const { value: type } = await Swal.fire({ 
-                title: 'النوع', 
+            const { value: type } = await Swal.fire({
+                title: 'النوع',
                 input: 'select',
                 inputOptions: {
                     'Partner': 'شريك',
                     'Funder': 'ممول'
                 },
                 inputPlaceholder: 'اختر النوع',
-                showCancelButton: true 
+                showCancelButton: true
             });
             if (!type) return;
 
-            const { value: phone } = await Swal.fire({ 
-                title: 'رقم الهاتف (اختياري)', 
-                input: 'text', 
-                inputPlaceholder: 'رقم الهاتف', 
-                showCancelButton: true 
+            const { value: phone } = await Swal.fire({
+                title: 'رقم الهاتف (اختياري)',
+                input: 'text',
+                inputPlaceholder: 'رقم الهاتف',
+                showCancelButton: true
             });
 
             try {
                 await fetch('http://localhost:5000/api/administration', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
+                    body: JSON.stringify({
                         name: name.trim(),
                         type: type,
                         phone: phone?.trim() || null,

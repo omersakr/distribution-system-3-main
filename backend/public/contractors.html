@@ -9,11 +9,17 @@
     <link rel="stylesheet" href="css/modern-theme.css">
     <link rel="stylesheet" href="css/sidebar.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <style>
+        /* Fix modal centering in RTL */
+        .modal-content {
+            margin: 0 auto;
+        }
+    </style>
 </head>
 
 <body>
     <div id="sidebar-placeholder"></div>
-    
+
     <div class="main-content">
         <div class="page-header">
             <h1 class="page-title">إدارة مقاولو العجل</h1>
@@ -21,37 +27,54 @@
                 <span>➕</span> إضافة مقاول جديد
             </button>
         </div>
-        
+
         <div class="content-section">
             <div id="contractorsContainer" class="contractors-grid"></div>
+        </div>
+    </div>
+
+    <!-- Add Contractor Modal -->
+    <div id="addContractorModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h2>إضافة مقاول جديد</h2>
+                <button class="modal-close" onclick="closeAddContractorModal()">&times;</button>
+            </div>
+            <form id="addContractorForm">
+                <div class="form-group">
+                    <label for="contractorName"><span class="required">*</span> اسم المقاول</label>
+                    <input type="text" id="contractorName" name="name" required maxlength="255">
+                </div>
+
+                <div class="form-group">
+                    <h3 style="margin: 20px 0 10px 0; font-size: 1.1rem; color: var(--gray-700);">
+                        الأرصدة الافتتاحية (اختياري)
+                    </h3>
+                    <p style="color: var(--gray-600); font-size: 0.9rem; margin-bottom: 15px;">
+                        يمكنك إضافة أرصدة افتتاحية مرتبطة بمشاريع محددة
+                    </p>
+
+                    <div id="openingBalancesContainer">
+                        <!-- Opening balances will be added here -->
+                    </div>
+
+                    <button type="button" class="btn btn-secondary" id="addOpeningBalanceBtn" style="margin-top: 10px;">
+                        ➕ إضافة رصيد افتتاحي
+                    </button>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddContractorModal()">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">حفظ</button>
+                </div>
+                <div id="addContractorMessage"></div>
+            </form>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="js/auth.js"></script>
     <script src="js/csp-fix.js"></script>
-    <script>
-        // زر إضافة مقاول - استخدام SweetAlert2 بدلاً من prompt/alert
-        document.getElementById('addContractorBtn').addEventListener('click', async function () {
-            const { value: name } = await Swal.fire({ title: 'اسم المقاول', input: 'text', inputPlaceholder: 'اسم المقاول؟', showCancelButton: true });
-            if (!name) return;
-
-            const { value: opening } = await Swal.fire({ title: 'رصيد افتتاحي (اختياري)', input: 'text', inputPlaceholder: '0', inputValue: '0', showCancelButton: true });
-
-            try {
-                await fetch('http://localhost:5000/api/contractors', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, opening_balance: parseFloat(opening) || 0 })
-                });
-                await Swal.fire({ icon: 'success', title: 'تم', text: 'تم إضافة المقاول' });
-                window.location.reload();
-            } catch (err) {
-                console.error(err);
-                Swal.fire({ icon: 'error', title: 'خطأ', text: 'تعذر إضافة المقاول' });
-            }
-        });
-    </script>
     <script src="js/sidebar.js"></script>
     <script src="js/contractors.js"></script>
 </body>

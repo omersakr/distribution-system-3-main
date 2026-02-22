@@ -13,6 +13,7 @@ class CrusherService {
                 return {
                     id: crusher._id,
                     name: crusher.name,
+                    opening_balance: crusher.opening_balance,
                     sand_price: crusher.sand_price,
                     aggregate1_price: crusher.aggregate1_price,
                     aggregate2_price: crusher.aggregate2_price,
@@ -62,6 +63,7 @@ class CrusherService {
             crusher: {
                 id: crusher._id,
                 name: crusher.name,
+                opening_balance: crusher.opening_balance,
                 sand_price: crusher.sand_price,
                 aggregate1_price: crusher.aggregate1_price,
                 aggregate2_price: crusher.aggregate2_price,
@@ -116,6 +118,7 @@ class CrusherService {
     static async createCrusher(data) {
         const crusher = new Crusher({
             name: data.name,
+            opening_balance: toNumber(data.opening_balance),
             sand_price: toNumber(data.sand_price),
             aggregate1_price: toNumber(data.aggregate1_price),
             aggregate2_price: toNumber(data.aggregate2_price),
@@ -128,6 +131,7 @@ class CrusherService {
         return {
             id: crusher._id,
             name: crusher.name,
+            opening_balance: crusher.opening_balance,
             sand_price: crusher.sand_price,
             aggregate1_price: crusher.aggregate1_price,
             aggregate2_price: crusher.aggregate2_price,
@@ -142,6 +146,7 @@ class CrusherService {
 
         // Only update fields that are provided
         if (data.name !== undefined) updateData.name = data.name;
+        if (data.opening_balance !== undefined) updateData.opening_balance = toNumber(data.opening_balance);
         if (data.sand_price !== undefined) updateData.sand_price = toNumber(data.sand_price);
         if (data.aggregate1_price !== undefined) updateData.aggregate1_price = toNumber(data.aggregate1_price);
         if (data.aggregate2_price !== undefined) updateData.aggregate2_price = toNumber(data.aggregate2_price);
@@ -161,6 +166,7 @@ class CrusherService {
         return {
             id: crusher._id,
             name: crusher.name,
+            opening_balance: crusher.opening_balance,
             sand_price: crusher.sand_price,
             aggregate1_price: crusher.aggregate1_price,
             aggregate2_price: crusher.aggregate2_price,
@@ -175,6 +181,9 @@ class CrusherService {
     }
 
     static async computeCrusherTotals(crusherId) {
+        const crusher = await Crusher.findById(crusherId);
+        const opening = crusher ? toNumber(crusher.opening_balance) : 0;
+
         const deliveries = await Delivery.find({ crusher_id: crusherId });
         const payments = await CrusherPayment.find({ crusher_id: crusherId });
         const adjustments = await Adjustment.find({ entity_type: 'crusher', entity_id: crusherId });
@@ -184,8 +193,8 @@ class CrusherService {
         const totalPaid = payments.reduce((sum, p) => sum + toNumber(p.amount), 0);
         const totalAdjustments = adjustments.reduce((sum, a) => sum + toNumber(a.amount), 0);
 
-        // Calculate final amounts
-        const totalNeeded = totalRequired + totalAdjustments; // Total we owe them after adjustments
+        // Calculate final amounts (including opening balance)
+        const totalNeeded = opening + totalRequired + totalAdjustments; // Total we owe them after adjustments
         const net = totalNeeded - totalPaid; // Positive = we owe them, Negative = they owe us
 
         // Calculate volume and count
@@ -196,8 +205,9 @@ class CrusherService {
         const deliveriesCount = deliveries.length;
 
         return {
+            openingBalance: opening,  // Opening balance
             totalRequired,      // Base amount we owe (before adjustments)
-            totalNeeded,        // Final amount we owe (after adjustments)
+            totalNeeded,        // Final amount we owe (after adjustments and opening balance)
             totalPaid,          // Amount we've paid
             totalAdjustments,   // Total adjustments
             net,                // Net balance (positive = we owe them)

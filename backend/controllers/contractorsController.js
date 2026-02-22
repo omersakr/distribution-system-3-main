@@ -30,15 +30,28 @@ class ContractorsController {
     // Create new contractor
     async createContractor(req, res, next) {
         try {
-            const { name, opening_balance } = req.body;
+            const { name, opening_balance, opening_balances } = req.body;
 
             if (!name || name.trim() === '') {
                 return res.status(400).json({ message: 'اسم المقاول مطلوب' });
             }
 
+            // Validate opening balances if provided
+            if (opening_balances && Array.isArray(opening_balances)) {
+                for (const balance of opening_balances) {
+                    if (!balance.project_id) {
+                        return res.status(400).json({ message: 'يجب تحديد المشروع لكل رصيد افتتاحي' });
+                    }
+                    if (balance.amount === undefined || balance.amount === null) {
+                        return res.status(400).json({ message: 'يجب تحديد المبلغ لكل رصيد افتتاحي' });
+                    }
+                }
+            }
+
             const contractor = await contractorService.createContractor({
                 name: name.trim(),
-                opening_balance
+                opening_balance: opening_balance || 0,
+                opening_balances: opening_balances || []
             });
 
             res.status(201).json(contractor);

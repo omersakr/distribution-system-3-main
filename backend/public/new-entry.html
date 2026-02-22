@@ -9,6 +9,12 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="/css/new-entry.css">
     <link rel="stylesheet" href="/css/sidebar.css">
+    <style>
+        /* Fix modal centering in RTL */
+        .modal-content {
+            margin: 0 auto;
+        }
+    </style>
 </head>
 
 <body>
@@ -153,7 +159,7 @@
                         <label style="font-weight: bold; color: #2c5aa0; margin-bottom: 8px; display: block;">
                             سعر الكسارة للمادة المختارة:
                         </label>
-                        <div id="crusherPriceValue" style="font-size: 1.2em; font-weight: bold; color: #1e4d72;">
+                        <div id="crusherPriceValue" stylne="font-size: 1.2em; font-weight: bold; color: #1e4d72;">
                             غير محدد
                         </div>
                         <small style="color: #666; font-style: italic;">
@@ -165,6 +171,14 @@
                 <div class="form-group" id="contractorChargeGroup">
                     <label for="contractorCharge">مستحق مقاول النقل لكل م³</label>
                     <input type="number" id="contractorCharge" min="0" step="0.01" />
+                </div>
+
+                <div class="form-group" id="supplierTransferGroup" style="display: none;">
+                    <label for="supplierTransferPrice">سعر النقل من المورد لكل وحدة</label>
+                    <input type="number" id="supplierTransferPrice" min="0" step="0.01" placeholder="اختياري" />
+                    <small style="color: #666; font-size: 0.9em; margin-top: 5px; display: block;">
+                        تكلفة نقل المادة من المورد إلى الموقع (إن وجدت)
+                    </small>
                 </div>
 
                 <button type="submit" class="save-btn">حفظ البيانات</button>

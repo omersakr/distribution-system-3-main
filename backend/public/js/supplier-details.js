@@ -50,10 +50,15 @@ function formatQuantity(amount) {
 function renderSummary(totals) {
     const container = document.getElementById('summaryGrid');
     const balance = totals.balance || 0;
+    const totalAdjustments = totals.total_adjustments || 0;
 
     // Balance logic for suppliers: Positive = we owe them (مستحق للمورد), Negative = they owe us (مدفوع زائد)
     const balanceClass = balance > 0 ? 'text-danger' : balance < 0 ? 'text-success' : '';
     const balanceLabel = balance > 0 ? '(مستحق للمورد)' : balance < 0 ? '(مدفوع زائد)' : '';
+
+    // Adjustments logic: Positive = we owe them more (مستحق للمورد), Negative = they owe us (مدفوع زائد)
+    const adjustmentsClass = totalAdjustments > 0 ? 'text-danger' : totalAdjustments < 0 ? 'text-success' : '';
+    const adjustmentsLabel = totalAdjustments > 0 ? '(مستحق للمورد)' : totalAdjustments < 0 ? '(مدفوع زائد)' : '';
 
     container.innerHTML = `
         <div class="summary-item">
@@ -63,6 +68,10 @@ function renderSummary(totals) {
         <div class="summary-item">
             <div class="summary-value text-success">${formatCurrency(totals.total_paid || 0)}</div>
             <div class="summary-label">إجمالي المدفوع</div>
+        </div>
+        <div class="summary-item">
+            <div class="summary-value ${adjustmentsClass}">${formatCurrency(Math.abs(totalAdjustments))} <small style="font-size: 0.75rem;">${adjustmentsLabel}</small></div>
+            <div class="summary-label">إجمالي التعديلات</div>
         </div>
         <div class="summary-item">
             <div class="summary-value">${totals.deliveries_count || 0}</div>
@@ -388,12 +397,26 @@ function resetPaymentForm() {
     // Set default date
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('paymentDate').value = today;
+
+    // Reset modal title and button text
+    const modalHeader = document.querySelector('#addPaymentModal .modal-header h2');
+    const submitButton = document.querySelector('#addPaymentForm button[type="submit"]');
+
+    if (modalHeader) modalHeader.textContent = 'إضافة دفعة';
+    if (submitButton) submitButton.textContent = 'حفظ';
 }
 
 function resetAdjustmentForm() {
     const form = document.getElementById('adjustmentForm');
     form.reset();
     delete form.dataset.editId;
+
+    // Reset modal title and button text
+    const modalHeader = document.querySelector('#adjustmentModal .modal-header');
+    const submitButton = document.querySelector('#adjustmentForm button[type="submit"]');
+
+    if (modalHeader) modalHeader.textContent = 'إضافة تسوية جديدة';
+    if (submitButton) submitButton.textContent = 'إضافة';
 }
 
 function showMessage(elementId, message, type) {
@@ -526,6 +549,13 @@ async function editPayment(paymentId) {
         // Change form to edit mode
         const form = document.getElementById('addPaymentForm');
         form.dataset.editId = paymentId;
+
+        // Update modal title and button text
+        const modalHeader = document.querySelector('#addPaymentModal .modal-header h2');
+        const submitButton = document.querySelector('#addPaymentForm button[type="submit"]');
+
+        if (modalHeader) modalHeader.textContent = 'تعديل الدفعة';
+        if (submitButton) submitButton.textContent = 'حفظ التعديل';
 
         showModal('addPaymentModal');
     } catch (error) {
@@ -714,6 +744,13 @@ async function editAdjustment(adjustmentId) {
         const form = document.getElementById('adjustmentForm');
         form.dataset.editId = adjustmentId;
 
+        // Update modal title and button text
+        const modalHeader = document.querySelector('#adjustmentModal .modal-header');
+        const submitButton = document.querySelector('#adjustmentForm button[type="submit"]');
+
+        if (modalHeader) modalHeader.textContent = 'تعديل التسوية';
+        if (submitButton) submitButton.textContent = 'حفظ التعديل';
+
         showModal('adjustmentModal');
     } catch (error) {
         console.error('Error editing adjustment:', error);
@@ -772,7 +809,7 @@ async function loadSupplierDetails() {
         // Store data for filtering
         allDeliveries = data.deliveries || [];
         allPayments = data.payments || [];
-        allAdjustments = []; // No adjustments in supplier API yet
+        allAdjustments = data.adjustments || [];
 
         // Update page title
         document.getElementById('supplierName').textContent = `تفاصيل المورد: ${data.supplier.name}`;
@@ -888,21 +925,38 @@ function setupEventHandlers() {
 
         try {
             const supplierId = getSupplierIdFromURL();
-            const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/suppliers/${supplierId}/payments`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(paymentData)
-            });
+            const form = e.target;
+            const editId = form.dataset.editId;
+
+            let response;
+            if (editId) {
+                // Update existing payment
+                response = await authManager.makeAuthenticatedRequest(`${API_BASE}/suppliers/${supplierId}/payments/${editId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(paymentData)
+                });
+            } else {
+                // Add new payment
+                response = await authManager.makeAuthenticatedRequest(`${API_BASE}/suppliers/${supplierId}/payments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(paymentData)
+                });
+            }
 
             if (response.ok) {
-                alert('تم إضافة الدفعة بنجاح');
+                alert(editId ? 'تم تحديث الدفعة بنجاح' : 'تم إضافة الدفعة بنجاح');
                 closeModal('addPaymentModal');
                 document.getElementById('addPaymentForm').reset();
+                delete form.dataset.editId;
                 loadSupplierDetails();
             } else {
-                throw new Error('فشل في إضافة الدفعة');
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'فشل في حفظ الدفعة');
             }
         } catch (error) {
+            console.error('Payment error:', error);
             alert('خطأ: ' + error.message);
         }
     });
@@ -916,26 +970,65 @@ function setupEventHandlers() {
     document.getElementById('adjustmentForm').addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const formData = new FormData(e.target);
-        const adjustmentData = Object.fromEntries(formData);
+        const amountInput = document.getElementById('adjustmentAmount').value;
+        const reason = document.getElementById('adjustmentReason').value.trim();
+
+        console.log('Form values:', { amountInput, reason });
+
+        // Validate - amount can be 0, negative, or positive
+        if (amountInput === '' || amountInput === null || amountInput === undefined) {
+            alert('يرجى إدخال المبلغ');
+            return;
+        }
+
+        if (!reason) {
+            alert('يرجى إدخال السبب');
+            return;
+        }
+
+        const amount = parseFloat(amountInput);
+        if (isNaN(amount)) {
+            alert('المبلغ غير صحيح');
+            return;
+        }
+
+        const adjustmentData = { amount, reason };
+        console.log('Sending adjustment data:', adjustmentData);
 
         try {
             const supplierId = getSupplierIdFromURL();
-            const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/suppliers/${supplierId}/adjustments`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(adjustmentData)
-            });
+            const form = e.target;
+            const editId = form.dataset.editId;
+
+            let response;
+            if (editId) {
+                // Update existing adjustment
+                response = await authManager.makeAuthenticatedRequest(`${API_BASE}/suppliers/${supplierId}/adjustments/${editId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(adjustmentData)
+                });
+            } else {
+                // Add new adjustment
+                response = await authManager.makeAuthenticatedRequest(`${API_BASE}/suppliers/${supplierId}/adjustments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(adjustmentData)
+                });
+            }
 
             if (response.ok) {
-                alert('تم إضافة التسوية بنجاح');
+                alert(editId ? 'تم تحديث التسوية بنجاح' : 'تم إضافة التسوية بنجاح');
                 closeModal('adjustmentModal');
                 document.getElementById('adjustmentForm').reset();
+                delete form.dataset.editId;
                 loadSupplierDetails();
             } else {
-                throw new Error('فشل في إضافة التسوية');
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'فشل في حفظ التسوية');
             }
         } catch (error) {
+            console.error('Adjustment error:', error);
             alert('خطأ: ' + error.message);
         }
     });
