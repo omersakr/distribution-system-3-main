@@ -161,6 +161,12 @@ tmp/
 *.bak
 *.old
 
+# Archive files
+*.rar
+*.zip
+*.7z
+*.tar.gz
+
 # Documentation build
 docs/build/
 
