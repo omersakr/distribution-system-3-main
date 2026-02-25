@@ -44,6 +44,7 @@ async function loadProjectDetails() {
         await Promise.all([
             displayClientInfo(currentClient),
             displayDetailedFinancialCards(),
+            displayOpeningBalanceAnalysis(),
             loadProjectExpenses(),
             loadCapitalInjections(),
             loadWithdrawals(),
@@ -250,6 +251,76 @@ async function displayDetailedFinancialCards() {
 
     } catch (error) {
         console.error('Error loading detailed financial cards:', error);
+    }
+}
+
+async function displayOpeningBalanceAnalysis() {
+    try {
+        const data = await apiGet(`/clients/${currentClientId}`);
+        const client = data.client;
+        const clientOpeningBalance = client.opening_balance || 0;
+
+        let totalCrusherOpeningBalances = 0;
+        let totalContractorOpeningBalances = 0;
+        let totalSupplierOpeningBalances = 0;
+
+        // Fetch crusher opening balances
+        try {
+            const crusherBalancesData = await apiGet(`/crushers/opening-balances?project_id=${currentClientId}`);
+            const crusherBalances = crusherBalancesData.opening_balances || crusherBalancesData.openingBalances || [];
+            totalCrusherOpeningBalances = crusherBalances.reduce((sum, balance) => sum + (balance.amount || 0), 0);
+        } catch (error) {
+            console.error('Error loading crusher opening balances:', error);
+        }
+
+        // Fetch contractor opening balances
+        try {
+            const contractorBalancesData = await apiGet(`/contractors/opening-balances?project_id=${currentClientId}`);
+            const contractorBalances = contractorBalancesData.opening_balances || contractorBalancesData.openingBalances || [];
+            totalContractorOpeningBalances = contractorBalances.reduce((sum, balance) => sum + (balance.amount || 0), 0);
+        } catch (error) {
+            console.error('Error loading contractor opening balances:', error);
+        }
+
+        // Fetch supplier opening balances
+        try {
+            const supplierBalancesData = await apiGet(`/suppliers/opening-balances?project_id=${currentClientId}`);
+            const supplierBalances = supplierBalancesData.opening_balances || supplierBalancesData.openingBalances || [];
+            totalSupplierOpeningBalances = supplierBalances.reduce((sum, balance) => sum + (balance.amount || 0), 0);
+        } catch (error) {
+            console.error('Error loading supplier opening balances:', error);
+        }
+
+        const totalRelatedOpeningBalances = totalCrusherOpeningBalances + totalContractorOpeningBalances + totalSupplierOpeningBalances;
+        const netOpeningBalance = clientOpeningBalance - totalRelatedOpeningBalances;
+
+        document.getElementById('openingBalanceCard').innerHTML = `
+            <div class="card-line revenue">
+                <span class="card-line-value positive">${formatCurrency(clientOpeningBalance)}</span>
+                <span class="card-line-label">رصيد العميل الافتتاحي:</span>
+            </div>
+           
+            <div class="card-line expense">
+                <span class="card-line-value negative">${formatCurrency(totalCrusherOpeningBalances)}</span>
+                <span class="card-line-label">أرصدة الكسارات الافتتاحية:</span>
+            </div>
+            <div class="card-line expense">
+                <span class="card-line-value negative">${formatCurrency(totalContractorOpeningBalances)}</span>
+                <span class="card-line-label">أرصدة المقاولين الافتتاحية:</span>
+            </div>
+            <div class="card-line expense">
+                <span class="card-line-value negative">${formatCurrency(totalSupplierOpeningBalances)}</span>
+                <span class="card-line-label">أرصدة الموردين الافتتاحية:</span>
+            </div>
+           
+            <div class="card-line total">
+                <span class="card-line-value ${netOpeningBalance >= 0 ? 'positive' : 'negative'}">${formatCurrency(Math.abs(netOpeningBalance))}</span>
+                <span class="card-line-label">صافي الرصيد الافتتاحي:</span>
+            </div>
+        `;
+
+    } catch (error) {
+        console.error('Error loading opening balance analysis:', error);
     }
 }
 

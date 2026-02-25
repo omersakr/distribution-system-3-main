@@ -248,6 +248,7 @@ function setupEventHandlers() {
 
         const formData = new FormData(e.target);
         const materials = [];
+        const openingBalances = getSupplierOpeningBalances();
 
         // Collect materials
         const materialItems = document.querySelectorAll('#materialsContainer .material-item');
@@ -261,9 +262,10 @@ function setupEventHandlers() {
 
         const supplierData = {
             name: formData.get('name'),
-            phone: formData.get('phone'),
+            phone_number: formData.get('phone'),
             materials: materials,
-            status: 'Active'
+            status: 'Active',
+            opening_balances: openingBalances
         };
 
         try {
@@ -289,6 +291,9 @@ function setupEventHandlers() {
                         <button type="button" class="btn btn-sm btn-danger" onclick="removeMaterial(this)">حذف</button>
                     </div>
                 `;
+                // Reset opening balances
+                document.getElementById('supplierOpeningBalancesContainer').innerHTML = '';
+                supplierOpeningBalanceCounter = 0;
             }, 1000);
         } catch (error) {
             showMessage('addSupplierMessage', error.message, 'error');
@@ -400,3 +405,129 @@ window.closeModal = closeModal;
 window.deleteSupplier = deleteSupplier;
 window.addMaterial = addMaterial;
 window.removeMaterial = removeMaterial;
+
+
+// Opening balances management for suppliers
+let supplierOpeningBalanceCounter = 0;
+let supplierProjectsList = [];
+
+// Load projects for dropdown
+async function loadSupplierProjects() {
+    try {
+        const resp = await authManager.makeAuthenticatedRequest(`${API_BASE}/projects`);
+        if (!resp.ok) throw new Error('Failed to load projects');
+        const data = await resp.json();
+        supplierProjectsList = data.projects || data;
+    } catch (error) {
+        console.error('Error loading projects:', error);
+        supplierProjectsList = [];
+    }
+}
+
+// Add opening balance row for supplier
+function addSupplierOpeningBalanceRow() {
+    const container = document.getElementById('supplierOpeningBalancesContainer');
+    const rowId = `supplierOpeningBalance_${supplierOpeningBalanceCounter++}`;
+
+    const row = document.createElement('div');
+    row.className = 'opening-balance-row';
+    row.id = rowId;
+    row.style.cssText = 'display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: 10px; margin-bottom: 10px; align-items: start; padding: 15px; background: var(--gray-50); border-radius: var(--radius); border: 1px solid var(--gray-200);';
+
+    // Project dropdown
+    const projectCol = document.createElement('div');
+    const projectLabel = document.createElement('label');
+    projectLabel.textContent = 'المشروع';
+    projectLabel.style.cssText = 'display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 500;';
+    const projectSelect = document.createElement('select');
+    projectSelect.className = 'form-input supplier-opening-balance-project';
+    projectSelect.required = true;
+    projectSelect.innerHTML = '<option value="">اختر المشروع</option>';
+    supplierProjectsList.forEach(project => {
+        const option = document.createElement('option');
+        option.value = project.id;
+        option.textContent = project.name;
+        projectSelect.appendChild(option);
+    });
+    projectCol.appendChild(projectLabel);
+    projectCol.appendChild(projectSelect);
+
+    // Amount input
+    const amountCol = document.createElement('div');
+    const amountLabel = document.createElement('label');
+    amountLabel.textContent = 'المبلغ';
+    amountLabel.style.cssText = 'display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 500;';
+    const amountInput = document.createElement('input');
+    amountInput.type = 'number';
+    amountInput.className = 'form-input supplier-opening-balance-amount';
+    amountInput.step = '0.01';
+    amountInput.required = true;
+    amountInput.placeholder = '0.00';
+    amountCol.appendChild(amountLabel);
+    amountCol.appendChild(amountInput);
+
+    // Description input
+    const descCol = document.createElement('div');
+    const descLabel = document.createElement('label');
+    descLabel.textContent = 'الوصف';
+    descLabel.style.cssText = 'display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 500;';
+    const descInput = document.createElement('input');
+    descInput.type = 'text';
+    descInput.className = 'form-input supplier-opening-balance-description';
+    descInput.placeholder = 'وصف اختياري';
+    descInput.maxLength = 500;
+    descCol.appendChild(descLabel);
+    descCol.appendChild(descInput);
+
+    // Remove button
+    const removeCol = document.createElement('div');
+    removeCol.style.cssText = 'padding-top: 28px;';
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'btn btn-sm btn-danger';
+    removeBtn.innerHTML = '🗑️';
+    removeBtn.onclick = () => document.getElementById(rowId).remove();
+    removeCol.appendChild(removeBtn);
+
+    row.appendChild(projectCol);
+    row.appendChild(amountCol);
+    row.appendChild(descCol);
+    row.appendChild(removeCol);
+
+    container.appendChild(row);
+}
+
+// Get opening balances from supplier form
+function getSupplierOpeningBalances() {
+    const rows = document.querySelectorAll('.opening-balance-row');
+    const balances = [];
+
+    rows.forEach(row => {
+        const project = row.querySelector('.supplier-opening-balance-project')?.value;
+        const amountInput = row.querySelector('.supplier-opening-balance-amount');
+        const amount = amountInput ? parseFloat(amountInput.value) : null;
+        const description = row.querySelector('.supplier-opening-balance-description')?.value;
+
+        if (project && amount) {
+            balances.push({
+                project_id: project,
+                amount: amount,
+                description: description || ''
+            });
+        }
+    });
+
+    return balances;
+}
+
+// Initialize opening balance button for suppliers
+document.addEventListener('DOMContentLoaded', async function () {
+    // Load projects first
+    await loadSupplierProjects();
+
+    // Add opening balance button
+    const addBtn = document.getElementById('addSupplierOpeningBalanceBtn');
+    if (addBtn) {
+        addBtn.addEventListener('click', addSupplierOpeningBalanceRow);
+    }
+});

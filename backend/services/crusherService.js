@@ -116,6 +116,8 @@ class CrusherService {
     }
 
     static async createCrusher(data) {
+        const { CrusherOpeningBalance } = require('../models');
+
         const crusher = new Crusher({
             name: data.name,
             opening_balance: toNumber(data.opening_balance),
@@ -127,6 +129,19 @@ class CrusherService {
         });
 
         await crusher.save();
+
+        // Create opening balances if provided
+        if (data.opening_balances && Array.isArray(data.opening_balances) && data.opening_balances.length > 0) {
+            const openingBalanceDocs = data.opening_balances.map(balance => ({
+                crusher_id: crusher._id,
+                project_id: balance.project_id,
+                amount: toNumber(balance.amount),
+                description: balance.description || '',
+                date: balance.date || new Date()
+            }));
+
+            await CrusherOpeningBalance.insertMany(openingBalanceDocs);
+        }
 
         return {
             id: crusher._id,

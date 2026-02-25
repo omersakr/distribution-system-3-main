@@ -2,6 +2,7 @@
 const Client = require('./Client');
 const Project = require('./Project');
 const Crusher = require('./Crusher');
+const CrusherOpeningBalance = require('./CrusherOpeningBalance');
 const Contractor = require('./Contractor');
 const ContractorOpeningBalance = require('./ContractorOpeningBalance');
 const Delivery = require('./Delivery');
@@ -19,6 +20,7 @@ const CapitalInjection = require('./CapitalInjection');
 const Withdrawal = require('./Withdrawal');
 const AdministrationPayment = require('./AdministrationPayment');
 const Supplier = require('./Supplier');
+const SupplierOpeningBalance = require('./SupplierOpeningBalance');
 const User = require('./User');
 const AuditLog = require('./AuditLog');
 const UserSession = require('./UserSession');
@@ -27,6 +29,7 @@ module.exports = {
     Client,
     Project,
     Crusher,
+    CrusherOpeningBalance,
     Contractor,
     ContractorOpeningBalance,
     Delivery,
@@ -44,6 +47,7 @@ module.exports = {
     Withdrawal,
     AdministrationPayment,
     Supplier,
+    SupplierOpeningBalance,
     User,
     AuditLog,
     UserSession

@@ -70,6 +70,24 @@
                     <button type="button" class="btn btn-sm btn-secondary" onclick="addMaterial()">+ إضافة مادة</button>
                 </div>
 
+                <div class="form-group">
+                    <h3 style="margin: 20px 0 10px 0; font-size: 1.1rem; color: var(--gray-700);">
+                        الأرصدة الافتتاحية (اختياري)
+                    </h3>
+                    <p style="color: var(--gray-600); font-size: 0.9rem; margin-bottom: 15px;">
+                        يمكنك إضافة أرصدة افتتاحية مرتبطة بمشاريع محددة
+                    </p>
+
+                    <div id="supplierOpeningBalancesContainer">
+                        <!-- Opening balances will be added here -->
+                    </div>
+
+                    <button type="button" class="btn btn-secondary" id="addSupplierOpeningBalanceBtn"
+                        style="margin-top: 10px;">
+                        ➕ إضافة رصيد افتتاحي
+                    </button>
+                </div>
+
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" data-action="close-modal"
                         data-target="addSupplierModal">إلغاء</button>
