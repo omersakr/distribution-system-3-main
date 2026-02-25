@@ -172,8 +172,24 @@ class SupplierService {
     }
 
     static async createSupplier(data) {
+        const { SupplierOpeningBalance } = require('../models');
+
         const supplier = new Supplier(data);
         await supplier.save();
+
+        // Create opening balances if provided
+        if (data.opening_balances && Array.isArray(data.opening_balances) && data.opening_balances.length > 0) {
+            const openingBalanceDocs = data.opening_balances.map(balance => ({
+                supplier_id: supplier._id,
+                project_id: balance.project_id,
+                amount: toNumber(balance.amount),
+                description: balance.description || '',
+                date: balance.date || new Date()
+            }));
+
+            await SupplierOpeningBalance.insertMany(openingBalanceDocs);
+        }
+
         return {
             id: supplier._id,
             name: supplier.name,
