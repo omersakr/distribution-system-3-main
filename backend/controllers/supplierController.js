@@ -30,7 +30,7 @@ class SupplierController {
     // Create new supplier
     async createSupplier(req, res, next) {
         try {
-            const { name, phone_number, notes, materials, status } = req.body;
+            const { name, phone_number, notes, materials, status, opening_balances } = req.body;
 
             if (!name || name.trim() === '') {
                 return res.status(400).json({ message: 'اسم المورد مطلوب' });
@@ -58,7 +58,8 @@ class SupplierController {
                     name: m.name.trim(),
                     price_per_unit: parseFloat(m.price_per_unit)
                 })),
-                status: status || 'Active'
+                status: status || 'Active',
+                opening_balances
             });
 
             res.status(201).json(supplier);
@@ -73,7 +74,7 @@ class SupplierController {
     // Update supplier
     async updateSupplier(req, res, next) {
         try {
-            const { name, phone_number, notes, materials, status } = req.body;
+            const { name, phone_number, notes, materials, status, opening_balances } = req.body;
 
             if (!name || name.trim() === '') {
                 return res.status(400).json({ message: 'اسم المورد مطلوب' });
@@ -99,7 +100,13 @@ class SupplierController {
                 name: name.trim(),
                 phone_number: phone_number?.trim(),
                 notes: notes?.trim(),
-                status: status || 'Active'
+                status: status || 'Active',
+                opening_balances, // Add opening balances
+                // Pass user info for audit logging
+                userId: req.user?.id,
+                userRole: req.user?.role,
+                ipAddress: req.ip,
+                userAgent: req.get('user-agent')
             };
 
             if (materials) {
@@ -934,6 +941,33 @@ class SupplierController {
 </body>
 </html>
         `;
+    }
+
+    // Get opening balances by project (for project analysis)
+    async getOpeningBalancesByProject(req, res, next) {
+        try {
+            const { project_id } = req.query;
+
+            if (!project_id) {
+                return res.status(400).json({ message: 'معرف المشروع مطلوب' });
+            }
+
+            const SupplierOpeningBalance = require('../models/SupplierOpeningBalance');
+            
+            const openingBalances = await SupplierOpeningBalance.find({
+                project_id,
+                is_deleted: false
+            }).populate('supplier_id', 'name').lean();
+
+            res.json({ opening_balances: openingBalances });
+        } catch (err) {
+            console.error('❌ Error in getOpeningBalancesByProject (suppliers):', err);
+            res.status(500).json({ 
+                message: 'خطأ في تحميل الأرصدة الافتتاحية',
+                error: err.message,
+                opening_balances: [] 
+            });
+        }
     }
 }
 

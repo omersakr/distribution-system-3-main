@@ -63,6 +63,7 @@ class ExpenseService {
             id: expense._id,
             expense_date: expense.expense_date,
             description: expense.description,
+            category: expense.category,
             amount: toNumber(expense.amount),
             notes: expense.notes,
             method: expense.method,
@@ -86,6 +87,7 @@ class ExpenseService {
             id: expense._id,
             expense_date: expense.expense_date,
             description: expense.description,
+            category: expense.category,
             amount: toNumber(expense.amount),
             notes: expense.notes,
             method: expense.method,
@@ -97,7 +99,7 @@ class ExpenseService {
     }
 
     static async createExpense(data) {
-        const { expense_date, description, amount, notes, method, details, project_id } = data;
+        const { expense_date, description, category, amount, notes, method, details, project_id } = data;
 
         if (!expense_date || !description || !amount) {
             throw new Error('التاريخ والوصف والمبلغ مطلوبة');
@@ -106,6 +108,7 @@ class ExpenseService {
         const expense = new Expense({
             expense_date: new Date(expense_date),
             description: description.trim(),
+            category: category || 'أخرى',
             amount: toNumber(amount),
             notes: notes?.trim() || '',
             method: method?.trim() || '',
@@ -119,6 +122,7 @@ class ExpenseService {
             id: expense._id,
             expense_date: expense.expense_date,
             description: expense.description,
+            category: expense.category,
             amount: toNumber(expense.amount),
             notes: expense.notes,
             method: expense.method,
@@ -130,7 +134,7 @@ class ExpenseService {
     }
 
     static async updateExpense(id, data) {
-        const { expense_date, description, amount, notes, method, details, project_id } = data;
+        const { expense_date, description, category, amount, notes, method, details, project_id } = data;
 
         if (!expense_date || !description || !amount) {
             throw new Error('التاريخ والوصف والمبلغ مطلوبة');
@@ -141,6 +145,7 @@ class ExpenseService {
             {
                 expense_date: new Date(expense_date),
                 description: description.trim(),
+                category: category || 'أخرى',
                 amount: toNumber(amount),
                 notes: notes?.trim() || '',
                 method: method?.trim() || '',
@@ -158,6 +163,7 @@ class ExpenseService {
             id: expense._id,
             expense_date: expense.expense_date,
             description: expense.description,
+            category: expense.category,
             amount: toNumber(expense.amount),
             notes: expense.notes,
             method: expense.method,
@@ -221,6 +227,7 @@ class ExpenseService {
             id: expense._id,
             expense_date: expense.expense_date,
             description: expense.description,
+            category: expense.category,
             amount: toNumber(expense.amount),
             notes: expense.notes,
             method: expense.method,

@@ -576,37 +576,33 @@
     <!-- Attendance Modal -->
     <div id="attendanceModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="attendanceModalTitle">إضافة سجل شهري</h2>
-                <span class="close" onclick="closeAttendanceModal()">&times;</span>
-            </div>
+            <div class="modal-header">إضافة سجل شهري</div>
+            <div id="attendanceMessage"></div>
             <form id="attendanceForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="attendanceMonth">الشهر *</label>
-                        <select id="attendanceMonth" name="month" required>
-                            <option value="">اختر الشهر</option>
-                            <option value="1">يناير</option>
-                            <option value="2">فبراير</option>
-                            <option value="3">مارس</option>
-                            <option value="4">أبريل</option>
-                            <option value="5">مايو</option>
-                            <option value="6">يونيو</option>
-                            <option value="7">يوليو</option>
-                            <option value="8">أغسطس</option>
-                            <option value="9">سبتمبر</option>
-                            <option value="10">أكتوبر</option>
-                            <option value="11">نوفمبر</option>
-                            <option value="12">ديسمبر</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="attendanceYear">السنة *</label>
-                        <input type="number" id="attendanceYear" name="year" min="2020" max="2030" required>
-                    </div>
+                <div class="form-group">
+                    <label class="form-label" for="attendanceMonth">الشهر *</label>
+                    <select class="form-select" id="attendanceMonth" name="month" required>
+                        <option value="">اختر الشهر</option>
+                        <option value="1">يناير</option>
+                        <option value="2">فبراير</option>
+                        <option value="3">مارس</option>
+                        <option value="4">أبريل</option>
+                        <option value="5">مايو</option>
+                        <option value="6">يونيو</option>
+                        <option value="7">يوليو</option>
+                        <option value="8">أغسطس</option>
+                        <option value="9">سبتمبر</option>
+                        <option value="10">أكتوبر</option>
+                        <option value="11">نوفمبر</option>
+                        <option value="12">ديسمبر</option>
+                    </select>
                 </div>
                 <div class="form-group">
-                    <label>نوع التسجيل *</label>
+                    <label class="form-label" for="attendanceYear">السنة *</label>
+                    <input type="number" class="form-input" id="attendanceYear" name="year" min="2020" max="2030" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">نوع التسجيل *</label>
                     <div class="radio-group">
                         <label class="radio-label">
                             <input type="radio" name="record_type" value="attendance" id="recordTypeAttendance"
@@ -620,23 +616,23 @@
                     </div>
                 </div>
                 <div class="form-group" id="attendanceDaysGroup" style="display: none;">
-                    <label for="attendanceDays">أيام الحضور</label>
-                    <input type="number" id="attendanceDays" name="attendance_days" min="0">
+                    <label class="form-label" for="attendanceDays">أيام الحضور</label>
+                    <input type="number" class="form-input" id="attendanceDays" name="attendance_days" min="0">
                     <small class="form-help">عدد الأيام التي حضر فيها الموظف</small>
                 </div>
                 <div class="form-group" id="absenceDaysGroup" style="display: none;">
-                    <label for="absenceDays">أيام الغياب</label>
-                    <input type="number" id="absenceDays" name="absence_days" min="0">
+                    <label class="form-label" for="absenceDays">أيام الغياب</label>
+                    <input type="number" class="form-input" id="absenceDays" name="absence_days" min="0">
                     <small class="form-help">عدد الأيام التي غاب فيها الموظف</small>
                 </div>
                 <div class="form-group">
-                    <label for="attendanceNotes">ملاحظات</label>
-                    <textarea id="attendanceNotes" name="notes" rows="3"
+                    <label class="form-label" for="attendanceNotes">ملاحظات</label>
+                    <textarea class="form-textarea" id="attendanceNotes" name="notes"
                         placeholder="أي ملاحظات إضافية عن هذا الشهر"></textarea>
                 </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">حفظ</button>
+                <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeAttendanceModal()">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">حفظ</button>
                 </div>
             </form>
         </div>
@@ -645,36 +641,44 @@
     <!-- Adjustment Modal -->
     <div id="adjustmentModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="adjustmentModalTitle">إضافة تسوية</h2>
-                <span class="close" onclick="closeAdjustmentModal()">&times;</span>
-            </div>
+            <div class="modal-header">إضافة تسوية</div>
+            <div id="adjustmentMessage"></div>
             <form id="adjustmentForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="adjustmentAmount">المبلغ *</label>
-                        <input type="number" id="adjustmentAmount" name="amount" step="0.01" required>
-                        <small class="form-help">
-                            <strong>المبالغ الموجبة (+):</strong> تزيد من استحقاق الموظف (مكافآت، علاوات)<br>
-                            <strong>المبالغ السالبة (-):</strong> تقلل من استحقاق الموظف (خصومات، غرامات)
-                        </small>
-                    </div>
-                    <div class="form-group">
-                        <label for="adjustmentMethod">طريقة الدفع</label>
-                        <input type="text" id="adjustmentMethod" name="method" placeholder="نقدي، تحويل، إلخ">
-                    </div>
+                <div class="form-group">
+                    <label class="form-label" for="adjustmentAmount">المبلغ *</label>
+                    <input type="number" class="form-input" id="adjustmentAmount" name="amount" step="0.01" required>
+                    <small class="text-gray-500">موجب: يضاف للمستحقات | سالب: يخصم من المستحقات</small>
                 </div>
                 <div class="form-group">
-                    <label for="adjustmentDetails">التفاصيل</label>
-                    <input type="text" id="adjustmentDetails" name="details">
+                    <label class="form-label" for="adjustmentMethod">طريقة التسوية</label>
+                    <select class="form-select" id="adjustmentMethod" name="method">
+                        <option value="">اختر طريقة التسوية</option>
+                        <option value="نقدي">نقدي</option>
+                        <option value="بنكي">بنكي</option>
+                        <option value="شيك">شيك</option>
+                        <option value="انستاباي">انستاباي</option>
+                        <option value="فودافون كاش">فودافون كاش</option>
+                        <option value="تعديل حسابي">تعديل حسابي</option>
+                    </select>
+                </div>
+                <div class="form-group hidden" id="adjustmentDetailsGroup">
+                    <label class="form-label" for="adjustmentDetails">رقم المعاملة / رقم الشيك</label>
+                    <input type="text" class="form-input" id="adjustmentDetails" name="details"
+                        placeholder="أدخل رقم المعاملة أو رقم الشيك">
+                </div>
+                <div class="form-group hidden" id="adjustmentImageGroup">
+                    <label class="form-label" for="adjustmentImage">صورة التسوية</label>
+                    <input type="file" class="form-input" id="adjustmentImage" accept="image/*">
+                    <small class="form-help">ارفع صورة الإيصال أو الشيك أو المعاملة البنكية</small>
+                    <div id="adjustmentImagePreview"></div>
                 </div>
                 <div class="form-group">
-                    <label for="adjustmentReason">السبب *</label>
-                    <textarea id="adjustmentReason" name="reason" rows="3" required></textarea>
+                    <label class="form-label" for="adjustmentReason">السبب</label>
+                    <textarea class="form-textarea" id="adjustmentReason" name="reason" placeholder="سبب التسوية..."></textarea>
                 </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">حفظ</button>
+                <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeAdjustmentModal()">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">إضافة</button>
                 </div>
             </form>
         </div>
@@ -683,42 +687,47 @@
     <!-- Payment Modal -->
     <div id="paymentModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="paymentModalTitle">إضافة دفعة</h2>
-                <span class="close" onclick="closePaymentModal()">&times;</span>
-            </div>
+            <div class="modal-header">إضافة دفعة جديدة</div>
+            <div id="paymentMessage"></div>
             <form id="paymentForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="paymentAmount">المبلغ *</label>
-                        <input type="number" id="paymentAmount" name="amount" step="0.01" min="0" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="paymentMethod">طريقة الدفع</label>
-                        <input type="text" id="paymentMethod" name="method" placeholder="نقدي، تحويل، إلخ">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="paymentDetails">التفاصيل</label>
-                        <input type="text" id="paymentDetails" name="details">
-                    </div>
-                    <div class="form-group">
-                        <label for="paidAt">تاريخ الدفع</label>
-                        <input type="date" id="paidAt" name="paid_at">
-                    </div>
+                <div class="form-group">
+                    <label class="form-label" for="paymentAmount">المبلغ *</label>
+                    <input type="number" class="form-input" id="paymentAmount" name="amount" required min="0" step="0.01"
+                        autocomplete="transaction-amount">
                 </div>
                 <div class="form-group">
-                    <label for="paymentNote">ملاحظات</label>
-                    <textarea id="paymentNote" name="note" rows="3"></textarea>
+                    <label class="form-label" for="paymentMethod">طريقة الدفع *</label>
+                    <select class="form-select" id="paymentMethod" name="method" required>
+                        <option value="">اختر طريقة الدفع</option>
+                        <option value="نقدي">نقدي</option>
+                        <option value="بنكي">بنكي</option>
+                        <option value="شيك">شيك</option>
+                        <option value="انستاباي">انستاباي</option>
+                        <option value="فودافون كاش">فودافون كاش</option>
+                    </select>
+                </div>
+                <div class="form-group hidden" id="paymentDetailsGroup">
+                    <label class="form-label" for="paymentDetails">رقم المعاملة / رقم الشيك</label>
+                    <input type="text" class="form-input" id="paymentDetails" name="details"
+                        placeholder="أدخل رقم المعاملة أو رقم الشيك" autocomplete="off">
+                </div>
+                <div class="form-group hidden" id="paymentImageGroup">
+                    <label class="form-label" for="paymentImage">صورة الدفع</label>
+                    <input type="file" class="form-input" id="paymentImage" accept="image/*">
+                    <small class="form-help">ارفع صورة الإيصال أو الشيك أو المعاملة البنكية</small>
+                    <div id="paymentImagePreview"></div>
                 </div>
                 <div class="form-group">
-                    <label for="paymentImage">صورة الإيصال</label>
-                    <input type="file" id="paymentImage" accept="image/*">
+                    <label class="form-label" for="paidAt">التاريخ</label>
+                    <input type="date" class="form-input" id="paidAt" name="paid_at" autocomplete="off">
                 </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">حفظ</button>
+                <div class="form-group">
+                    <label class="form-label" for="paymentNote">ملاحظات</label>
+                    <textarea class="form-textarea" id="paymentNote" name="note"></textarea>
+                </div>
+                <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" onclick="closePaymentModal()">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">حفظ</button>
                 </div>
             </form>
         </div>
@@ -727,46 +736,38 @@
     <!-- Edit Employee Modal -->
     <div id="editEmployeeModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2>تعديل معلومات الموظف</h2>
-                <span class="close" onclick="closeEditEmployeeModal()">&times;</span>
-            </div>
+            <div class="modal-header">تعديل معلومات الموظف</div>
+            <div id="editEmployeeMessage"></div>
             <form id="editEmployeeForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="editEmployeeName">اسم الموظف *</label>
-                        <input type="text" id="editEmployeeName" name="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editJobTitle">المسمى الوظيفي</label>
-                        <input type="text" id="editJobTitle" name="job_title">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="editPhoneNumber">رقم الهاتف</label>
-                        <input type="tel" id="editPhoneNumber" name="phone_number">
-                    </div>
-                    <div class="form-group">
-                        <label for="editBasicSalary">الراتب الأساسي</label>
-                        <input type="number" id="editBasicSalary" name="basic_salary" step="0.01" min="0">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="editStartWorkingDate">تاريخ بداية العمل</label>
-                        <input type="date" id="editStartWorkingDate" name="start_working_date">
-                    </div>
-                    <div class="form-group">
-                        <label for="editStatus">الحالة</label>
-                        <select id="editStatus" name="status">
-                            <option value="Active">نشط</option>
-                            <option value="Inactive">غير نشط</option>
-                        </select>
-                    </div>
+                <div class="form-group">
+                    <label class="form-label" for="editEmployeeName">اسم الموظف *</label>
+                    <input type="text" class="form-input" id="editEmployeeName" name="name" required>
                 </div>
                 <div class="form-group">
-                    <label for="editAssignedProjects">المشاريع المخصصة</label>
+                    <label class="form-label" for="editJobTitle">المسمى الوظيفي</label>
+                    <input type="text" class="form-input" id="editJobTitle" name="job_title">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="editPhoneNumber">رقم الهاتف</label>
+                    <input type="tel" class="form-input" id="editPhoneNumber" name="phone_number">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="editBasicSalary">الراتب الأساسي</label>
+                    <input type="number" class="form-input" id="editBasicSalary" name="basic_salary" step="0.01" min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="editStartWorkingDate">تاريخ بداية العمل</label>
+                    <input type="date" class="form-input" id="editStartWorkingDate" name="start_working_date">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="editStatus">الحالة</label>
+                    <select class="form-select" id="editStatus" name="status">
+                        <option value="Active">نشط</option>
+                        <option value="Inactive">غير نشط</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="editAssignedProjects">المشاريع المخصصة</label>
                     <div class="project-assignment">
                         <label class="checkbox-label">
                             <input type="checkbox" id="editAllProjects" name="all_projects">
@@ -778,12 +779,12 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="editNotes">ملاحظات</label>
-                    <textarea id="editNotes" name="notes" rows="3"></textarea>
+                    <label class="form-label" for="editNotes">ملاحظات</label>
+                    <textarea class="form-textarea" id="editNotes" name="notes"></textarea>
                 </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+                <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeEditEmployeeModal()">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
                 </div>
             </form>
         </div>

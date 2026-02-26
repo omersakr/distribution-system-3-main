@@ -13,6 +13,13 @@ const router = express.Router();
 // Get all crushers with pricing information (Both roles)
 router.get('/', crushersController.getAllCrushers);
 
+// ============================================================================
+// CRUSHER OPENING BALANCES (Project-Based)
+// ============================================================================
+
+// Get opening balances by project (for project analysis)
+router.get('/opening-balances', crushersController.getOpeningBalancesByProject);
+
 // Get crusher by ID with detailed information and related data (Both roles)
 router.get('/:id', crushersController.getCrusherById);
 

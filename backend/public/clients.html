@@ -45,32 +45,29 @@
     <!-- Add Client Modal -->
     <div id="addClientModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2>إضافة عميل جديد</h2>
-                <button class="modal-close">&times;</button>
-            </div>
+            <div class="modal-header">إضافة عميل جديد</div>
+            <div id="addClientMessage"></div>
             <form id="addClientForm">
                 <div class="form-group">
-                    <label for="clientName">اسم العميل *</label>
-                    <input type="text" id="clientName" name="name" required autocomplete="name">
+                    <label class="form-label" for="clientName">اسم العميل *</label>
+                    <input type="text" class="form-input" id="clientName" name="name" required autocomplete="name">
                 </div>
 
                 <div class="form-group">
-                    <label for="clientPhone">رقم الهاتف</label>
-                    <input type="tel" id="clientPhone" name="phone" placeholder="اختياري" autocomplete="tel">
+                    <label class="form-label" for="clientPhone">رقم الهاتف</label>
+                    <input type="tel" class="form-input" id="clientPhone" name="phone" placeholder="اختياري" autocomplete="tel">
                 </div>
 
                 <div class="form-group">
-                    <label for="openingBalance">الرصيد الافتتاحي (جنيه)</label>
-                    <input type="text" id="openingBalance" name="opening_balance" placeholder="0.00" autocomplete="off">
+                    <label class="form-label" for="openingBalance">الرصيد الافتتاحي</label>
+                    <input type="number" class="form-input" id="openingBalance" name="opening_balance" step="0.01" placeholder="0.00" autocomplete="off">
                     <small class="form-help">موجب = العميل يدين لنا، سالب = نحن ندين للعميل</small>
                 </div>
 
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary">إلغاء</button>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary modal-close">إلغاء</button>
                     <button type="submit" class="btn btn-primary">إضافة العميل</button>
                 </div>
-                <div id="addClientMessage"></div>
             </form>
         </div>
     </div>

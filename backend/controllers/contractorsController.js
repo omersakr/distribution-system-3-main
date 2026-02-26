@@ -66,15 +66,33 @@ class ContractorsController {
     // Update contractor
     async updateContractor(req, res, next) {
         try {
-            const { name, opening_balance } = req.body;
+            const { name, opening_balance, opening_balances } = req.body;
 
             if (!name || name.trim() === '') {
                 return res.status(400).json({ message: 'اسم المقاول مطلوب' });
             }
 
+            // Validate opening balances if provided
+            if (opening_balances && Array.isArray(opening_balances)) {
+                for (const balance of opening_balances) {
+                    if (!balance.project_id) {
+                        return res.status(400).json({ message: 'يجب تحديد المشروع لكل رصيد افتتاحي' });
+                    }
+                    if (balance.amount === undefined || balance.amount === null) {
+                        return res.status(400).json({ message: 'يجب تحديد المبلغ لكل رصيد افتتاحي' });
+                    }
+                }
+            }
+
             const contractor = await contractorService.updateContractor(req.params.id, {
                 name: name.trim(),
-                opening_balance
+                opening_balance,
+                opening_balances,
+                // Pass user info for audit logging
+                userId: req.user?.id,
+                userRole: req.user?.role,
+                ipAddress: req.ip,
+                userAgent: req.get('user-agent')
             });
 
             if (!contractor) {
@@ -925,6 +943,33 @@ class ContractorsController {
 </body>
 </html>
         `;
+    }
+
+    // Get opening balances by project (for project analysis)
+    async getOpeningBalancesByProject(req, res, next) {
+        try {
+            const { project_id } = req.query;
+
+            if (!project_id) {
+                return res.status(400).json({ message: 'معرف المشروع مطلوب' });
+            }
+
+            const ContractorOpeningBalance = require('../models/ContractorOpeningBalance');
+            
+            const openingBalances = await ContractorOpeningBalance.find({
+                project_id,
+                is_deleted: false
+            }).populate('contractor_id', 'name').lean();
+
+            res.json({ opening_balances: openingBalances });
+        } catch (err) {
+            console.error('❌ Error in getOpeningBalancesByProject (contractors):', err);
+            res.status(500).json({ 
+                message: 'خطأ في تحميل الأرصدة الافتتاحية',
+                error: err.message,
+                opening_balances: [] 
+            });
+        }
     }
 }
 

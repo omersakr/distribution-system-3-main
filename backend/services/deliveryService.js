@@ -99,8 +99,12 @@ class DeliveryService {
             contractor_charge_per_meter
         } = data;
 
-        if (!client_id || !material_price_at_time) {
-            throw new Error('العميل وسعر المادة مطلوبان');
+        if (!client_id) {
+            throw new Error('العميل مطلوب');
+        }
+
+        if (!material_price_at_time || material_price_at_time <= 0) {
+            throw new Error('سعر المادة مطلوب ويجب أن يكون أكبر من صفر');
         }
 
         const delivery = new Delivery({

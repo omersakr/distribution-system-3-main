@@ -73,17 +73,17 @@ function createAdministrationCard(admin) {
     balanceValue.textContent = formatCurrency(Math.abs(balance));
 
     if (balance > 0) {
-        balanceValue.classList.add('positive');
+        balanceValue.classList.add('negative');
         balanceItem.appendChild(balanceLabel);
         balanceItem.appendChild(document.createTextNode(' '));
         balanceItem.appendChild(balanceValue);
         balanceItem.appendChild(document.createTextNode(' (مستحق للإدارة)'));
     } else if (balance < 0) {
-        balanceValue.classList.add('negative');
+        balanceValue.classList.add('positive');
         balanceItem.appendChild(balanceLabel);
         balanceItem.appendChild(document.createTextNode(' '));
         balanceItem.appendChild(balanceValue);
-        balanceItem.appendChild(document.createTextNode(' (مستحق لنا)'));
+        balanceItem.appendChild(document.createTextNode(' (مستحق من الإدارة)'));
     } else {
         balanceValue.classList.add('text-muted');
         balanceItem.appendChild(balanceLabel);

@@ -225,6 +225,14 @@ body {
   border-color: var(--danger-500);
 }
 
+.form-help {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--gray-600);
+  line-height: 1.4;
+}
+
 .form-select {
   width: 100%;
   padding: var(--space-3);
@@ -433,6 +441,7 @@ body {
 }
 
 /* Utility Classes */
+.hidden { display: none !important; }
 .text-center { text-align: center; }
 .text-right { text-align: right; }
 .text-left { text-align: left; }

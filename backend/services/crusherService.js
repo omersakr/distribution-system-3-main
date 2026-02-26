@@ -55,6 +55,13 @@ class CrusherService {
             entity_id: id
         }).sort({ created_at: -1 });
 
+        // Get opening balances
+        const { CrusherOpeningBalance } = require('../models');
+        const openingBalances = await CrusherOpeningBalance.find({
+            crusher_id: id,
+            is_deleted: false
+        }).populate('project_id', 'name').sort({ created_at: -1 });
+
         // Calculate totals and material breakdown
         const totals = await this.computeCrusherTotals(id);
         const materialTotals = this.computeMaterialTotals(deliveries);
@@ -71,6 +78,15 @@ class CrusherService {
                 aggregate6_powder_price: crusher.aggregate6_powder_price,
                 created_at: crusher.created_at
             },
+            opening_balances: openingBalances.map(ob => ({
+                id: ob._id,
+                project_id: ob.project_id?._id || ob.project_id,
+                project_name: ob.project_id?.name || 'مشروع محذوف',
+                amount: ob.amount,
+                description: ob.description,
+                date: ob.date,
+                created_at: ob.created_at
+            })),
             deliveries: deliveries.map(d => ({
                 id: d._id,
                 client_id: d.client_id?._id || d.client_id,
@@ -132,13 +148,22 @@ class CrusherService {
 
         // Create opening balances if provided
         if (data.opening_balances && Array.isArray(data.opening_balances) && data.opening_balances.length > 0) {
-            const openingBalanceDocs = data.opening_balances.map(balance => ({
-                crusher_id: crusher._id,
-                project_id: balance.project_id,
-                amount: toNumber(balance.amount),
-                description: balance.description || '',
-                date: balance.date || new Date()
-            }));
+            const openingBalanceDocs = data.opening_balances.map(balance => {
+                const amount = toNumber(balance.amount);
+                
+                // Validate: positive balance (we owe them) must have project_id
+                if (amount > 0 && !balance.project_id) {
+                    throw new Error('الرصيد الافتتاحي الموجب يجب أن يكون مرتبطاً بمشروع/عميل');
+                }
+                
+                return {
+                    crusher_id: crusher._id,
+                    project_id: amount > 0 ? balance.project_id : null,  // Only link if positive
+                    amount: amount,
+                    description: balance.description || '',
+                    date: balance.date || new Date()
+                };
+            });
 
             await CrusherOpeningBalance.insertMany(openingBalanceDocs);
         }
@@ -157,6 +182,14 @@ class CrusherService {
     }
 
     static async updateCrusher(id, data) {
+        const { AuditLog, CrusherOpeningBalance } = require('../models');
+        
+        // Get the old crusher data before update
+        const oldCrusher = await Crusher.findById(id);
+        if (!oldCrusher) {
+            return null;
+        }
+
         const updateData = {};
 
         // Only update fields that are provided
@@ -173,6 +206,77 @@ class CrusherService {
             updateData,
             { new: true }
         );
+
+        // Handle opening balances if provided
+        if (data.opening_balances && Array.isArray(data.opening_balances)) {
+            // Get existing opening balances
+            const existingBalances = await CrusherOpeningBalance.find({
+                crusher_id: id,
+                is_deleted: false
+            });
+
+            const existingIds = existingBalances.map(b => b._id.toString());
+            const providedIds = data.opening_balances
+                .filter(b => b.id)
+                .map(b => b.id.toString());
+
+            // Delete opening balances that were removed
+            const toDelete = existingIds.filter(id => !providedIds.includes(id));
+            if (toDelete.length > 0) {
+                await CrusherOpeningBalance.updateMany(
+                    { _id: { $in: toDelete } },
+                    { is_deleted: true, deleted_at: new Date() }
+                );
+            }
+
+            // Update or create opening balances
+            for (const balance of data.opening_balances) {
+                const amount = toNumber(balance.amount);
+                
+                // Validate: positive balance (we owe them) must have project_id
+                if (amount > 0 && !balance.project_id) {
+                    throw new Error('الرصيد الافتتاحي الموجب يجب أن يكون مرتبطاً بمشروع/عميل');
+                }
+                
+                if (balance.id) {
+                    // Update existing
+                    await CrusherOpeningBalance.findByIdAndUpdate(
+                        balance.id, 
+                        {
+                            project_id: amount > 0 ? balance.project_id : null,  // Only link if positive
+                            amount: amount,
+                            description: balance.description || ''
+                        }
+                    );
+                } else {
+                    // Create new
+                    await CrusherOpeningBalance.create({
+                        crusher_id: id,
+                        project_id: amount > 0 ? balance.project_id : null,  // Only link if positive
+                        amount: amount,
+                        description: balance.description || '',
+                        date: new Date()
+                    });
+                }
+            }
+
+            // Log opening balance changes
+            try {
+                await AuditLog.create({
+                    user_id: data.userId || null,
+                    user_role: data.userRole || 'unknown',
+                    action_type: 'update',
+                    entity_type: 'crusher',
+                    entity_id: id,
+                    entity_name: crusher.name,
+                    description: `تعديل الأرصدة الافتتاحية للكسارة "${crusher.name}"`,
+                    ip_address: data.ipAddress || null,
+                    user_agent: data.userAgent || null
+                });
+            } catch (auditError) {
+                console.error('Failed to create audit log:', auditError);
+            }
+        }
 
         if (!crusher) {
             return null;
@@ -196,8 +300,18 @@ class CrusherService {
     }
 
     static async computeCrusherTotals(crusherId) {
+        const { CrusherOpeningBalance } = require('../models');
+        
         const crusher = await Crusher.findById(crusherId);
-        const opening = crusher ? toNumber(crusher.opening_balance) : 0;
+        
+        // Get project-based opening balances
+        const openingBalances = await CrusherOpeningBalance.find({
+            crusher_id: crusherId,
+            is_deleted: false
+        });
+        
+        // Sum all project-based opening balances
+        const opening = openingBalances.reduce((sum, ob) => sum + toNumber(ob.amount), 0);
 
         const deliveries = await Delivery.find({ crusher_id: crusherId });
         const payments = await CrusherPayment.find({ crusher_id: crusherId });
@@ -220,7 +334,7 @@ class CrusherService {
         const deliveriesCount = deliveries.length;
 
         return {
-            openingBalance: opening,  // Opening balance
+            openingBalance: opening,  // Opening balance (sum of all project-based)
             totalRequired,      // Base amount we owe (before adjustments)
             totalNeeded,        // Final amount we owe (after adjustments and opening balance)
             totalPaid,          // Amount we've paid

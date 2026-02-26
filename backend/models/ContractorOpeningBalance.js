@@ -8,8 +8,8 @@ const contractorOpeningBalanceSchema = new mongoose.Schema({
     },
     project_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Project',
-        required: true
+        ref: 'Client',
+        required: false  // Optional: only required for positive balances (we owe them)
     },
     amount: {
         type: Number,

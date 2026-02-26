@@ -59,7 +59,8 @@ const deliverySchema = new mongoose.Schema({
     },
     material_price_at_time: {
         type: Number,
-        required: true,
+        required: [true, 'سعر المادة مطلوب'],
+        min: [0.01, 'سعر المادة يجب أن يكون أكبر من صفر'],
         get: v => Math.round(v * 100) / 100,
         set: v => Math.round(v * 100) / 100
     },

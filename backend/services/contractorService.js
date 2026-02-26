@@ -54,6 +54,13 @@ class ContractorService {
             entity_id: id
         }).sort({ created_at: -1 });
 
+        // Get opening balances
+        const { ContractorOpeningBalance } = require('../models');
+        const openingBalances = await ContractorOpeningBalance.find({
+            contractor_id: id,
+            is_deleted: false
+        }).populate('project_id', 'name').sort({ created_at: -1 });
+
         // Calculate totals
         const totals = await this.computeContractorTotals(id);
 
@@ -64,6 +71,15 @@ class ContractorService {
                 opening_balance: contractor.opening_balance,
                 created_at: contractor.created_at
             },
+            opening_balances: openingBalances.map(ob => ({
+                id: ob._id,
+                project_id: ob.project_id?._id || ob.project_id,
+                project_name: ob.project_id?.name || 'مشروع محذوف',
+                amount: ob.amount,
+                description: ob.description,
+                date: ob.date,
+                created_at: ob.created_at
+            })),
             deliveries: deliveries.map(d => ({
                 id: d._id,
                 client_id: d.client_id?._id || d.client_id,
@@ -136,6 +152,8 @@ class ContractorService {
     }
 
     static async updateContractor(id, data) {
+        const { AuditLog, ContractorOpeningBalance } = require('../models');
+        
         const contractor = await Contractor.findByIdAndUpdate(
             id,
             {
@@ -147,6 +165,74 @@ class ContractorService {
 
         if (!contractor) {
             return null;
+        }
+
+        // Handle opening balances if provided
+        if (data.opening_balances && Array.isArray(data.opening_balances)) {
+            // Get existing opening balances
+            const existingBalances = await ContractorOpeningBalance.find({
+                contractor_id: id,
+                is_deleted: false
+            });
+
+            const existingIds = existingBalances.map(b => b._id.toString());
+            const providedIds = data.opening_balances
+                .filter(b => b.id)
+                .map(b => b.id.toString());
+
+            // Delete opening balances that were removed
+            const toDelete = existingIds.filter(id => !providedIds.includes(id));
+            if (toDelete.length > 0) {
+                await ContractorOpeningBalance.updateMany(
+                    { _id: { $in: toDelete } },
+                    { is_deleted: true, deleted_at: new Date() }
+                );
+            }
+
+            // Update or create opening balances
+            for (const balance of data.opening_balances) {
+                const amount = toNumber(balance.amount);
+                
+                // Validate: positive balance (we owe them) must have project_id
+                if (amount > 0 && !balance.project_id) {
+                    throw new Error('الرصيد الافتتاحي الموجب يجب أن يكون مرتبطاً بمشروع/عميل');
+                }
+                
+                if (balance.id) {
+                    // Update existing
+                    await ContractorOpeningBalance.findByIdAndUpdate(balance.id, {
+                        project_id: amount > 0 ? balance.project_id : null,  // Only link if positive
+                        amount: amount,
+                        description: balance.description || ''
+                    });
+                } else {
+                    // Create new
+                    await ContractorOpeningBalance.create({
+                        contractor_id: id,
+                        project_id: amount > 0 ? balance.project_id : null,  // Only link if positive
+                        amount: amount,
+                        description: balance.description || '',
+                        date: new Date()
+                    });
+                }
+            }
+
+            // Log opening balance changes
+            try {
+                await AuditLog.create({
+                    user_id: data.userId || null,
+                    user_role: data.userRole || 'unknown',
+                    action_type: 'update',
+                    entity_type: 'contractor',
+                    entity_id: id,
+                    entity_name: contractor.name,
+                    description: `تعديل الأرصدة الافتتاحية للمقاول "${contractor.name}"`,
+                    ip_address: data.ipAddress || null,
+                    user_agent: data.userAgent || null
+                });
+            } catch (auditError) {
+                console.error('Failed to create audit log:', auditError);
+            }
         }
 
         return {
@@ -162,12 +248,20 @@ class ContractorService {
     }
 
     static async computeContractorTotals(contractorId) {
+        const { ContractorOpeningBalance } = require('../models');
+        
         const deliveries = await Delivery.find({ contractor_id: contractorId });
         const payments = await ContractorPayment.find({ contractor_id: contractorId });
         const adjustments = await Adjustment.find({ entity_type: 'contractor', entity_id: contractorId });
 
-        const contractor = await Contractor.findById(contractorId);
-        const opening = contractor ? toNumber(contractor.opening_balance) : 0;
+        // Get project-based opening balances
+        const openingBalances = await ContractorOpeningBalance.find({
+            contractor_id: contractorId,
+            is_deleted: false
+        });
+        
+        // Sum all project-based opening balances
+        const opening = openingBalances.reduce((sum, ob) => sum + toNumber(ob.amount), 0);
 
         const totalEarnings = deliveries.reduce((sum, d) => sum + toNumber(d.contractor_total_charge), 0);
         const totalPayments = payments.reduce((sum, p) => sum + toNumber(p.amount), 0);

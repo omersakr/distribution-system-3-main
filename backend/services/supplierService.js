@@ -29,15 +29,23 @@ class SupplierService {
                     const totalPaid = payments.reduce((sum, p) => sum + toNumber(p.amount), 0);
 
                     // Get adjustments
-                    const { Adjustment } = require('../models');
+                    const { Adjustment, SupplierOpeningBalance } = require('../models');
                     const adjustments = await Adjustment.find({
                         entity_type: 'supplier',
                         entity_id: supplier._id
                     });
                     const totalAdjustments = adjustments.reduce((sum, a) => sum + toNumber(a.amount), 0);
 
+                    // Get project-based opening balances
+                    const openingBalances = await SupplierOpeningBalance.find({
+                        supplier_id: supplier._id,
+                        is_deleted: false
+                    });
+                    
+                    // Sum all project-based opening balances
+                    const openingBalance = openingBalances.reduce((sum, ob) => sum + toNumber(ob.amount), 0);
+                    
                     // Calculate balance (including opening balance and adjustments)
-                    const openingBalance = toNumber(supplier.opening_balance);
                     const balance = openingBalance + totalDue + totalAdjustments - totalPaid;
 
                     return {
@@ -98,14 +106,22 @@ class SupplierService {
             supplier_id: id
         }).sort({ paid_at: -1 });
 
-        const { Adjustment } = require('../models');
+        const { Adjustment, SupplierOpeningBalance } = require('../models');
         const adjustments = await Adjustment.find({
             entity_type: 'supplier',
             entity_id: id
         }).sort({ created_at: -1 });
 
+        // Get opening balances
+        const openingBalances = await SupplierOpeningBalance.find({
+            supplier_id: id,
+            is_deleted: false
+        }).populate('project_id', 'name').sort({ created_at: -1 });
+
         // Calculate totals (including opening balance)
-        const openingBalance = toNumber(supplier.opening_balance);
+        // Sum all project-based opening balances
+        const openingBalance = openingBalances.reduce((sum, ob) => sum + toNumber(ob.amount), 0);
+        
         const totalDue = deliveries.reduce((sum, delivery) => {
             const netQuantity = toNumber(delivery.car_volume) - toNumber(delivery.discount_volume);
             const materialPrice = toNumber(delivery.material_price_at_time);
@@ -127,6 +143,15 @@ class SupplierService {
                 status: supplier.status,
                 created_at: supplier.created_at
             },
+            opening_balances: openingBalances.map(ob => ({
+                id: ob._id,
+                project_id: ob.project_id?._id || ob.project_id,
+                project_name: ob.project_id?.name || 'مشروع محذوف',
+                amount: ob.amount,
+                description: ob.description,
+                date: ob.date,
+                created_at: ob.created_at
+            })),
             deliveries: deliveries.map(d => ({
                 id: d._id,
                 delivery_date: d.created_at, // Use created_at since there's no delivery_date field
@@ -160,6 +185,7 @@ class SupplierService {
                 created_at: a.created_at
             })),
             totals: {
+                opening_balance: Math.round(openingBalance * 100) / 100,
                 balance: Math.round(balance * 100) / 100,
                 balance_status: balance > 0 ? 'payable' : balance < 0 ? 'overpaid' : 'balanced',
                 balance_description: balance > 0 ? 'مستحق الدفع' : balance < 0 ? 'مدفوع زائد' : 'متوازن',
@@ -195,6 +221,7 @@ class SupplierService {
             name: supplier.name,
             phone_number: supplier.phone_number,
             notes: supplier.notes,
+            opening_balance: supplier.opening_balance,
             materials: supplier.materials,
             status: supplier.status,
             created_at: supplier.created_at
@@ -202,14 +229,91 @@ class SupplierService {
     }
 
     static async updateSupplier(id, data) {
+        const { AuditLog, SupplierOpeningBalance } = require('../models');
+        
+        // Get the old supplier data before update
+        const oldSupplier = await Supplier.findById(id);
+        if (!oldSupplier) {
+            return null;
+        }
+
         const supplier = await Supplier.findByIdAndUpdate(id, data, { new: true });
         if (!supplier) return null;
+
+        // Handle opening balances if provided
+        if (data.opening_balances && Array.isArray(data.opening_balances)) {
+            // Get existing opening balances
+            const existingBalances = await SupplierOpeningBalance.find({
+                supplier_id: id,
+                is_deleted: false
+            });
+
+            const existingIds = existingBalances.map(b => b._id.toString());
+            const providedIds = data.opening_balances
+                .filter(b => b.id)
+                .map(b => b.id.toString());
+
+            // Delete opening balances that were removed
+            const toDelete = existingIds.filter(id => !providedIds.includes(id));
+            if (toDelete.length > 0) {
+                await SupplierOpeningBalance.updateMany(
+                    { _id: { $in: toDelete } },
+                    { is_deleted: true, deleted_at: new Date() }
+                );
+            }
+
+            // Update or create opening balances
+            for (const balance of data.opening_balances) {
+                const amount = toNumber(balance.amount);
+                
+                // Validate: positive balance (we owe them) must have project_id
+                if (amount > 0 && !balance.project_id) {
+                    throw new Error('الرصيد الافتتاحي الموجب يجب أن يكون مرتبطاً بمشروع/عميل');
+                }
+                
+                if (balance.id) {
+                    // Update existing
+                    await SupplierOpeningBalance.findByIdAndUpdate(balance.id, {
+                        project_id: amount > 0 ? balance.project_id : null,  // Only link if positive
+                        amount: amount,
+                        description: balance.description || ''
+                    });
+                } else {
+                    // Create new
+                    await SupplierOpeningBalance.create({
+                        supplier_id: id,
+                        project_id: amount > 0 ? balance.project_id : null,  // Only link if positive
+                        amount: amount,
+                        description: balance.description || '',
+                        date: new Date()
+                    });
+                }
+            }
+
+            // Log opening balance changes
+            try {
+                await AuditLog.create({
+                    user_id: data.userId || null,
+                    user_role: data.userRole || 'unknown',
+                    action_type: 'update',
+                    entity_type: 'supplier',
+                    entity_id: id,
+                    entity_name: supplier.name,
+                    description: `تعديل الأرصدة الافتتاحية للمورد "${supplier.name}"`,
+                    ip_address: data.ipAddress || null,
+                    user_agent: data.userAgent || null
+                });
+            } catch (auditError) {
+                console.error('Failed to create audit log:', auditError);
+            }
+        }
 
         return {
             id: supplier._id,
             name: supplier.name,
             phone_number: supplier.phone_number,
             notes: supplier.notes,
+            opening_balance: supplier.opening_balance,
             materials: supplier.materials,
             status: supplier.status,
             created_at: supplier.created_at
@@ -558,12 +662,20 @@ class SupplierService {
         const payments = await SupplierPayment.find(paymentDateFilter)
             .sort({ paid_at: 1 });
 
-        const { Adjustment } = require('../models');
+        const { Adjustment, SupplierOpeningBalance } = require('../models');
         const adjustments = await Adjustment.find(adjustmentDateFilter)
             .sort({ created_at: 1 });
 
+        // Get project-based opening balances
+        const openingBalances = await SupplierOpeningBalance.find({
+            supplier_id: supplierId,
+            is_deleted: false
+        });
+        
+        // Sum all project-based opening balances
+        const openingBalance = openingBalances.reduce((sum, ob) => sum + toNumber(ob.amount), 0);
+        
         // Calculate totals (including opening balance)
-        const openingBalance = toNumber(supplier.opening_balance);
         const totalDue = deliveries.reduce((sum, delivery) => {
             const netQuantity = toNumber(delivery.car_volume) - toNumber(delivery.discount_volume);
             const materialPrice = toNumber(delivery.material_price_at_time);
