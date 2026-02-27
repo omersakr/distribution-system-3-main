@@ -155,15 +155,26 @@ function displayFinancialSummary(totals) {
     const summaryContainer = document.getElementById('financialSummary');
     const balance = totals.balance || 0;
 
+    // Balance logic: Positive = We owe them, Negative = They owe us
+    const balanceClass = balance > 0 ? 'text-danger' : balance < 0 ? 'text-success' : '';
+    const balanceLabel = balance > 0 ? '(مستحق للإدارة)' : balance < 0 ? '(مستحق من الإدارة)' : '(متوازن)';
+
     summaryContainer.innerHTML = `
-       
         <div class="summary-item">
-            <div class="summary-value">${formatCurrency(totals.total_capital_injected)}</div>
+            <div class="summary-value text-success">${formatCurrency(totals.total_capital_injected)}</div>
             <div class="summary-label">إجمالي ضخ رأس المال</div>
         </div>
         <div class="summary-item">
-            <div class="summary-value">${formatCurrency(totals.total_withdrawals)}</div>
+            <div class="summary-value text-danger">${formatCurrency(totals.total_withdrawals)}</div>
             <div class="summary-label">إجمالي المسحوبات</div>
+        </div>
+        <div class="summary-item">
+            <div class="summary-value text-danger">${formatCurrency(totals.total_payments)}</div>
+            <div class="summary-label">إجمالي المدفوعات</div>
+        </div>
+        <div class="summary-item">
+            <div class="summary-value ${balanceClass}">${formatCurrency(Math.abs(balance))} <small style="font-size: 0.75rem;">${balanceLabel}</small></div>
+            <div class="summary-label">الرصيد الصافي</div>
         </div>
     `;
 }

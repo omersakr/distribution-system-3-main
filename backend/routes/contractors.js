@@ -12,6 +12,13 @@ const router = express.Router();
 // Get all contractors
 router.get('/', contractorsController.getAllContractors);
 
+// ============================================================================
+// CONTRACTOR OPENING BALANCES (Project-Based)
+// ============================================================================
+
+// Get opening balances by project (for project analysis)
+router.get('/opening-balances', contractorsController.getOpeningBalancesByProject);
+
 // Get contractor by ID with detailed information and related data
 router.get('/:id', contractorsController.getContractorById);
 

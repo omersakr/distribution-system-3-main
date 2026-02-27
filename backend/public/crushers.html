@@ -36,71 +36,61 @@
     <!-- Add Crusher Modal -->
     <div id="addCrusherModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2>إضافة كسارة جديدة</h2>
-                <button class="modal-close" data-action="close-modal" data-target="addCrusherModal">&times;</button>
-            </div>
+            <div class="modal-header">إضافة كسارة جديدة</div>
+            <div id="addCrusherMessage"></div>
             <form id="addCrusherForm">
                 <div class="form-group">
-                    <label for="crusherName">اسم الكسارة *</label>
-                    <input type="text" id="crusherName" name="name" autocomplete="organization" required>
+                    <label class="form-label" for="crusherName">اسم الكسارة *</label>
+                    <input type="text" class="form-input" id="crusherName" name="name" autocomplete="organization" required>
                 </div>
 
-                <div class="form-section">
-                    <h3>أسعار المواد (جنيه/م³)</h3>
+                <div class="form-group">
+                    <label class="form-label">الأرصدة الافتتاحية (حسب المشروع/العميل)</label>
+                    <div id="crusherOpeningBalancesContainer">
+                        <!-- Opening balance rows will be added here dynamically -->
+                    </div>
+                    <button type="button" class="btn btn-secondary" id="addCrusherOpeningBalanceBtn" style="margin-top: 10px;">
+                        ➕ إضافة رصيد افتتاحي
+                    </button>
+                    <small class="form-help">الرصيد الافتتاحي لكل مشروع/عميل (موجب = نحن مدينون لهم)</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">أسعار المواد (جنيه/م³)</label>
                     <div class="price-grid">
                         <div class="form-group">
-                            <label for="sandPrice">رمل</label>
-                            <input type="number" id="sandPrice" name="sand_price" step="0.01" min="0" placeholder="0.00"
+                            <label class="form-label" for="sandPrice">رمل</label>
+                            <input type="number" class="form-input" id="sandPrice" name="sand_price" step="0.01" min="0" placeholder="0.00"
                                 autocomplete="off">
                         </div>
                         <div class="form-group">
-                            <label for="aggregate1Price">سن 1</label>
-                            <input type="number" id="aggregate1Price" name="aggregate1_price" step="0.01" min="0"
+                            <label class="form-label" for="aggregate1Price">سن 1</label>
+                            <input type="number" class="form-input" id="aggregate1Price" name="aggregate1_price" step="0.01" min="0"
                                 placeholder="0.00" autocomplete="off">
                         </div>
                         <div class="form-group">
-                            <label for="aggregate2Price">سن 2</label>
-                            <input type="number" id="aggregate2Price" name="aggregate2_price" step="0.01" min="0"
+                            <label class="form-label" for="aggregate2Price">سن 2</label>
+                            <input type="number" class="form-input" id="aggregate2Price" name="aggregate2_price" step="0.01" min="0"
                                 placeholder="0.00" autocomplete="off">
                         </div>
                         <div class="form-group">
-                            <label for="aggregate3Price">سن 3</label>
-                            <input type="number" id="aggregate3Price" name="aggregate3_price" step="0.01" min="0"
+                            <label class="form-label" for="aggregate3Price">سن 3</label>
+                            <input type="number" class="form-input" id="aggregate3Price" name="aggregate3_price" step="0.01" min="0"
                                 placeholder="0.00" autocomplete="off">
                         </div>
                         <div class="form-group">
-                            <label for="aggregate6PowderPrice">سن 6 بودرة</label>
-                            <input type="number" id="aggregate6PowderPrice" name="aggregate6_powder_price" step="0.01"
+                            <label class="form-label" for="aggregate6PowderPrice">سن 6 بودرة</label>
+                            <input type="number" class="form-input" id="aggregate6PowderPrice" name="aggregate6_powder_price" step="0.01"
                                 min="0" placeholder="0.00" autocomplete="off">
                         </div>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <h3 style="margin: 20px 0 10px 0; font-size: 1.1rem; color: var(--gray-700);">
-                        الأرصدة الافتتاحية (اختياري)
-                    </h3>
-                    <p style="color: var(--gray-600); font-size: 0.9rem; margin-bottom: 15px;">
-                        يمكنك إضافة أرصدة افتتاحية مرتبطة بمشاريع محددة
-                    </p>
-
-                    <div id="crusherOpeningBalancesContainer">
-                        <!-- Opening balances will be added here -->
-                    </div>
-
-                    <button type="button" class="btn btn-secondary" id="addCrusherOpeningBalanceBtn"
-                        style="margin-top: 10px;">
-                        ➕ إضافة رصيد افتتاحي
-                    </button>
-                </div>
-
-                <div class="form-actions">
+                <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" data-action="close-modal"
                         data-target="addCrusherModal">إلغاء</button>
                     <button type="submit" class="btn btn-primary">إضافة الكسارة</button>
                 </div>
-                <div id="addCrusherMessage"></div>
             </form>
         </div>
     </div>

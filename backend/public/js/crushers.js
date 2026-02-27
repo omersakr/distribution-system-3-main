@@ -542,3 +542,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         addBtn.addEventListener('click', addCrusherOpeningBalanceRow);
     }
 });
+
+
+// ============================================================================
+// OPENING BALANCE MANAGEMENT (Project-Based) - ADD FORM
+// ============================================================================

@@ -954,6 +954,13 @@ async function loadContractorDetails() {
         const data = await response.json();
         contractorData = data;
 
+        console.log('=== CONTRACTOR DATA DEBUG ===');
+        console.log('Full data:', JSON.stringify(data, null, 2));
+        console.log('Totals object:', data.totals);
+        console.log('Opening Balance:', data.totals?.openingBalance);
+        console.log('Opening Balances Array:', data.opening_balances);
+        console.log('============================');
+
         // Store data for filtering
         allDeliveries = data.deliveries || [];
         allPayments = data.payments || [];
@@ -981,7 +988,7 @@ async function loadContractorDetails() {
 }
 
 // Edit contractor functionality
-function openEditContractorModal() {
+async function openEditContractorModal() {
     console.log('openEditContractorModal called');
     console.log('contractorData:', contractorData);
 
@@ -996,11 +1003,184 @@ function openEditContractorModal() {
 
     // Fill form with current data
     document.getElementById('editContractorName').value = contractor.name || '';
-    document.getElementById('editContractorOpeningBalance').value = contractor.opening_balance || 0;
+
+    // Load projects first
+    await loadProjectsForEdit();
+
+    // Clear and load opening balances
+    const container = document.getElementById('editContractorOpeningBalancesContainer');
+    container.innerHTML = '';
+    
+    if (contractorData.opening_balances && contractorData.opening_balances.length > 0) {
+        contractorData.opening_balances.forEach(balance => {
+            addEditContractorOpeningBalanceRow(balance);
+        });
+    }
 
     console.log('Showing contractor edit modal...');
     // Show modal
     showModal('editContractorModal');
+}
+
+// Load projects for edit modal
+let editContractorProjectsList = [];
+let editContractorOpeningBalanceCounter = 0;
+
+async function loadProjectsForEdit() {
+    try {
+        const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/clients`);
+        if (!response.ok) throw new Error('فشل في تحميل المشاريع');
+        const data = await response.json();
+        editContractorProjectsList = data.clients || [];
+    } catch (error) {
+        console.error('Error loading projects:', error);
+        editContractorProjectsList = [];
+    }
+}
+
+// Add opening balance row for edit form
+function addEditContractorOpeningBalanceRow(existingData = null) {
+    const container = document.getElementById('editContractorOpeningBalancesContainer');
+    const rowId = editContractorOpeningBalanceCounter++;
+    
+    const row = document.createElement('div');
+    row.className = 'opening-balance-row';
+    row.style.cssText = 'display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: 10px; margin-bottom: 10px; align-items: start; padding: 15px; background: var(--gray-50); border-radius: var(--radius); border: 1px solid var(--gray-200);';
+    row.dataset.rowId = rowId;
+    if (existingData && existingData.id) {
+        row.dataset.balanceId = existingData.id;
+    }
+    
+    // Project column
+    const projectCol = document.createElement('div');
+    const projectLabel = document.createElement('label');
+    projectLabel.style.cssText = 'display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 500;';
+    projectLabel.textContent = 'المشروع';
+    const projectSelect = document.createElement('select');
+    projectSelect.className = 'form-input contractor-opening-balance-project';
+    projectSelect.required = true;
+    projectSelect.innerHTML = '<option value="">اختر المشروع</option>';
+    
+    editContractorProjectsList.forEach(project => {
+        const option = document.createElement('option');
+        // Use client_id because opening_balances reference the Client collection
+        option.value = project.client_id || project.id;
+        option.textContent = project.name;
+        if (existingData && existingData.project_id === (project.client_id || project.id)) {
+            option.selected = true;
+        }
+        projectSelect.appendChild(option);
+    });
+    projectCol.appendChild(projectLabel);
+    projectCol.appendChild(projectSelect);
+    
+    // Amount column
+    const amountCol = document.createElement('div');
+    const amountLabel = document.createElement('label');
+    amountLabel.style.cssText = 'display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 500;';
+    amountLabel.textContent = 'المبلغ';
+    const amountInput = document.createElement('input');
+    amountInput.type = 'number';
+    amountInput.className = 'form-input contractor-opening-balance-amount';
+    amountInput.placeholder = '0.00';
+    amountInput.step = '0.01';
+    amountInput.required = true;
+    if (existingData) {
+        amountInput.value = existingData.amount || 0;
+    }
+    
+    // Add event listener to show/hide project field based on amount
+    amountInput.addEventListener('input', () => {
+        const amount = parseFloat(amountInput.value) || 0;
+        if (amount > 0) {
+            // Positive: we owe them, must select project
+            projectCol.style.display = 'block';
+            projectSelect.required = true;
+        } else {
+            // Negative or zero: they owe us, no project needed
+            projectCol.style.display = 'none';
+            projectSelect.required = false;
+            projectSelect.value = '';  // Clear selection
+        }
+    });
+    
+    // Initial state based on existing amount
+    const initialAmount = parseFloat(amountInput.value) || 0;
+    if (initialAmount <= 0) {
+        projectCol.style.display = 'none';
+        projectSelect.required = false;
+    }
+    
+    amountCol.appendChild(amountLabel);
+    amountCol.appendChild(amountInput);
+    
+    // Description column
+    const descCol = document.createElement('div');
+    const descLabel = document.createElement('label');
+    descLabel.style.cssText = 'display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 500;';
+    descLabel.textContent = 'الوصف';
+    const descInput = document.createElement('input');
+    descInput.type = 'text';
+    descInput.className = 'form-input contractor-opening-balance-description';
+    descInput.placeholder = 'وصف اختياري';
+    descInput.maxLength = 500;
+    if (existingData && existingData.description) {
+        descInput.value = existingData.description;
+    }
+    descCol.appendChild(descLabel);
+    descCol.appendChild(descInput);
+    
+    // Delete button column
+    const deleteCol = document.createElement('div');
+    deleteCol.style.paddingTop = '28px';
+    const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.className = 'btn btn-sm btn-danger';
+    deleteBtn.textContent = '🗑️';
+    deleteBtn.onclick = () => row.remove();
+    deleteCol.appendChild(deleteBtn);
+    
+    row.appendChild(projectCol);
+    row.appendChild(amountCol);
+    row.appendChild(descCol);
+    row.appendChild(deleteCol);
+    
+    container.appendChild(row);
+}
+
+// Get opening balances from edit form
+function getEditContractorOpeningBalances() {
+    const container = document.getElementById('editContractorOpeningBalancesContainer');
+    const rows = container.querySelectorAll('.opening-balance-row');
+    const balances = [];
+    
+    rows.forEach(row => {
+        const projectSelect = row.querySelector('.contractor-opening-balance-project');
+        const amountInput = row.querySelector('.contractor-opening-balance-amount');
+        const descInput = row.querySelector('.contractor-opening-balance-description');
+        const balanceId = row.dataset.balanceId;
+        
+        const amount = parseFloat(amountInput.value) || 0;
+        
+        // Validate: positive balance must have project selected
+        if (amount > 0 && (!projectSelect.value || projectSelect.value === '')) {
+            throw new Error('الرصيد الافتتاحي الموجب يجب أن يكون مرتبطاً بمشروع/عميل');
+        }
+        
+        if (amountInput.value) {
+            const balance = {
+                project_id: amount > 0 ? projectSelect.value : null,  // Only include project_id if positive
+                amount: amount,
+                description: descInput.value || ''
+            };
+            if (balanceId) {
+                balance.id = balanceId;
+            }
+            balances.push(balance);
+        }
+    });
+    
+    return balances;
 }
 
 async function updateContractor(contractorId, contractorData) {
@@ -1063,10 +1243,11 @@ function setupEditContractorHandlers() {
 
         const contractorId = getContractorIdFromURL();
         const formData = new FormData(e.target);
+        const openingBalances = getEditContractorOpeningBalances();
 
         const contractorData = {
             name: formData.get('name').trim(),
-            opening_balance: parseFloat(formData.get('opening_balance')) || 0
+            opening_balances: openingBalances
         };
 
         if (!contractorData.name) {
@@ -1091,6 +1272,12 @@ function setupEditContractorHandlers() {
             showMessage('editContractorMessage', error.message, 'error');
         }
     });
+
+    // Add opening balance button for edit form
+    const addEditBalanceBtn = document.getElementById('addEditContractorOpeningBalanceBtn');
+    if (addEditBalanceBtn) {
+        addEditBalanceBtn.addEventListener('click', () => addEditContractorOpeningBalanceRow());
+    }
 }
 
 // Initialize

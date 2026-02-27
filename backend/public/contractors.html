@@ -35,39 +35,30 @@
 
     <!-- Add Contractor Modal -->
     <div id="addContractorModal" class="modal" style="display: none;">
-        <div class="modal-content" style="max-width: 700px;">
-            <div class="modal-header">
-                <h2>إضافة مقاول جديد</h2>
-                <button class="modal-close" onclick="closeAddContractorModal()">&times;</button>
-            </div>
+        <div class="modal-content">
+            <div class="modal-header">إضافة مقاول جديد</div>
+            <div id="addContractorMessage"></div>
             <form id="addContractorForm">
                 <div class="form-group">
-                    <label for="contractorName"><span class="required">*</span> اسم المقاول</label>
-                    <input type="text" id="contractorName" name="name" required maxlength="255">
+                    <label class="form-label" for="contractorName">اسم المقاول *</label>
+                    <input type="text" class="form-input" id="contractorName" name="name" required maxlength="255">
                 </div>
 
                 <div class="form-group">
-                    <h3 style="margin: 20px 0 10px 0; font-size: 1.1rem; color: var(--gray-700);">
-                        الأرصدة الافتتاحية (اختياري)
-                    </h3>
-                    <p style="color: var(--gray-600); font-size: 0.9rem; margin-bottom: 15px;">
-                        يمكنك إضافة أرصدة افتتاحية مرتبطة بمشاريع محددة
-                    </p>
-
-                    <div id="openingBalancesContainer">
-                        <!-- Opening balances will be added here -->
+                    <label class="form-label">الأرصدة الافتتاحية (حسب المشروع/العميل)</label>
+                    <div id="contractorOpeningBalancesContainer">
+                        <!-- Opening balance rows will be added here dynamically -->
                     </div>
-
-                    <button type="button" class="btn btn-secondary" id="addOpeningBalanceBtn" style="margin-top: 10px;">
+                    <button type="button" class="btn btn-secondary" id="addContractorOpeningBalanceBtn" style="margin-top: 10px;">
                         ➕ إضافة رصيد افتتاحي
                     </button>
+                    <small class="form-help">الرصيد الافتتاحي لكل مشروع/عميل (موجب = نحن مدينون لهم)</small>
                 </div>
 
-                <div class="form-actions">
+                <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeAddContractorModal()">إلغاء</button>
                     <button type="submit" class="btn btn-primary">حفظ</button>
                 </div>
-                <div id="addContractorMessage"></div>
             </form>
         </div>
     </div>

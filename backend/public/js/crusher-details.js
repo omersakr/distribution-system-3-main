@@ -14,6 +14,7 @@ let crusherData = null;
 let allDeliveries = [];
 let allPayments = [];
 let allAdjustments = [];
+let editProjectsList = [];
 
 // Image handling functions
 function compressImage(dataUrl, quality = 0.7) {
@@ -54,6 +55,7 @@ function showModal(modalId) {
     const modal = document.getElementById(modalId);
     console.log('Modal element found:', !!modal);
     if (modal) {
+        modal.classList.remove('hidden');
         modal.style.display = 'flex';
         modal.classList.add('active');
         console.log('Modal should now be visible');
@@ -108,22 +110,38 @@ function formatQuantity(amount) {
 function renderSummary(totals) {
     const container = document.getElementById('summaryGrid');
     const net = totals.net || 0;
+    const openingBalance = totals.openingBalance || 0;
     // POSITIVE net = WE OWE THEM (RED - مستحق للكسارة), NEGATIVE net = THEY OWE US (GREEN - مستحق لنا)
     const netClass = net > 0 ? 'text-danger' : net < 0 ? 'text-success' : '';
-    const netLabel = net > 0 ? '<span style="color: #e74c3c;">مستحق للكسارة</span>' : net < 0 ? '<span style="color: #27ae60;">مستحق لنا</span>' : 'متوازن';
+    const netLabel = net > 0 ? 'مستحق للكسارة' : net < 0 ? 'مستحق لنا' : 'متوازن';
+    
+    const adjustments = totals.totalAdjustments || 0;
+    const adjustmentsClass = adjustments > 0 ? 'text-danger' : adjustments < 0 ? 'text-success' : '';
 
     container.innerHTML = `
         <div class="summary-item">
+            <div class="summary-value" style="color: #e74c3c;">${formatCurrency(openingBalance)}</div>
+            <div class="summary-label">الرصيد الافتتاحي</div>
+        </div>
+        <div class="summary-item">
+            <div class="summary-value" style="color: #e74c3c;">${formatCurrency(totals.totalRequired || 0)}</div>
+            <div class="summary-label">المطلوب الأساسي</div>
+        </div>
+        <div class="summary-item">
+            <div class="summary-value ${adjustmentsClass}">${formatCurrency(Math.abs(adjustments))}</div>
+            <div class="summary-label">التسويات</div>
+        </div>
+        <div class="summary-item">
             <div class="summary-value" style="color: #e74c3c;">${formatCurrency(totals.totalNeeded || 0)}</div>
-            <div class="summary-label">إجمالي المطلوب <span style="color: #e74c3c;">(عليه)</span></div>
+            <div class="summary-label">المطلوب النهائي</div>
         </div>
         <div class="summary-item">
             <div class="summary-value" style="color: #27ae60;">${formatCurrency(totals.totalPaid || 0)}</div>
-            <div class="summary-label">إجمالي المدفوع <span style="color: #27ae60;">(له)</span></div>
+            <div class="summary-label">المدفوع</div>
         </div>
         <div class="summary-item">
             <div class="summary-value ${netClass}">${formatCurrency(Math.abs(net))}</div>
-            <div class="summary-label">الصافي - ${netLabel}</div>
+            <div class="summary-label">${netLabel}</div>
         </div>
         <div class="summary-item">
             <div class="summary-value">${totals.deliveriesCount || 0}</div>
@@ -461,23 +479,11 @@ function renderPayments(payments) {
 }
 
 // Modal Functions
-function showModal(modalId) {
-    console.log('showModal called with:', modalId);
-    const modal = document.getElementById(modalId);
-    console.log('Modal element found:', !!modal);
-    if (modal) {
-        modal.style.display = 'flex';
-        modal.classList.add('active');
-        console.log('Modal should now be visible');
-    } else {
-        console.error('Modal not found:', modalId);
-    }
-}
-
 function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
         modal.classList.remove('active');
+        modal.classList.add('hidden');
         modal.style.display = 'none';
 
         // Clear messages when closing
@@ -1177,6 +1183,13 @@ async function loadCrusherDetails() {
         const data = await response.json();
         crusherData = data;
 
+        console.log('=== CRUSHER DATA DEBUG ===');
+        console.log('Full data:', JSON.stringify(data, null, 2));
+        console.log('Totals object:', data.totals);
+        console.log('Opening Balance:', data.totals?.openingBalance);
+        console.log('Opening Balances Array:', data.opening_balances);
+        console.log('============================');
+
         // Store data for filtering
         allDeliveries = data.deliveries || [];
         allPayments = data.payments || [];
@@ -1207,6 +1220,21 @@ async function loadCrusherDetails() {
 }
 
 // Edit crusher functionality
+// Load projects for opening balance dropdowns
+async function loadEditProjects() {
+    try {
+        const resp = await authManager.makeAuthenticatedRequest(`${API_BASE}/projects`);
+        if (!resp.ok) throw new Error('Failed to load projects');
+        const data = await resp.json();
+        editProjectsList = data.projects || data;
+    } catch (error) {
+        console.error('Error loading projects:', error);
+        editProjectsList = [];
+    }
+}
+
+
+
 function openEditCrusherModal() {
     console.log('openEditCrusherModal called');
     console.log('crusherData:', crusherData);
@@ -1222,6 +1250,7 @@ function openEditCrusherModal() {
 
     // Fill form with current data
     document.getElementById('editCrusherName').value = crusher.name || '';
+    document.getElementById('editCrusherOpeningBalance').value = crusher.opening_balance || 0;
 
     console.log('Showing crusher edit modal...');
     // Show modal
@@ -1406,45 +1435,13 @@ function setupEditCrusherHandlers() {
         console.error('Edit crusher button not found!');
     }
 
-    // Edit crusher form
-    document.getElementById('editCrusherForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const crusherId = getCrusherIdFromURL();
-        const formData = new FormData(e.target);
-
-        const crusherData = {
-            name: formData.get('name').trim()
-        };
-
-        if (!crusherData.name) {
-            showMessage('editCrusherMessage', 'اسم الكسارة مطلوب', 'error');
-            return;
-        }
-
-        try {
-            showMessage('editCrusherMessage', 'جاري حفظ التعديلات...', 'info');
-
-            await updateCrusher(crusherId, crusherData);
-
-            showMessage('editCrusherMessage', 'تم حفظ التعديلات بنجاح', 'success');
-
-            // Close modal and reload data
-            setTimeout(() => {
-                closeModal('editCrusherModal');
-                loadCrusherDetails();
-            }, 1000);
-
-        } catch (error) {
-            showMessage('editCrusherMessage', error.message, 'error');
-        }
-    });
 }
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     setupEventHandlers();
     setupEditCrusherHandlers();
+    loadEditProjects(); // Load projects for opening balance dropdowns
     loadCrusherDetails();
 
     // Set default date ranges for reports
@@ -1804,5 +1801,242 @@ document.addEventListener('click', function (e) {
             console.error('💥 Error executing CRUD operation:', error);
         }
         return;
+    }
+});
+
+// ============================================================================
+// OPENING BALANCE MANAGEMENT (Project-Based)
+// ============================================================================
+
+let editCrusherOpeningBalanceCounter = 0;
+
+async function loadEditCrusherOpeningBalances() {
+    if (!crusherData || !crusherData.opening_balances) return;
+    
+    const container = document.getElementById('editCrusherOpeningBalancesContainer');
+    container.innerHTML = '';
+    
+    // Load projects for dropdown
+    await loadEditProjectsList();
+    
+    // Add existing opening balances
+    crusherData.opening_balances.forEach(ob => {
+        addEditCrusherOpeningBalanceRow(ob);
+    });
+}
+
+async function loadEditProjectsList() {
+    try {
+        const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/projects`);
+        const data = await response.json();
+        editProjectsList = data.projects || [];
+    } catch (error) {
+        console.error('Error loading projects:', error);
+        editProjectsList = [];
+    }
+}
+
+function addEditCrusherOpeningBalanceRow(existingData = null) {
+    const container = document.getElementById('editCrusherOpeningBalancesContainer');
+    const rowId = editCrusherOpeningBalanceCounter++;
+    
+    const row = document.createElement('div');
+    row.className = 'opening-balance-row';
+    row.style.cssText = 'display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: 10px; margin-bottom: 10px; align-items: start; padding: 15px; background: var(--gray-50); border-radius: var(--radius); border: 1px solid var(--gray-200);';
+    row.dataset.rowId = rowId;
+    if (existingData && existingData.id) {
+        row.dataset.balanceId = existingData.id;
+    }
+    
+    // Project column
+    const projectCol = document.createElement('div');
+    const projectLabel = document.createElement('label');
+    projectLabel.style.cssText = 'display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 500;';
+    projectLabel.textContent = 'المشروع';
+    const projectSelect = document.createElement('select');
+    projectSelect.className = 'form-input crusher-opening-balance-project';
+    projectSelect.required = true;
+    projectSelect.innerHTML = '<option value="">اختر المشروع</option>';
+    
+    editProjectsList.forEach(project => {
+        const option = document.createElement('option');
+        // Use client_id because opening_balances reference the Client collection
+        option.value = project.client_id || project.id;
+        option.textContent = project.name;
+        if (existingData && existingData.project_id === (project.client_id || project.id)) {
+            option.selected = true;
+        }
+        projectSelect.appendChild(option);
+    });
+    projectCol.appendChild(projectLabel);
+    projectCol.appendChild(projectSelect);
+    
+    // Amount column
+    const amountCol = document.createElement('div');
+    const amountLabel = document.createElement('label');
+    amountLabel.style.cssText = 'display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 500;';
+    amountLabel.textContent = 'المبلغ';
+    const amountInput = document.createElement('input');
+    amountInput.type = 'number';
+    amountInput.className = 'form-input crusher-opening-balance-amount';
+    amountInput.placeholder = '0.00';
+    amountInput.step = '0.01';
+    amountInput.required = true;
+    if (existingData) {
+        amountInput.value = existingData.amount || 0;
+    }
+    
+    // Add event listener to show/hide project field based on amount
+    amountInput.addEventListener('input', () => {
+        const amount = parseFloat(amountInput.value) || 0;
+        if (amount > 0) {
+            // Positive: we owe them, must select project
+            projectCol.style.display = 'block';
+            projectSelect.required = true;
+        } else {
+            // Negative or zero: they owe us, no project needed
+            projectCol.style.display = 'none';
+            projectSelect.required = false;
+            projectSelect.value = '';  // Clear selection
+        }
+    });
+    
+    // Initial state based on existing amount
+    const initialAmount = parseFloat(amountInput.value) || 0;
+    if (initialAmount <= 0) {
+        projectCol.style.display = 'none';
+        projectSelect.required = false;
+    }
+    
+    amountCol.appendChild(amountLabel);
+    amountCol.appendChild(amountInput);
+    
+    // Description column
+    const descCol = document.createElement('div');
+    const descLabel = document.createElement('label');
+    descLabel.style.cssText = 'display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 500;';
+    descLabel.textContent = 'الوصف';
+    const descInput = document.createElement('input');
+    descInput.type = 'text';
+    descInput.className = 'form-input crusher-opening-balance-description';
+    descInput.placeholder = 'وصف اختياري';
+    descInput.maxLength = 500;
+    if (existingData && existingData.description) {
+        descInput.value = existingData.description;
+    }
+    descCol.appendChild(descLabel);
+    descCol.appendChild(descInput);
+    
+    // Delete button column
+    const deleteCol = document.createElement('div');
+    deleteCol.style.paddingTop = '28px';
+    const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.className = 'btn btn-sm btn-danger';
+    deleteBtn.textContent = '🗑️';
+    deleteBtn.onclick = () => row.remove();
+    deleteCol.appendChild(deleteBtn);
+    
+    row.appendChild(projectCol);
+    row.appendChild(amountCol);
+    row.appendChild(descCol);
+    row.appendChild(deleteCol);
+    
+    container.appendChild(row);
+}
+
+function getEditCrusherOpeningBalances() {
+    const container = document.getElementById('editCrusherOpeningBalancesContainer');
+    const rows = container.querySelectorAll('.opening-balance-row');
+    const balances = [];
+    
+    rows.forEach(row => {
+        const projectSelect = row.querySelector('.crusher-opening-balance-project');
+        const amountInput = row.querySelector('.crusher-opening-balance-amount');
+        const descInput = row.querySelector('.crusher-opening-balance-description');
+        const balanceId = row.dataset.balanceId;
+        
+        const amount = parseFloat(amountInput.value) || 0;
+        
+        // Validate: positive balance must have project selected
+        if (amount > 0 && (!projectSelect.value || projectSelect.value === '')) {
+            throw new Error('الرصيد الافتتاحي الموجب يجب أن يكون مرتبطاً بمشروع/عميل');
+        }
+        
+        if (amountInput.value) {
+            const balance = {
+                project_id: amount > 0 ? projectSelect.value : null,  // Only include project_id if positive
+                amount: amount,
+                description: descInput.value || ''
+            };
+            
+            if (balanceId) {
+                balance.id = balanceId;
+            }
+            
+            balances.push(balance);
+        }
+    });
+    
+    return balances;
+}
+
+// Add event listener for add opening balance button
+document.getElementById('addEditCrusherOpeningBalanceBtn')?.addEventListener('click', () => {
+    addEditCrusherOpeningBalanceRow();
+});
+
+// Update edit crusher button to load opening balances
+document.getElementById('editCrusherBtn')?.addEventListener('click', async () => {
+    if (crusherData && crusherData.crusher) {
+        document.getElementById('editCrusherName').value = crusherData.crusher.name;
+        await loadEditCrusherOpeningBalances();
+        showModal('editCrusherModal');
+    }
+});
+
+// Update edit crusher form submission
+document.getElementById('editCrusherForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const crusherId = getCrusherIdFromURL();
+    const name = document.getElementById('editCrusherName').value;
+    const opening_balances = getEditCrusherOpeningBalances();
+    
+    console.log('=== SAVING CRUSHER ===');
+    console.log('Crusher ID:', crusherId);
+    console.log('Name:', name);
+    console.log('Opening Balances:', opening_balances);
+    console.log('Opening Balances JSON:', JSON.stringify(opening_balances, null, 2));
+    
+    try {
+        const requestBody = { name, opening_balances };
+        console.log('Request body:', JSON.stringify(requestBody, null, 2));
+        
+        const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/crushers/${crusherId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+        });
+        
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            const error = await response.json();
+            console.error('Error response:', error);
+            throw new Error(error.message || 'فشل في تحديث الكسارة');
+        }
+        
+        const result = await response.json();
+        console.log('Success response:', result);
+        
+        showMessage('editCrusherMessage', 'تم تحديث البيانات بنجاح', 'success');
+        setTimeout(() => {
+            closeModal('editCrusherModal');
+            loadCrusherDetails();
+        }, 1000);
+    } catch (error) {
+        console.error('Save error:', error);
+        showMessage('editCrusherMessage', error.message, 'error');
     }
 });

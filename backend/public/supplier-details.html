@@ -312,32 +312,40 @@
         <!-- Edit Supplier Modal -->
         <div id="editSupplierModal" class="modal" style="display: none;">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h2>تعديل بيانات المورد</h2>
-                    <button class="modal-close">&times;</button>
-                </div>
+                <div class="modal-header">تعديل بيانات المورد</div>
+                <div id="editSupplierMessage"></div>
                 <form id="editSupplierForm">
                     <div class="form-group">
-                        <label for="editSupplierName">اسم المورد *</label>
-                        <input type="text" id="editSupplierName" name="name" required autocomplete="name">
+                        <label class="form-label" for="editSupplierName">اسم المورد *</label>
+                        <input type="text" class="form-input" id="editSupplierName" name="name" required autocomplete="name">
                     </div>
 
                     <div class="form-group">
-                        <label for="editSupplierPhone">رقم الهاتف</label>
-                        <input type="tel" id="editSupplierPhone" name="phone_number" placeholder="اختياري"
+                        <label class="form-label" for="editSupplierPhone">رقم الهاتف</label>
+                        <input type="tel" class="form-input" id="editSupplierPhone" name="phone_number" placeholder="اختياري"
                             autocomplete="tel">
                     </div>
 
                     <div class="form-group">
-                        <label for="editSupplierNotes">ملاحظات</label>
-                        <textarea id="editSupplierNotes" name="notes" rows="3" placeholder="اختياري"></textarea>
+                        <label class="form-label">الأرصدة الافتتاحية (حسب المشروع/العميل)</label>
+                        <div id="editSupplierOpeningBalancesContainer">
+                            <!-- Opening balance rows will be added here dynamically -->
+                        </div>
+                        <button type="button" class="btn btn-secondary" id="addEditSupplierOpeningBalanceBtn" style="margin-top: 10px;">
+                            + إضافة رصيد افتتاحي
+                        </button>
+                        <small class="form-help">الرصيد الافتتاحي لكل مشروع/عميل (موجب = نحن مدينون لهم)</small>
                     </div>
 
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-secondary">إلغاء</button>
+                    <div class="form-group">
+                        <label class="form-label" for="editSupplierNotes">ملاحظات</label>
+                        <textarea class="form-textarea" id="editSupplierNotes" name="notes" placeholder="اختياري"></textarea>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary modal-close">إلغاء</button>
                         <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
                     </div>
-                    <div id="editSupplierMessage"></div>
                 </form>
             </div>
         </div>
@@ -499,20 +507,18 @@
     <!-- Add Material Modal -->
     <div id="addMaterialModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2>إضافة مادة جديدة</h2>
-                <span class="close modal-close">&times;</span>
-            </div>
+            <div class="modal-header">إضافة مادة جديدة</div>
+            <div id="addMaterialMessage"></div>
             <form id="addMaterialForm">
                 <div class="form-group">
-                    <label for="materialName">اسم المادة *</label>
-                    <input type="text" id="materialName" name="name" required>
+                    <label class="form-label" for="materialName">اسم المادة *</label>
+                    <input type="text" class="form-input" id="materialName" name="name" required>
                 </div>
                 <div class="form-group">
-                    <label for="materialPrice">السعر لكل وحدة *</label>
-                    <input type="number" id="materialPrice" name="price_per_unit" step="0.01" min="0" required>
+                    <label class="form-label" for="materialPrice">السعر لكل وحدة *</label>
+                    <input type="number" class="form-input" id="materialPrice" name="price_per_unit" step="0.01" min="0" required>
                 </div>
-                <div class="form-actions">
+                <div class="modal-actions">
                     <button type="button" class="btn btn-secondary modal-close">إلغاء</button>
                     <button type="submit" class="btn btn-primary">حفظ</button>
                 </div>
@@ -523,40 +529,45 @@
     <!-- Add Payment Modal -->
     <div id="addPaymentModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2>إضافة دفعة</h2>
-                <span class="close modal-close">&times;</span>
-            </div>
+            <div class="modal-header">إضافة دفعة جديدة</div>
+            <div id="addPaymentMessage"></div>
             <form id="addPaymentForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="paymentAmount">المبلغ *</label>
-                        <input type="number" id="paymentAmount" name="amount" step="0.01" min="0" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="paymentMethod">طريقة الدفع</label>
-                        <input type="text" id="paymentMethod" name="method" placeholder="نقدي، تحويل، إلخ">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="paymentDetails">التفاصيل</label>
-                        <input type="text" id="paymentDetails" name="details">
-                    </div>
-                    <div class="form-group">
-                        <label for="paymentDate">تاريخ الدفع</label>
-                        <input type="date" id="paymentDate" name="paid_at">
-                    </div>
+                <div class="form-group">
+                    <label class="form-label" for="paymentAmount">المبلغ *</label>
+                    <input type="number" class="form-input" id="paymentAmount" name="amount" required min="0" step="0.01"
+                        autocomplete="transaction-amount">
                 </div>
                 <div class="form-group">
-                    <label for="paymentNotes">ملاحظات</label>
-                    <textarea id="paymentNotes" name="note" rows="3"></textarea>
+                    <label class="form-label" for="paymentMethod">طريقة الدفع *</label>
+                    <select class="form-select" id="paymentMethod" name="method" required>
+                        <option value="">اختر طريقة الدفع</option>
+                        <option value="نقدي">نقدي</option>
+                        <option value="بنكي">بنكي</option>
+                        <option value="شيك">شيك</option>
+                        <option value="انستاباي">انستاباي</option>
+                        <option value="فودافون كاش">فودافون كاش</option>
+                    </select>
+                </div>
+                <div class="form-group hidden" id="paymentDetailsGroup">
+                    <label class="form-label" for="paymentDetails">رقم المعاملة / رقم الشيك</label>
+                    <input type="text" class="form-input" id="paymentDetails" name="details"
+                        placeholder="أدخل رقم المعاملة أو رقم الشيك" autocomplete="off">
+                </div>
+                <div class="form-group hidden" id="paymentImageGroup">
+                    <label class="form-label" for="paymentImage">صورة الدفع</label>
+                    <input type="file" class="form-input" id="paymentImage" accept="image/*">
+                    <small class="form-help">ارفع صورة الإيصال أو الشيك أو المعاملة البنكية</small>
+                    <div id="paymentImagePreview"></div>
                 </div>
                 <div class="form-group">
-                    <label for="paymentImage">صورة الإيصال</label>
-                    <input type="file" id="paymentImage" accept="image/*">
+                    <label class="form-label" for="paymentDate">التاريخ</label>
+                    <input type="date" class="form-input" id="paymentDate" name="paid_at" autocomplete="off">
                 </div>
-                <div class="form-actions">
+                <div class="form-group">
+                    <label class="form-label" for="paymentNotes">ملاحظات</label>
+                    <textarea class="form-textarea" id="paymentNotes" name="note"></textarea>
+                </div>
+                <div class="modal-actions">
                     <button type="button" class="btn btn-secondary modal-close">إلغاء</button>
                     <button type="submit" class="btn btn-primary">حفظ</button>
                 </div>
@@ -571,16 +582,39 @@
             <div id="adjustmentMessage"></div>
             <form id="adjustmentForm">
                 <div class="form-group">
-                    <label class="form-label" for="adjustmentAmount">المبلغ * (موجب للإضافة، سالب للخصم)</label>
+                    <label class="form-label" for="adjustmentAmount">المبلغ *</label>
                     <input type="number" class="form-input" id="adjustmentAmount" required step="0.01">
+                    <small class="text-gray-500">موجب: يضاف للمستحقات | سالب: يخصم من المستحقات</small>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="adjustmentReason">السبب *</label>
-                    <textarea class="form-textarea" id="adjustmentReason" required
-                        placeholder="اكتب سبب التسوية..."></textarea>
+                    <label class="form-label" for="adjustmentMethod">طريقة التسوية</label>
+                    <select class="form-select" id="adjustmentMethod">
+                        <option value="">اختر طريقة التسوية</option>
+                        <option value="نقدي">نقدي</option>
+                        <option value="بنكي">بنكي</option>
+                        <option value="شيك">شيك</option>
+                        <option value="انستاباي">انستاباي</option>
+                        <option value="فودافون كاش">فودافون كاش</option>
+                        <option value="تعديل حسابي">تعديل حسابي</option>
+                    </select>
+                </div>
+                <div class="form-group hidden" id="adjustmentDetailsGroup">
+                    <label class="form-label" for="adjustmentDetails">رقم المعاملة / رقم الشيك</label>
+                    <input type="text" class="form-input" id="adjustmentDetails"
+                        placeholder="أدخل رقم المعاملة أو رقم الشيك">
+                </div>
+                <div class="form-group hidden" id="adjustmentImageGroup">
+                    <label class="form-label" for="adjustmentImage">صورة التسوية</label>
+                    <input type="file" class="form-input" id="adjustmentImage" accept="image/*">
+                    <small class="form-help">ارفع صورة الإيصال أو الشيك أو المعاملة البنكية</small>
+                    <div id="adjustmentImagePreview"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="adjustmentReason">السبب</label>
+                    <textarea class="form-textarea" id="adjustmentReason" placeholder="سبب التسوية..."></textarea>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary">إلغاء</button>
+                    <button type="button" class="btn btn-secondary modal-close">إلغاء</button>
                     <button type="submit" class="btn btn-primary">إضافة</button>
                 </div>
             </form>

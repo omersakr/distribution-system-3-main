@@ -112,6 +112,7 @@ class ClientService {
                 net_quantity: d.net_quantity,
                 price_per_meter: d.price_per_meter,
                 total_value: d.total_value,
+                material_price_at_time: d.material_price_at_time,
                 driver_name: d.driver_name,
                 car_head: d.car_head,
                 car_tail: d.car_tail,

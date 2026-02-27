@@ -355,6 +355,7 @@ function setupEventHandlers() {
             project_id: projectValue || null, // Allow null for no project
             expense_date: document.getElementById('expenseDate').value,
             description: document.getElementById('expenseDescription').value,
+            category: 'تشغيلية', // All expenses are operational
             amount: document.getElementById('expenseAmount').value,
             notes: document.getElementById('expenseNotes').value
         };
@@ -389,6 +390,7 @@ function setupEventHandlers() {
             project_id: projectValue || null, // Allow null for no project
             expense_date: document.getElementById('editExpenseDate').value,
             description: document.getElementById('editExpenseDescription').value,
+            category: 'تشغيلية', // All expenses are operational
             amount: document.getElementById('editExpenseAmount').value,
             notes: document.getElementById('editExpenseNotes').value
         };

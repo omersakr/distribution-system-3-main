@@ -161,9 +161,14 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="editContractorOpeningBalance">الرصيد الافتتاحي (جنيه)</label>
-                        <input type="text" id="editContractorOpeningBalance" name="opening_balance" placeholder="0.00">
-                        <small class="form-help">موجب = المقاول يدين لنا، سالب = نحن ندين للمقاول</small>
+                        <label class="form-label">الأرصدة الافتتاحية (حسب المشروع/العميل)</label>
+                        <div id="editContractorOpeningBalancesContainer">
+                            <!-- Opening balance rows will be added here dynamically -->
+                        </div>
+                        <button type="button" class="btn btn-secondary" id="addEditContractorOpeningBalanceBtn" style="margin-top: 10px;">
+                            ➕ إضافة رصيد افتتاحي
+                        </button>
+                        <small class="form-help">الرصيد الافتتاحي لكل مشروع/عميل (موجب = نحن مدينون لهم)</small>
                     </div>
 
                     <div class="form-actions">

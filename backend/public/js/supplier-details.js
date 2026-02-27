@@ -51,6 +51,7 @@ function renderSummary(totals) {
     const container = document.getElementById('summaryGrid');
     const balance = totals.balance || 0;
     const totalAdjustments = totals.total_adjustments || 0;
+    const openingBalance = totals.opening_balance || 0;
 
     // Balance logic for suppliers: Positive = we owe them (مستحق للمورد), Negative = they owe us (مدفوع زائد)
     const balanceClass = balance > 0 ? 'text-danger' : balance < 0 ? 'text-success' : '';
@@ -61,6 +62,10 @@ function renderSummary(totals) {
     const adjustmentsLabel = totalAdjustments > 0 ? '(مستحق للمورد)' : totalAdjustments < 0 ? '(مدفوع زائد)' : '';
 
     container.innerHTML = `
+        <div class="summary-item">
+            <div class="summary-value text-danger">${formatCurrency(openingBalance)}</div>
+            <div class="summary-label">الرصيد الافتتاحي</div>
+        </div>
         <div class="summary-item">
             <div class="summary-value text-danger">${formatCurrency(totals.total_due || 0)}</div>
             <div class="summary-label">إجمالي المستحق</div>
@@ -806,6 +811,13 @@ async function loadSupplierDetails() {
         const data = await response.json();
         supplierData = data;
 
+        console.log('=== SUPPLIER DATA DEBUG ===');
+        console.log('Full data:', JSON.stringify(data, null, 2));
+        console.log('Totals object:', data.totals);
+        console.log('Opening Balance:', data.totals?.opening_balance);
+        console.log('Opening Balances Array:', data.opening_balances);
+        console.log('============================');
+
         // Store data for filtering
         allDeliveries = data.deliveries || [];
         allPayments = data.payments || [];
@@ -833,8 +845,53 @@ async function loadSupplierDetails() {
     }
 }
 
+// Load projects for opening balance dropdowns
+async function loadEditSupplierProjects() {
+    try {
+        const resp = await authManager.makeAuthenticatedRequest(`${API_BASE}/projects`);
+        if (!resp.ok) throw new Error('Failed to load projects');
+        const data = await resp.json();
+        editSupplierProjectsList = data.projects || data;
+    } catch (error) {
+        console.error('Error loading projects:', error);
+        editSupplierProjectsList = [];
+    }
+}
+
+
+
 // Event Handlers
 function setupEventHandlers() {
+    // Payment method change handler - show/hide conditional fields
+    document.getElementById('paymentMethod').addEventListener('change', (e) => {
+        const method = e.target.value;
+        const detailsGroup = document.getElementById('paymentDetailsGroup');
+        const imageGroup = document.getElementById('paymentImageGroup');
+        
+        if (method && method !== 'نقدي') {
+            detailsGroup.classList.remove('hidden');
+            imageGroup.classList.remove('hidden');
+        } else {
+            detailsGroup.classList.add('hidden');
+            imageGroup.classList.add('hidden');
+        }
+    });
+
+    // Adjustment method change handler - show/hide conditional fields
+    document.getElementById('adjustmentMethod').addEventListener('change', (e) => {
+        const method = e.target.value;
+        const detailsGroup = document.getElementById('adjustmentDetailsGroup');
+        const imageGroup = document.getElementById('adjustmentImageGroup');
+        
+        if (method && method !== 'نقدي' && method !== 'تعديل حسابي') {
+            detailsGroup.classList.remove('hidden');
+            imageGroup.classList.remove('hidden');
+        } else {
+            detailsGroup.classList.add('hidden');
+            imageGroup.classList.add('hidden');
+        }
+    });
+
     // Add Material
     document.getElementById('addMaterialBtn').addEventListener('click', () => {
         resetMaterialForm();
@@ -879,37 +936,13 @@ function setupEventHandlers() {
             document.getElementById('editSupplierName').value = supplierData.supplier.name || '';
             document.getElementById('editSupplierPhone').value = supplierData.supplier.phone_number || '';
             document.getElementById('editSupplierNotes').value = supplierData.supplier.notes || '';
+            document.getElementById('editSupplierOpeningBalance').value = supplierData.supplier.opening_balance || 0;
+            
             showModal('editSupplierModal');
         }
     });
 
     // Edit Supplier Form
-    document.getElementById('editSupplierForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const formData = new FormData(e.target);
-        const supplierUpdateData = Object.fromEntries(formData);
-
-        try {
-            const supplierId = getSupplierIdFromURL();
-            const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/suppliers/${supplierId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(supplierUpdateData)
-            });
-
-            if (response.ok) {
-                alert('تم تحديث بيانات المورد بنجاح');
-                closeModal('editSupplierModal');
-                loadSupplierDetails();
-            } else {
-                throw new Error('فشل في تحديث البيانات');
-            }
-        } catch (error) {
-            alert('خطأ: ' + error.message);
-        }
-    });
-
     // Add Payment
     document.getElementById('addPaymentBtn').addEventListener('click', () => {
         document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0];
@@ -1034,12 +1067,23 @@ function setupEventHandlers() {
     });
 
     // Modal close buttons
-    document.querySelectorAll('.modal-close, .btn-secondary').forEach(btn => {
+    document.querySelectorAll('.modal-close').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             const modal = btn.closest('.modal');
             if (modal) {
-                modal.style.display = 'none';
+                closeModal(modal.id);
+            }
+        });
+    });
+
+    // Cancel buttons in modal-actions only (not other secondary buttons)
+    document.querySelectorAll('.modal-actions .btn-secondary:not([type="submit"])').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const modal = btn.closest('.modal');
+            if (modal) {
+                closeModal(modal.id);
             }
         });
     });
@@ -1048,7 +1092,7 @@ function setupEventHandlers() {
     document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
-                modal.style.display = 'none';
+                closeModal(modal.id);
             }
         });
     });
@@ -1068,6 +1112,9 @@ document.addEventListener('DOMContentLoaded', function () {
         window.location.href = 'suppliers.html';
         return;
     }
+
+    // Load projects for opening balance dropdowns
+    loadEditSupplierProjects();
 
     // Setup event handlers
     setupEventHandlers();
@@ -1265,3 +1312,230 @@ window.toggleDateRange = function () {
 // Global functions for modal controls
 window.closeAddMaterialModal = () => closeModal('addMaterialModal');
 window.closeAddPaymentModal = () => closeModal('addPaymentModal');
+
+
+// ============================================================================
+// OPENING BALANCE MANAGEMENT (Project-Based)
+// ============================================================================
+
+let editSupplierOpeningBalanceCounter = 0;
+let editSupplierProjectsList = [];
+
+async function loadEditSupplierOpeningBalances() {
+    if (!supplierData || !supplierData.opening_balances) return;
+    
+    const container = document.getElementById('editSupplierOpeningBalancesContainer');
+    container.innerHTML = '';
+    
+    // Load projects for dropdown
+    await loadEditSupplierProjectsList();
+    
+    // Add existing opening balances
+    supplierData.opening_balances.forEach(ob => {
+        addEditSupplierOpeningBalanceRow(ob);
+    });
+}
+
+async function loadEditSupplierProjectsList() {
+    try {
+        const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/projects`);
+        const data = await response.json();
+        editSupplierProjectsList = data.projects || [];
+    } catch (error) {
+        console.error('Error loading projects:', error);
+        editSupplierProjectsList = [];
+    }
+}
+
+function addEditSupplierOpeningBalanceRow(existingData = null) {
+    const container = document.getElementById('editSupplierOpeningBalancesContainer');
+    const rowId = editSupplierOpeningBalanceCounter++;
+    
+    const row = document.createElement('div');
+    row.className = 'opening-balance-row';
+    row.style.cssText = 'display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: 10px; margin-bottom: 10px; align-items: start; padding: 15px; background: var(--gray-50); border-radius: var(--radius); border: 1px solid var(--gray-200);';
+    row.dataset.rowId = rowId;
+    if (existingData && existingData.id) {
+        row.dataset.balanceId = existingData.id;
+    }
+    
+    // Project column
+    const projectCol = document.createElement('div');
+    const projectLabel = document.createElement('label');
+    projectLabel.style.cssText = 'display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 500;';
+    projectLabel.textContent = 'المشروع';
+    const projectSelect = document.createElement('select');
+    projectSelect.className = 'form-input supplier-opening-balance-project';
+    projectSelect.required = true;
+    projectSelect.innerHTML = '<option value="">اختر المشروع</option>';
+    
+    editSupplierProjectsList.forEach(project => {
+        const option = document.createElement('option');
+        // Use client_id because opening_balances reference the Client collection
+        option.value = project.client_id || project.id;
+        option.textContent = project.name;
+        if (existingData && existingData.project_id === (project.client_id || project.id)) {
+            option.selected = true;
+        }
+        projectSelect.appendChild(option);
+    });
+    projectCol.appendChild(projectLabel);
+    projectCol.appendChild(projectSelect);
+    
+    // Amount column
+    const amountCol = document.createElement('div');
+    const amountLabel = document.createElement('label');
+    amountLabel.style.cssText = 'display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 500;';
+    amountLabel.textContent = 'المبلغ';
+    const amountInput = document.createElement('input');
+    amountInput.type = 'number';
+    amountInput.className = 'form-input supplier-opening-balance-amount';
+    amountInput.placeholder = '0.00';
+    amountInput.step = '0.01';
+    amountInput.required = true;
+    if (existingData) {
+        amountInput.value = existingData.amount || 0;
+    }
+    
+    // Add event listener to show/hide project field based on amount
+    amountInput.addEventListener('input', () => {
+        const amount = parseFloat(amountInput.value) || 0;
+        if (amount > 0) {
+            // Positive: we owe them, must select project
+            projectCol.style.display = 'block';
+            projectSelect.required = true;
+        } else {
+            // Negative or zero: they owe us, no project needed
+            projectCol.style.display = 'none';
+            projectSelect.required = false;
+            projectSelect.value = '';  // Clear selection
+        }
+    });
+    
+    // Initial state based on existing amount
+    const initialAmount = parseFloat(amountInput.value) || 0;
+    if (initialAmount <= 0) {
+        projectCol.style.display = 'none';
+        projectSelect.required = false;
+    }
+    
+    amountCol.appendChild(amountLabel);
+    amountCol.appendChild(amountInput);
+    
+    // Description column
+    const descCol = document.createElement('div');
+    const descLabel = document.createElement('label');
+    descLabel.style.cssText = 'display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 500;';
+    descLabel.textContent = 'الوصف';
+    const descInput = document.createElement('input');
+    descInput.type = 'text';
+    descInput.className = 'form-input supplier-opening-balance-description';
+    descInput.placeholder = 'وصف اختياري';
+    descInput.maxLength = 500;
+    if (existingData && existingData.description) {
+        descInput.value = existingData.description;
+    }
+    descCol.appendChild(descLabel);
+    descCol.appendChild(descInput);
+    
+    // Delete button column
+    const deleteCol = document.createElement('div');
+    deleteCol.style.paddingTop = '28px';
+    const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.className = 'btn btn-sm btn-danger';
+    deleteBtn.textContent = '🗑️';
+    deleteBtn.onclick = () => row.remove();
+    deleteCol.appendChild(deleteBtn);
+    
+    row.appendChild(projectCol);
+    row.appendChild(amountCol);
+    row.appendChild(descCol);
+    row.appendChild(deleteCol);
+    
+    container.appendChild(row);
+}
+
+function getEditSupplierOpeningBalances() {
+    const container = document.getElementById('editSupplierOpeningBalancesContainer');
+    const rows = container.querySelectorAll('.opening-balance-row');
+    const balances = [];
+    
+    rows.forEach(row => {
+        const projectSelect = row.querySelector('.supplier-opening-balance-project');
+        const amountInput = row.querySelector('.supplier-opening-balance-amount');
+        const descInput = row.querySelector('.supplier-opening-balance-description');
+        const balanceId = row.dataset.balanceId;
+        
+        const amount = parseFloat(amountInput.value) || 0;
+        
+        // Validate: positive balance must have project selected
+        if (amount > 0 && (!projectSelect.value || projectSelect.value === '')) {
+            throw new Error('الرصيد الافتتاحي الموجب يجب أن يكون مرتبطاً بمشروع/عميل');
+        }
+        
+        if (amountInput.value) {
+            const balance = {
+                project_id: amount > 0 ? projectSelect.value : null,  // Only include project_id if positive
+                amount: amount,
+                description: descInput.value || ''
+            };
+            
+            if (balanceId) {
+                balance.id = balanceId;
+            }
+            
+            balances.push(balance);
+        }
+    });
+    
+    return balances;
+}
+
+// Add event listener for add opening balance button
+document.getElementById('addEditSupplierOpeningBalanceBtn')?.addEventListener('click', () => {
+    addEditSupplierOpeningBalanceRow();
+});
+
+// Update edit supplier button to load opening balances
+document.getElementById('editSupplierBtn')?.addEventListener('click', async () => {
+    if (supplierData && supplierData.supplier) {
+        document.getElementById('editSupplierName').value = supplierData.supplier.name;
+        document.getElementById('editSupplierPhone').value = supplierData.supplier.phone_number || '';
+        document.getElementById('editSupplierNotes').value = supplierData.supplier.notes || '';
+        await loadEditSupplierOpeningBalances();
+        showModal('editSupplierModal');
+    }
+});
+
+// Update edit supplier form submission
+document.getElementById('editSupplierForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const supplierId = getSupplierIdFromURL();
+    const name = document.getElementById('editSupplierName').value;
+    const phone_number = document.getElementById('editSupplierPhone').value;
+    const notes = document.getElementById('editSupplierNotes').value;
+    const opening_balances = getEditSupplierOpeningBalances();
+    
+    try {
+        const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/suppliers/${supplierId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, phone_number, notes, opening_balances })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'فشل في تحديث المورد');
+        }
+        
+        showMessage('editSupplierMessage', 'تم تحديث البيانات بنجاح', 'success');
+        setTimeout(() => {
+            closeModal('editSupplierModal');
+            loadSupplierDetails();
+        }, 1000);
+    } catch (error) {
+        showMessage('editSupplierMessage', error.message, 'error');
+    }
+});

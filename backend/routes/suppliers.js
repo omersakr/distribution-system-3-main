@@ -12,6 +12,13 @@ const router = express.Router();
 // Get all suppliers (Both roles)
 router.get('/', supplierController.getAllSuppliers);
 
+// ============================================================================
+// SUPPLIER OPENING BALANCES (Project-Based)
+// ============================================================================
+
+// Get opening balances by project (for project analysis)
+router.get('/opening-balances', supplierController.getOpeningBalancesByProject);
+
 // Get supplier by ID with detailed information and related data (Both roles)
 router.get('/:id', supplierController.getSupplierById);
 

@@ -302,34 +302,31 @@
     <!-- Capital Injection Modal -->
     <div id="capitalInjectionModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="capitalInjectionModalTitle">إضافة ضخ رأس مال</h2>
-                <span class="close" onclick="closeCapitalInjectionModal()">&times;</span>
-            </div>
+            <div class="modal-header">إضافة ضخ رأس مال</div>
+            <div id="capitalInjectionMessage"></div>
             <form id="capitalInjectionForm">
                 <div class="form-group">
-                    <label for="injectionAmount">المبلغ *</label>
-                    <input type="number" id="injectionAmount" name="amount" step="0.01" min="0" required>
+                    <label class="form-label" for="injectionAmount">المبلغ *</label>
+                    <input type="number" class="form-input" id="injectionAmount" name="amount" step="0.01" min="0" required>
                 </div>
                 <div class="form-group">
-                    <label for="injectionProject">المشروع *</label>
-                    <select id="injectionProject" name="project_id" required>
+                    <label class="form-label" for="injectionProject">المشروع *</label>
+                    <select class="form-select" id="injectionProject" name="project_id" required>
                         <option value="">اختر المشروع</option>
                         <!-- Projects will be populated here -->
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="injectionDate">التاريخ</label>
-                    <input type="date" id="injectionDate" name="date">
+                    <label class="form-label" for="injectionDate">التاريخ</label>
+                    <input type="date" class="form-input" id="injectionDate" name="date">
                 </div>
                 <div class="form-group">
-                    <label for="injectionNotes">ملاحظات</label>
-                    <textarea id="injectionNotes" name="notes" rows="3"></textarea>
+                    <label class="form-label" for="injectionNotes">ملاحظات</label>
+                    <textarea class="form-textarea" id="injectionNotes" name="notes"></textarea>
                 </div>
-                <div class="form-actions">
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeCapitalInjectionModal()">إلغاء</button>
                     <button type="submit" class="btn btn-primary">حفظ</button>
-                    <button type="button" class="btn btn-secondary"
-                        onclick="closeCapitalInjectionModal()">إلغاء</button>
                 </div>
             </form>
         </div>
@@ -338,33 +335,31 @@
     <!-- Withdrawal Modal -->
     <div id="withdrawalModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="withdrawalModalTitle">إضافة مسحوبات</h2>
-                <span class="close" onclick="closeWithdrawalModal()">&times;</span>
-            </div>
+            <div class="modal-header">إضافة مسحوبات</div>
+            <div id="withdrawalMessage"></div>
             <form id="withdrawalForm">
                 <div class="form-group">
-                    <label for="withdrawalAmount">المبلغ *</label>
-                    <input type="number" id="withdrawalAmount" name="amount" step="0.01" min="0" required>
+                    <label class="form-label" for="withdrawalAmount">المبلغ *</label>
+                    <input type="number" class="form-input" id="withdrawalAmount" name="amount" step="0.01" min="0" required>
                 </div>
                 <div class="form-group">
-                    <label for="withdrawalProject">المشروع *</label>
-                    <select id="withdrawalProject" name="project_id" required>
+                    <label class="form-label" for="withdrawalProject">المشروع *</label>
+                    <select class="form-select" id="withdrawalProject" name="project_id" required>
                         <option value="">اختر المشروع</option>
                         <!-- Projects will be populated here -->
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="withdrawalDate">التاريخ</label>
-                    <input type="date" id="withdrawalDate" name="date">
+                    <label class="form-label" for="withdrawalDate">التاريخ</label>
+                    <input type="date" class="form-input" id="withdrawalDate" name="date">
                 </div>
                 <div class="form-group">
-                    <label for="withdrawalNotes">ملاحظات</label>
-                    <textarea id="withdrawalNotes" name="notes" rows="3"></textarea>
+                    <label class="form-label" for="withdrawalNotes">ملاحظات</label>
+                    <textarea class="form-textarea" id="withdrawalNotes" name="notes"></textarea>
                 </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">حفظ</button>
+                <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeWithdrawalModal()">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">حفظ</button>
                 </div>
             </form>
         </div>

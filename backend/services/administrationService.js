@@ -10,20 +10,21 @@ class AdministrationService {
         const result = await Promise.all(
             administration.map(async (admin) => {
                 try {
-                    // Get payments
+                    // Get payments TO administration (money we paid them)
                     const payments = await AdministrationPayment.find({ administration_id: admin._id });
                     const totalPayments = payments.reduce((sum, p) => sum + toNumber(p.amount), 0);
 
-                    // Get capital injections
+                    // Get capital injections (money they put into projects - we owe them)
                     const capitalInjections = await CapitalInjection.find({ administration_id: admin._id });
                     const totalCapitalInjected = capitalInjections.reduce((sum, c) => sum + toNumber(c.amount), 0);
 
-                    // Get withdrawals
+                    // Get withdrawals (money they took from projects - reduces what we owe)
                     const withdrawals = await Withdrawal.find({ administration_id: admin._id });
                     const totalWithdrawals = withdrawals.reduce((sum, w) => sum + toNumber(w.amount), 0);
 
-                    // Calculate balance: payments - withdrawals (capital injections don't affect balance)
-                    const balance = totalPayments - totalWithdrawals;
+                    // Calculate balance: Capital Injected - Withdrawals - Payments
+                    // Positive = We owe them, Negative = They owe us
+                    const balance = totalCapitalInjected - totalWithdrawals - totalPayments;
 
                     return {
                         id: admin._id,
@@ -35,8 +36,8 @@ class AdministrationService {
                         created_at: admin.created_at,
                         // Financial calculations
                         balance: Math.round(balance * 100) / 100,
-                        balance_status: balance > 0 ? 'due_from_administration' : balance < 0 ? 'due_to_administration' : 'balanced',
-                        balance_description: balance > 0 ? 'مستحق من الإدارة' : balance < 0 ? 'مستحق للإدارة' : 'متوازن',
+                        balance_status: balance > 0 ? 'we_owe_them' : balance < 0 ? 'they_owe_us' : 'balanced',
+                        balance_description: balance > 0 ? 'مستحق للإدارة' : balance < 0 ? 'مستحق من الإدارة' : 'متوازن',
                         total_capital_injected: Math.round(totalCapitalInjected * 100) / 100,
                         total_withdrawals: Math.round(totalWithdrawals * 100) / 100,
                         total_payments: Math.round(totalPayments * 100) / 100
@@ -88,7 +89,10 @@ class AdministrationService {
         const totalPayments = payments.reduce((sum, p) => sum + toNumber(p.amount), 0);
         const totalCapitalInjected = capitalInjections.reduce((sum, c) => sum + toNumber(c.amount), 0);
         const totalWithdrawals = withdrawals.reduce((sum, w) => sum + toNumber(w.amount), 0);
-        const balance = totalPayments - totalWithdrawals;
+        
+        // Balance = Capital Injected - Withdrawals - Payments
+        // Positive = We owe them, Negative = They owe us
+        const balance = totalCapitalInjected - totalWithdrawals - totalPayments;
 
         return {
             administration: {
@@ -130,8 +134,8 @@ class AdministrationService {
             })),
             totals: {
                 balance: Math.round(balance * 100) / 100,
-                balance_status: balance > 0 ? 'due_from_administration' : balance < 0 ? 'due_to_administration' : 'balanced',
-                balance_description: balance > 0 ? 'مستحق من الإدارة' : balance < 0 ? 'مستحق للإدارة' : 'متوازن',
+                balance_status: balance > 0 ? 'we_owe_them' : balance < 0 ? 'they_owe_us' : 'balanced',
+                balance_description: balance > 0 ? 'مستحق للإدارة' : balance < 0 ? 'مستحق من الإدارة' : 'متوازن',
                 total_capital_injected: Math.round(totalCapitalInjected * 100) / 100,
                 total_withdrawals: Math.round(totalWithdrawals * 100) / 100,
                 total_payments: Math.round(totalPayments * 100) / 100
@@ -293,7 +297,7 @@ class AdministrationService {
             amount: c.amount,
             administration_name: c.administration_id?.name || 'إدارة محذوفة',
             project_name: c.project_id?.name || 'مشروع محذوف',
-            project_id: c.project_id?._id,
+            project_id: c.project_id?._id ? String(c.project_id._id) : null,
             date: c.date,
             notes: c.notes,
             created_at: c.created_at

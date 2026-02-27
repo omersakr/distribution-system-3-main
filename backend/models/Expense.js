@@ -16,6 +16,11 @@ const expenseSchema = new mongoose.Schema({
         get: v => Math.round(v * 100) / 100,
         set: v => Math.round(v * 100) / 100
     },
+    category: {
+        type: String,
+        enum: ['إدارية', 'رواتب', 'تشغيلية', 'أخرى'],
+        default: 'أخرى'
+    },
     notes: {
         type: String
     },

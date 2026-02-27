@@ -531,3 +531,5 @@ document.addEventListener('DOMContentLoaded', async function () {
         addBtn.addEventListener('click', addSupplierOpeningBalanceRow);
     }
 });
+
+

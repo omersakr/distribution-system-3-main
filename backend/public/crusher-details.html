@@ -33,23 +33,30 @@
         <!-- Edit Crusher Modal -->
         <div id="editCrusherModal" class="modal hidden">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h2>تعديل بيانات الكسارة</h2>
-                    <button class="modal-close" data-action="close-modal"
-                        data-target="editCrusherModal">&times;</button>
-                </div>
+                <div class="modal-header">تعديل بيانات الكسارة</div>
+                <div id="editCrusherMessage"></div>
                 <form id="editCrusherForm">
                     <div class="form-group">
-                        <label for="editCrusherName">اسم الكسارة *</label>
-                        <input type="text" id="editCrusherName" name="name" autocomplete="organization" required>
+                        <label class="form-label" for="editCrusherName">اسم الكسارة *</label>
+                        <input type="text" class="form-input" id="editCrusherName" name="name" autocomplete="organization" required>
                     </div>
 
-                    <div class="form-actions">
+                    <div class="form-group">
+                        <label class="form-label">الأرصدة الافتتاحية (حسب المشروع/العميل)</label>
+                        <div id="editCrusherOpeningBalancesContainer">
+                            <!-- Opening balance rows will be added here dynamically -->
+                        </div>
+                        <button type="button" class="btn btn-secondary" id="addEditCrusherOpeningBalanceBtn" style="margin-top: 10px;">
+                            + إضافة رصيد افتتاحي
+                        </button>
+                        <small class="form-help">الرصيد الافتتاحي لكل مشروع/عميل (موجب = نحن مدينون لهم)</small>
+                    </div>
+
+                    <div class="modal-actions">
                         <button type="button" class="btn btn-secondary" data-action="close-modal"
                             data-target="editCrusherModal">إلغاء</button>
                         <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
                     </div>
-                    <div id="editCrusherMessage"></div>
                 </form>
             </div>
         </div>

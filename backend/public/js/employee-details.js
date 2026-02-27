@@ -1019,6 +1019,36 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('paymentModal').style.display = 'block';
     });
 
+    // Payment method change handler - show/hide conditional fields
+    document.getElementById('paymentMethod').addEventListener('change', function(e) {
+        const method = e.target.value;
+        const detailsGroup = document.getElementById('paymentDetailsGroup');
+        const imageGroup = document.getElementById('paymentImageGroup');
+        
+        if (method && method !== 'نقدي') {
+            detailsGroup.classList.remove('hidden');
+            imageGroup.classList.remove('hidden');
+        } else {
+            detailsGroup.classList.add('hidden');
+            imageGroup.classList.add('hidden');
+        }
+    });
+
+    // Adjustment method change handler - show/hide conditional fields
+    document.getElementById('adjustmentMethod').addEventListener('change', function(e) {
+        const method = e.target.value;
+        const detailsGroup = document.getElementById('adjustmentDetailsGroup');
+        const imageGroup = document.getElementById('adjustmentImageGroup');
+        
+        if (method && method !== 'نقدي' && method !== 'تعديل حسابي') {
+            detailsGroup.classList.remove('hidden');
+            imageGroup.classList.remove('hidden');
+        } else {
+            detailsGroup.classList.add('hidden');
+            imageGroup.classList.add('hidden');
+        }
+    });
+
     // Form submissions
     document.getElementById('attendanceForm').addEventListener('submit', handleAttendanceSubmit);
     document.getElementById('adjustmentForm').addEventListener('submit', handleAdjustmentSubmit);

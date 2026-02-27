@@ -35,32 +35,41 @@
     <!-- Add Supplier Modal -->
     <div id="addSupplierModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2>إضافة مورد جديد</h2>
-                <button class="modal-close" data-action="close-modal" data-target="addSupplierModal">&times;</button>
-            </div>
+            <div class="modal-header">إضافة مورد جديد</div>
+            <div id="addSupplierMessage"></div>
             <form id="addSupplierForm">
                 <div class="form-group">
-                    <label for="supplierName">اسم المورد *</label>
-                    <input type="text" id="supplierName" name="name" autocomplete="organization" required>
+                    <label class="form-label" for="supplierName">اسم المورد *</label>
+                    <input type="text" class="form-input" id="supplierName" name="name" autocomplete="organization" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="supplierPhone">رقم الهاتف</label>
-                    <input type="tel" id="supplierPhone" name="phone" placeholder="اختياري" autocomplete="tel">
+                    <label class="form-label" for="supplierPhone">رقم الهاتف</label>
+                    <input type="tel" class="form-input" id="supplierPhone" name="phone" placeholder="اختياري" autocomplete="tel">
                 </div>
 
-                <div class="form-section">
-                    <h3>المواد</h3>
+                <div class="form-group">
+                    <label class="form-label">الأرصدة الافتتاحية (حسب المشروع/العميل)</label>
+                    <div id="supplierOpeningBalancesContainer">
+                        <!-- Opening balance rows will be added here dynamically -->
+                    </div>
+                    <button type="button" class="btn btn-secondary" id="addSupplierOpeningBalanceBtn" style="margin-top: 10px;">
+                        ➕ إضافة رصيد افتتاحي
+                    </button>
+                    <small class="form-help">الرصيد الافتتاحي لكل مشروع/عميل (موجب = نحن مدينون لهم)</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">المواد</label>
                     <div id="materialsContainer">
                         <div class="material-item">
                             <div class="form-group">
-                                <label>اسم المادة</label>
-                                <input type="text" name="material_name" placeholder="اسم المادة" required>
+                                <label class="form-label">اسم المادة</label>
+                                <input type="text" class="form-input" name="material_name" placeholder="اسم المادة" required>
                             </div>
                             <div class="form-group">
-                                <label>السعر (جنيه/وحدة)</label>
-                                <input type="number" name="material_price" step="0.01" min="0" placeholder="0.00"
+                                <label class="form-label">السعر (جنيه/وحدة)</label>
+                                <input type="number" class="form-input" name="material_price" step="0.01" min="0" placeholder="0.00"
                                     required>
                             </div>
                             <button type="button" class="btn btn-sm btn-danger"
@@ -70,30 +79,11 @@
                     <button type="button" class="btn btn-sm btn-secondary" onclick="addMaterial()">+ إضافة مادة</button>
                 </div>
 
-                <div class="form-group">
-                    <h3 style="margin: 20px 0 10px 0; font-size: 1.1rem; color: var(--gray-700);">
-                        الأرصدة الافتتاحية (اختياري)
-                    </h3>
-                    <p style="color: var(--gray-600); font-size: 0.9rem; margin-bottom: 15px;">
-                        يمكنك إضافة أرصدة افتتاحية مرتبطة بمشاريع محددة
-                    </p>
-
-                    <div id="supplierOpeningBalancesContainer">
-                        <!-- Opening balances will be added here -->
-                    </div>
-
-                    <button type="button" class="btn btn-secondary" id="addSupplierOpeningBalanceBtn"
-                        style="margin-top: 10px;">
-                        ➕ إضافة رصيد افتتاحي
-                    </button>
-                </div>
-
-                <div class="form-actions">
+                <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" data-action="close-modal"
                         data-target="addSupplierModal">إلغاء</button>
                     <button type="submit" class="btn btn-primary">إضافة المورد</button>
                 </div>
-                <div id="addSupplierMessage"></div>
             </form>
         </div>
     </div>

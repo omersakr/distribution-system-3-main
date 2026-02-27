@@ -31,7 +31,7 @@ class CrushersController {
     // Create new crusher
     async createCrusher(req, res, next) {
         try {
-            const { name, sand_price, aggregate1_price, aggregate2_price, aggregate3_price, aggregate6_powder_price } = req.body;
+            const { name, sand_price, aggregate1_price, aggregate2_price, aggregate3_price, aggregate6_powder_price, opening_balances } = req.body;
 
             if (!name || name.trim() === '') {
                 return res.status(400).json({ message: 'اسم الكسارة مطلوب' });
@@ -43,7 +43,8 @@ class CrushersController {
                 aggregate1_price,
                 aggregate2_price,
                 aggregate3_price,
-                aggregate6_powder_price
+                aggregate6_powder_price,
+                opening_balances
             });
 
             res.status(201).json(crusher);
@@ -58,7 +59,7 @@ class CrushersController {
     // Update crusher
     async updateCrusher(req, res, next) {
         try {
-            const { name, sand_price, aggregate1_price, aggregate2_price, aggregate3_price, aggregate6_powder_price } = req.body;
+            const { name, sand_price, aggregate1_price, aggregate2_price, aggregate3_price, aggregate6_powder_price, opening_balances } = req.body;
 
             if (!name || name.trim() === '') {
                 return res.status(400).json({ message: 'اسم الكسارة مطلوب' });
@@ -70,7 +71,13 @@ class CrushersController {
                 aggregate1_price,
                 aggregate2_price,
                 aggregate3_price,
-                aggregate6_powder_price
+                aggregate6_powder_price,
+                opening_balances,
+                // Pass user info for audit logging
+                userId: req.user?.id,
+                userRole: req.user?.role,
+                ipAddress: req.ip,
+                userAgent: req.get('user-agent')
             });
 
             if (!crusher) {
@@ -354,6 +361,33 @@ class CrushersController {
                 return res.status(404).json({ message: err.message });
             }
             next(err);
+        }
+    }
+
+    // Get opening balances by project (for project analysis)
+    async getOpeningBalancesByProject(req, res, next) {
+        try {
+            const { project_id } = req.query;
+
+            if (!project_id) {
+                return res.status(400).json({ message: 'معرف المشروع مطلوب' });
+            }
+
+            const CrusherOpeningBalance = require('../models/CrusherOpeningBalance');
+            
+            const openingBalances = await CrusherOpeningBalance.find({
+                project_id,
+                is_deleted: false
+            }).populate('crusher_id', 'name').lean();
+
+            res.json({ opening_balances: openingBalances });
+        } catch (err) {
+            console.error('❌ Error in getOpeningBalancesByProject (crushers):', err);
+            res.status(500).json({ 
+                message: 'خطأ في تحميل الأرصدة الافتتاحية',
+                error: err.message,
+                opening_balances: [] 
+            });
         }
     }
 }
