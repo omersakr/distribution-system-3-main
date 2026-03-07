@@ -258,11 +258,11 @@ This implementation plan transforms the existing financial dashboard into a deci
     - Test text readability at all sizes
     - _Requirements: 7.1, 7.2, 7.3_
 
-- [~] 14. Checkpoint - Ensure all integration tests pass
+- [ ] 14. Checkpoint - Ensure all integration tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 15. Implement RTL layout and styling
-  - [~] 15.1 Apply RTL layout to all sections
+  - [ ] 15.1 Apply RTL layout to all sections
     - Add dir="rtl" attributes to all section containers
     - Apply RTL-specific CSS (text-align, flex-direction)
     - Configure Chart.js legend for RTL
@@ -278,7 +278,7 @@ This implementation plan transforms the existing financial dashboard into a deci
     - _Requirements: 8.1, 8.2, 8.3_
 
 - [ ] 16. Implement visual hierarchy and styling
-  - [~] 16.1 Apply visual hierarchy CSS
+  - [ ] 16.1 Apply visual hierarchy CSS
     - Make Profit Overview cards larger than other sections
     - Use larger font sizes for primary metrics (2.5rem)
     - Add visual separation between sections (margins, borders)
@@ -296,7 +296,7 @@ This implementation plan transforms the existing financial dashboard into a deci
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
 
 - [ ] 17. Final integration and wiring
-  - [~] 17.1 Wire all components together
+  - [ ] 17.1 Wire all components together
     - Initialize dashboard on page load
     - Set up authentication check
     - Load Chart.js from CDN with error handling
@@ -314,7 +314,7 @@ This implementation plan transforms the existing financial dashboard into a deci
     - Test Chart.js load success and failure paths
     - _Requirements: 6.1, 6.2, 6.3, 8.5_
 
-- [~] 18. Final checkpoint - Ensure all tests pass
+- [ ] 18. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
