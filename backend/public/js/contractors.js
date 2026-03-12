@@ -42,12 +42,12 @@ function createContractorCard(contractor) {
 
     const detailsBtn = document.createElement('button');
     detailsBtn.className = 'btn btn-sm btn-primary';
-    detailsBtn.innerHTML = '📊 التفاصيل';
+    detailsBtn.innerHTML = '<i class="fas fa-chart-line"></i> التفاصيل';
     detailsBtn.onclick = () => window.location.href = `contractor-details.html?id=${contractor.id}`;
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'btn btn-sm btn-danger';
-    deleteBtn.innerHTML = '🗑️ حذف';
+    deleteBtn.innerHTML = '<i class="fas fa-trash"></i> حذف';
     deleteBtn.onclick = () => deleteContractor(contractor.id, contractor.name);
 
     actions.appendChild(detailsBtn);
@@ -227,6 +227,7 @@ async function deleteContractor(contractorId, contractorName) {
 document.addEventListener('DOMContentLoaded', function () {
     // Check authentication first
     if (authManager.checkAuth()) {
+        showInlineLoader('contractorsContainer', 'جاري تحميل المقاولين...');
         fetchContractors()
             .then(renderContractors)
             .catch(err => {
@@ -235,7 +236,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (container) {
                     container.innerHTML = `
                         <div class="error-state">
-                            <div class="error-icon">❌</div>
+                            <div class="error-icon"><i class="fas fa-times-circle"></i></div>
                             <div class="error-text">خطأ في تحميل بيانات المقاولين</div>
                             <div class="error-details">${err.message}</div>
                             <button class="btn btn-primary" onclick="location.reload()">إعادة المحاولة</button>
@@ -327,7 +328,7 @@ function addOpeningBalanceRow() {
     const removeBtn = document.createElement('button');
     removeBtn.type = 'button';
     removeBtn.className = 'btn btn-sm btn-danger';
-    removeBtn.innerHTML = '🗑️';
+    removeBtn.innerHTML = '<i class="fas fa-trash"></i>';
     removeBtn.onclick = () => document.getElementById(rowId).remove();
     removeCol.appendChild(removeBtn);
 
@@ -529,7 +530,7 @@ function addContractorOpeningBalanceRow(existingData = null) {
     const deleteBtn = document.createElement('button');
     deleteBtn.type = 'button';
     deleteBtn.className = 'btn btn-sm btn-danger';
-    deleteBtn.textContent = '🗑️';
+    deleteBtn.textContent = '<i class="fas fa-trash"></i>';
     deleteBtn.onclick = () => row.remove();
     deleteCol.appendChild(deleteBtn);
     
@@ -636,7 +637,7 @@ function addEditContractorOpeningBalanceRow(existingData = null) {
     const deleteBtn = document.createElement('button');
     deleteBtn.type = 'button';
     deleteBtn.className = 'btn btn-sm btn-danger';
-    deleteBtn.textContent = '🗑️';
+    deleteBtn.textContent = '<i class="fas fa-trash"></i>';
     deleteBtn.onclick = () => row.remove();
     deleteCol.appendChild(deleteBtn);
     

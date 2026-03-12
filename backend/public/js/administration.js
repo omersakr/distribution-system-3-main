@@ -42,12 +42,12 @@ function createAdministrationCard(admin) {
 
     const detailsBtn = document.createElement('button');
     detailsBtn.className = 'btn btn-sm btn-primary';
-    detailsBtn.innerHTML = '📊 التفاصيل';
+    detailsBtn.innerHTML = '<i class="fas fa-chart-line"></i> التفاصيل';
     detailsBtn.onclick = () => window.location.href = `administration-details.html?id=${admin.id}`;
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'btn btn-sm btn-danger';
-    deleteBtn.innerHTML = '🗑️ حذف';
+    deleteBtn.innerHTML = '<i class="fas fa-trash"></i> حذف';
     deleteBtn.onclick = () => deleteAdministration(admin.id, admin.name);
 
     actions.appendChild(detailsBtn);
@@ -134,7 +134,7 @@ function renderAdministration(administration) {
     if (!administration || administration.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">📋</div>
+                <div class="empty-icon"><i class="fas fa-clipboard"></i></div>
                 <div class="empty-text">لا توجد شركاء أو ممولين مسجلين</div>
                 <button class="btn btn-primary" onclick="document.getElementById('addAdministrationBtn').click()">
                     إضافة شريك/ممول جديد
@@ -221,6 +221,7 @@ async function deleteAdministration(adminId, adminName) {
 document.addEventListener('DOMContentLoaded', function () {
     // Check authentication first
     if (authManager.checkAuth()) {
+        showInlineLoader('administrationContainer', 'جاري تحميل بيانات الإدارة...');
         fetchAdministration()
             .then(renderAdministration)
             .catch(err => {
@@ -229,7 +230,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (container) {
                     container.innerHTML = `
                         <div class="error-state">
-                            <div class="error-icon">❌</div>
+                            <div class="error-icon"><i class="fas fa-times-circle"></i></div>
                             <div class="error-text">خطأ في تحميل بيانات الإدارة</div>
                             <div class="error-details">${err.message}</div>
                             <button class="btn btn-primary" onclick="location.reload()">إعادة المحاولة</button>

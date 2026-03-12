@@ -229,7 +229,7 @@ function renderMaterials(materialTotals) {
     if (!materialTotals || materialTotals.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">📦</div>
+                <div class="empty-icon"><i class="fas fa-box"></i></div>
                 <div>لا توجد بيانات مواد</div>
             </div>
         `;
@@ -313,8 +313,8 @@ function renderDeliveries(deliveries) {
         // Actions cell
         const actionsCell = document.createElement('td');
         actionsCell.innerHTML = `
-            <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="delivery" data-id="${delivery.id}" title="تعديل">✏️</button>
-            <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="delivery" data-id="${delivery.id}" title="حذف">🗑️</button>
+            <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="delivery" data-id="${delivery.id}" title="تعديل"><i class="fas fa-edit"></i></button>
+            <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="delivery" data-id="${delivery.id}" title="حذف"><i class="fas fa-trash"></i></button>
         `;
         row.appendChild(actionsCell);
 
@@ -332,7 +332,7 @@ function renderAdjustments(adjustments) {
     if (!adjustments || adjustments.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">⚖️</div>
+                <div class="empty-icon"><i class="fas fa-balance-scale"></i></div>
                 <div>لا توجد تسويات مسجلة</div>
             </div>
         `;
@@ -385,9 +385,9 @@ function renderAdjustments(adjustments) {
         // Actions cell
         const actionsCell = document.createElement('td');
         actionsCell.innerHTML = `
-            <button class="btn btn-sm btn-secondary crud-btn" data-action="view" data-type="adjustment" data-id="${adjustment.id}" title="عرض التفاصيل">👁️</button>
-            <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="adjustment" data-id="${adjustment.id}" title="تعديل">✏️</button>
-            <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="adjustment" data-id="${adjustment.id}" title="حذف">🗑️</button>
+            <button class="btn btn-sm btn-secondary crud-btn" data-action="view" data-type="adjustment" data-id="${adjustment.id}" title="عرض التفاصيل"><i class="fas fa-eye"></i></button>
+            <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="adjustment" data-id="${adjustment.id}" title="تعديل"><i class="fas fa-edit"></i></button>
+            <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="adjustment" data-id="${adjustment.id}" title="حذف"><i class="fas fa-trash"></i></button>
         `;
         row.appendChild(actionsCell);
 
@@ -405,7 +405,7 @@ function renderPayments(payments) {
     if (!payments || payments.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">💰</div>
+                <div class="empty-icon"><i class="fas fa-money-bill-wave"></i></div>
                 <div>لا توجد مدفوعات مسجلة</div>
             </div>
         `;
@@ -453,7 +453,7 @@ function renderPayments(payments) {
         if (payment.payment_image && payment.payment_image !== 'null' && payment.payment_image.trim() !== '') {
             imageCell.innerHTML = `
                 <button class="btn btn-sm btn-secondary" data-image="${payment.payment_image}" onclick="showImageModal(this.getAttribute('data-image'))" title="عرض الصورة">
-                    🖼️ عرض
+                    <i class="fas fa-image"></i> عرض
                 </button>
             `;
         } else {
@@ -464,9 +464,9 @@ function renderPayments(payments) {
         // Actions cell
         const actionsCell = document.createElement('td');
         actionsCell.innerHTML = `
-            <button class="btn btn-sm btn-secondary crud-btn" data-action="view" data-type="payment" data-id="${payment.id}" title="عرض التفاصيل">👁️</button>
-            <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="payment" data-id="${payment.id}" title="تعديل">✏️</button>
-            <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="payment" data-id="${payment.id}" title="حذف">🗑️</button>
+            <button class="btn btn-sm btn-secondary crud-btn" data-action="view" data-type="payment" data-id="${payment.id}" title="عرض التفاصيل"><i class="fas fa-eye"></i></button>
+            <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="payment" data-id="${payment.id}" title="تعديل"><i class="fas fa-edit"></i></button>
+            <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="payment" data-id="${payment.id}" title="حذف"><i class="fas fa-trash"></i></button>
         `;
         row.appendChild(actionsCell);
 
@@ -1173,6 +1173,13 @@ async function loadCrusherDetails() {
         return;
     }
 
+    // Show loaders in each section
+    showInlineLoader('summaryGrid', 'جاري تحميل الملخص...');
+    showInlineLoader('materialsContainer', 'جاري تحميل المواد...');
+    showInlineLoader('deliveriesContainer', 'جاري تحميل التسليمات...');
+    showInlineLoader('paymentsContainer', 'جاري تحميل المدفوعات...');
+    showInlineLoader('adjustmentsContainer', 'جاري تحميل التسويات...');
+
     try {
         const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/crushers/${crusherId}`);
 
@@ -1198,7 +1205,7 @@ async function loadCrusherDetails() {
         // Update page title
         document.getElementById('crusherName').textContent = `تفاصيل الكسارة: ${data.crusher.name}`;
 
-        // Render all sections
+        // Render all sections (loaders will be replaced automatically)
         renderSummary(data.totals || {});
         renderPricesDisplay(data.crusher || {});
         renderSettlementSummary(data.totals || {});
@@ -1259,7 +1266,7 @@ function openEditCrusherModal() {
 
 async function updateCrusher(crusherId, crusherData) {
     try {
-        console.log('🔄 Updating crusher:', crusherId, crusherData);
+        console.log('<i class="fas fa-sync-alt"></i> Updating crusher:', crusherId, crusherData);
         console.log('📤 API URL:', `${API_BASE}/crushers/${crusherId}`);
 
         const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/crushers/${crusherId}`, {
@@ -1277,20 +1284,20 @@ async function updateCrusher(crusherId, crusherData) {
             try {
                 const errorData = await response.json();
                 errorMessage = errorData.message || errorMessage;
-                console.error('❌ Server error data:', errorData);
+                console.error('<i class="fas fa-times-circle"></i> Server error data:', errorData);
             } catch (e) {
                 const errorText = await response.text();
-                console.error('❌ Server error text:', errorText);
+                console.error('<i class="fas fa-times-circle"></i> Server error text:', errorText);
                 errorMessage = `خطأ في السيرفر (${response.status}): ${errorText}`;
             }
             throw new Error(errorMessage);
         }
 
         const result = await response.json();
-        console.log('✅ Update successful:', result);
+        console.log('<i class="fas fa-check-circle"></i> Update successful:', result);
         return result;
     } catch (error) {
-        console.error('❌ Update crusher error:', error);
+        console.error('<i class="fas fa-times-circle"></i> Update crusher error:', error);
         throw error;
     }
 }
@@ -1349,7 +1356,7 @@ async function showPaymentDetails(paymentId) {
                     <strong>الصورة:</strong>
                     <div>
                         <button class="btn btn-sm btn-secondary" onclick="showImageModal('${payment.payment_image}')" style="margin-top: 5px;">
-                            🖼️ عرض الصورة
+                            <i class="fas fa-image"></i> عرض الصورة
                         </button>
                     </div>
                 </div>
@@ -1765,37 +1772,37 @@ document.addEventListener('click', function (e) {
         e.stopPropagation();
 
         if (!action || !type || !id) {
-            console.error('❌ Missing required attributes:', { action, type, id });
+            console.error('<i class="fas fa-times-circle"></i> Missing required attributes:', { action, type, id });
             return;
         }
 
         try {
             if (action === 'view' && type === 'payment') {
-                console.log('👁️ Calling showPaymentDetails with ID:', id);
+                console.log('<i class="fas fa-eye"></i> Calling showPaymentDetails with ID:', id);
                 showPaymentDetails(id);
             } else if (action === 'edit' && type === 'payment') {
-                console.log('✏️ Calling editPayment with ID:', id);
+                console.log('<i class="fas fa-edit"></i> Calling editPayment with ID:', id);
                 editPayment(id);
             } else if (action === 'delete' && type === 'payment') {
-                console.log('🗑️ Calling deletePayment with ID:', id);
+                console.log('<i class="fas fa-trash"></i> Calling deletePayment with ID:', id);
                 deletePayment(id);
             } else if (action === 'view' && type === 'adjustment') {
-                console.log('👁️ Calling showAdjustmentDetails with ID:', id);
+                console.log('<i class="fas fa-eye"></i> Calling showAdjustmentDetails with ID:', id);
                 showAdjustmentDetails(id);
             } else if (action === 'edit' && type === 'adjustment') {
-                console.log('✏️ Calling editAdjustment with ID:', id);
+                console.log('<i class="fas fa-edit"></i> Calling editAdjustment with ID:', id);
                 editAdjustment(id);
             } else if (action === 'delete' && type === 'adjustment') {
-                console.log('🗑️ Calling deleteAdjustment with ID:', id);
+                console.log('<i class="fas fa-trash"></i> Calling deleteAdjustment with ID:', id);
                 deleteAdjustment(id);
             } else if (action === 'edit' && type === 'delivery') {
-                console.log('✏️ Calling editDelivery with ID:', id);
+                console.log('<i class="fas fa-edit"></i> Calling editDelivery with ID:', id);
                 editDelivery(id);
             } else if (action === 'delete' && type === 'delivery') {
-                console.log('🗑️ Calling deleteDelivery with ID:', id);
+                console.log('<i class="fas fa-trash"></i> Calling deleteDelivery with ID:', id);
                 deleteDelivery(id);
             } else {
-                console.warn('⚠️ Unhandled CRUD operation:', { action, type, id });
+                console.warn('<i class="fas fa-exclamation-triangle"></i> Unhandled CRUD operation:', { action, type, id });
             }
         } catch (error) {
             console.error('💥 Error executing CRUD operation:', error);
@@ -1933,7 +1940,7 @@ function addEditCrusherOpeningBalanceRow(existingData = null) {
     const deleteBtn = document.createElement('button');
     deleteBtn.type = 'button';
     deleteBtn.className = 'btn btn-sm btn-danger';
-    deleteBtn.textContent = '🗑️';
+    deleteBtn.textContent = '<i class="fas fa-trash"></i>';
     deleteBtn.onclick = () => row.remove();
     deleteCol.appendChild(deleteBtn);
     

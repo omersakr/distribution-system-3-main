@@ -45,6 +45,7 @@ function populateProjectDropdowns() {
 
 // API Functions
 async function loadExpenses(page = 1, filters = {}) {
+    showInlineLoader('expensesContainer', 'جاري تحميل المصروفات...');
     try {
         const params = new URLSearchParams();
         params.set('page', page);

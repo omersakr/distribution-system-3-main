@@ -6,137 +6,139 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة التحكم - نظام التوزيع</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="css/modern-theme.css">
     <link rel="stylesheet" href="css/sidebar.css">
-    <link rel="stylesheet" href="css/dashboard.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/loaders.css">
+    <link rel="stylesheet" href="css/dashboard-modern.css">
 </head>
 
-
 <body>
+    <!-- Global Loader -->
+    <div class="loader-overlay" id="globalLoader">
+        <div class="loader-container">
+            <div class="loader"></div>
+            <div class="loader-text">جاري التحميل...</div>
+        </div>
+    </div>
+
     <div id="sidebar-placeholder"></div>
 
     <div class="main-content">
+        <!-- Page Header -->
         <div class="page-header">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                 <div>
-                    <h1 class="page-title">لوحة التحكم</h1>
+                    <h1 class="page-title"><i class="fas fa-chart-line"></i> لوحة التحكم</h1>
                     <p class="page-subtitle">نظرة شاملة على أداء النظام المالي</p>
                 </div>
-                <div style="display: flex; align-items: center; gap: var(--space-4);">
-                    <button id="refreshBtn" style="
-                        background: var(--primary-600);
-                        color: white;
-                        border: none;
-                        padding: var(--space-3) var(--space-4);
-                        border-radius: var(--radius);
-                        cursor: pointer;
-                        font-size: 0.875rem;
-                        display: flex;
-                        align-items: center;
-                        gap: var(--space-2);
-                    " onclick="loadDashboardData()">
-                        🔄 تحديث البيانات
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button id="refreshBtn" onclick="loadDashboardData()">
+                        <i class="fas fa-sync-alt"></i> تحديث البيانات
                     </button>
-                    <div id="lastUpdate" style="
-                        font-size: 0.75rem;
-                        color: var(--gray-500);
-                    ">جاري التحميل...</div>
+                    <div id="lastUpdate">
+                        <i class="fas fa-clock"></i> جاري التحميل...
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Profit Overview Section - Top Priority -->
-        <section class="profit-overview-section" dir="rtl" id="profitOverviewSection">
-            <div class="profit-cards-grid">
-                <div class="loading">جاري تحميل نظرة عامة على الربح...</div>
-            </div>
-        </section>
-
-        <!-- Final Financial Result Card -->
-        <section class="final-result-section" dir="rtl" id="finalResultSection">
-            <div class="loading" style="text-align: center; padding: var(--space-8); color: var(--gray-500);">
-                جاري تحميل النتيجة المالية النهائية...
-            </div>
-        </section>
-
-        <!-- Cost Breakdown Section -->
-        <section class="cost-breakdown-section" dir="rtl" id="costBreakdownSection">
-            <h2 class="section-title">توزيع التكاليف</h2>
-            <div class="loading" style="text-align: center; padding: var(--space-8); color: var(--gray-500);">
-                جاري تحميل توزيع التكاليف...
-            </div>
-        </section>
-
-        <!-- Cash Flow Section -->
-        <section class="cash-flow-section" dir="rtl" id="cashFlowSection">
-            <h2 class="section-title">حركة النقد</h2>
-            <div class="loading" style="text-align: center; padding: var(--space-8); color: var(--gray-500);">
-                جاري تحميل حركة النقد...
-            </div>
-        </section>
-
-        <!-- Outstanding Balances Section -->
-        <section class="outstanding-balances-section" dir="rtl" id="outstandingBalancesSection">
-            <h2 class="section-title">الأرصدة المستحقة</h2>
-            <div class="loading" style="text-align: center; padding: var(--space-8); color: var(--gray-500);">
-                جاري تحميل الأرصدة المستحقة...
-            </div>
-        </section>
-
-        <!-- Operational Metrics Section -->
-        <section class="operational-metrics-section" dir="rtl" id="operationalMetricsSection">
-            <h2 class="section-title">المقاييس التشغيلية</h2>
-            <div class="loading" style="text-align: center; padding: var(--space-8); color: var(--gray-500);">
-                جاري تحميل المقاييس التشغيلية...
-            </div>
-        </section>
-
-        <div class="financial-overview">
-            <h2 class="text-xl font-semibold mb-4">الملخص المالي</h2>
-            <div class="financial-grid" id="financialOverview">
-                <div class="loading">جاري تحميل البيانات المالية...</div>
+        <!-- Stats Grid -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="inline-loader">
+                <div class="loader"></div>
+                <div class="loader-text">جاري تحميل الإحصائيات...</div>
             </div>
         </div>
 
+        <!-- Financial Overview -->
+        <div class="financial-overview">
+            <h2><i class="fas fa-chart-pie"></i> الملخص المالي</h2>
+            <div class="financial-grid" id="financialOverview">
+                <div class="inline-loader">
+                    <div class="loader"></div>
+                    <div class="loader-text">جاري تحميل البيانات المالية...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
         <div class="quick-actions">
             <a href="clients.html" class="action-card">
-                <div class="action-icon">👥</div>
-                <div class="action-title">إدارة العملاء</div>
-                <div class="action-description">عرض وإدارة حسابات العملاء والمدفوعات</div>
+                <div class="action-icon"><i class="fas fa-users"></i></div>
+                <div class="action-content">
+                    <div class="action-title">إدارة العملاء</div>
+                    <div class="action-description">عرض وإدارة حسابات العملاء والمدفوعات</div>
+                </div>
             </a>
 
             <a href="contractors.html" class="action-card">
-                <div class="action-icon">🚛</div>
-                <div class="action-title">مقاولو النقل</div>
-                <div class="action-description">إدارة مقاولي النقل ومستحقاتهم</div>
+                <div class="action-icon"><i class="fas fa-truck"></i></div>
+                <div class="action-content">
+                    <div class="action-title">مقاولو النقل</div>
+                    <div class="action-description">إدارة مقاولي النقل ومستحقاتهم</div>
+                </div>
             </a>
 
             <a href="crushers.html" class="action-card">
-                <div class="action-icon">🏭</div>
-                <div class="action-title">الكسارات</div>
-                <div class="action-description">متابعة الكسارات والمدفوعات المستحقة</div>
+                <div class="action-icon"><i class="fas fa-industry"></i></div>
+                <div class="action-content">
+                    <div class="action-title">الكسارات</div>
+                    <div class="action-description">متابعة الكسارات والمدفوعات المستحقة</div>
+                </div>
+            </a>
+
+            <a href="suppliers.html" class="action-card">
+                <div class="action-icon"><i class="fas fa-store"></i></div>
+                <div class="action-content">
+                    <div class="action-title">الموردين</div>
+                    <div class="action-description">إدارة الموردين والمواد</div>
+                </div>
             </a>
 
             <a href="expenses.html" class="action-card">
-                <div class="action-icon">💰</div>
-                <div class="action-title">المصروفات</div>
-                <div class="action-description">إدارة وتتبع جميع المصروفات والنفقات</div>
+                <div class="action-icon"><i class="fas fa-money-bill-wave"></i></div>
+                <div class="action-content">
+                    <div class="action-title">المصروفات</div>
+                    <div class="action-description">إدارة وتتبع جميع المصروفات والنفقات</div>
+                </div>
+            </a>
+
+            <a href="employees.html" class="action-card">
+                <div class="action-icon"><i class="fas fa-user-tie"></i></div>
+                <div class="action-content">
+                    <div class="action-title">الموظفين</div>
+                    <div class="action-description">إدارة الموظفين والرواتب</div>
+                </div>
+            </a>
+
+            <a href="administration.html" class="action-card">
+                <div class="action-icon"><i class="fas fa-building"></i></div>
+                <div class="action-content">
+                    <div class="action-title">الإدارة</div>
+                    <div class="action-description">إدارة الشركاء ورأس المال</div>
+                </div>
             </a>
 
             <a href="new-entry.html" class="action-card">
-                <div class="action-icon">➕</div>
-                <div class="action-title">تسليم جديد</div>
-                <div class="action-description">إضافة عملية تسليم جديدة</div>
+                <div class="action-icon"><i class="fas fa-plus-circle"></i></div>
+                <div class="action-content">
+                    <div class="action-title">تسليم جديد</div>
+                    <div class="action-description">إضافة عملية تسليم جديدة</div>
+                </div>
             </a>
         </div>
 
+        <!-- Recent Activity -->
         <div class="recent-activity">
             <div class="card-header">
-                <h3 class="card-title">النشاط الأخير</h3>
+                <h3 class="card-title"><i class="fas fa-history"></i> النشاط الأخير</h3>
             </div>
             <div id="recentActivity">
-                <div class="loading">جاري تحميل النشاط الأخير...</div>
+                <div class="inline-loader">
+                    <div class="loader"></div>
+                    <div class="loader-text">جاري تحميل النشاط الأخير...</div>
+                </div>
             </div>
         </div>
     </div>
@@ -144,7 +146,301 @@
     <script src="js/utils/index.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/sidebar.js"></script>
-    <script src="js/dashboard.js"></script>
+    <script>
+        // Wait for utilities to load
+        async function initializeDashboard() {
+            let attempts = 0;
+            const maxAttempts = 50;
+
+            while (typeof apiGet === 'undefined' && attempts < maxAttempts) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+            }
+
+            if (typeof apiGet === 'undefined') {
+                console.error('API utilities failed to load');
+                return;
+            }
+
+            loadDashboardData();
+            startAutoRefresh();
+        }
+
+        async function loadDashboardData() {
+            // Show inline loaders in each section
+            showInlineLoader('statsGrid', 'جاري تحميل الإحصائيات...');
+            showInlineLoader('financialOverview', 'جاري تحميل البيانات المالية...');
+            showInlineLoader('recentActivity', 'جاري تحميل النشاط الأخير...');
+            
+            try {
+                if (!authManager.isAuthenticated()) {
+                    window.location.href = '/login.html';
+                    return;
+                }
+
+                const metrics = await apiGet('/metrics');
+                const [clientsData, contractorsData, crushersData] = await Promise.all([
+                    apiGet('/clients?limit=5'),
+                    apiGet('/contractors?limit=5'),
+                    apiGet('/crushers?limit=5')
+                ]);
+
+                const clients = clientsData.clients || clientsData.data || [];
+                const contractors = contractorsData.contractors || contractorsData.data || [];
+                const crushers = crushersData.crushers || crushersData.data || [];
+
+                renderStats(metrics);
+                renderFinancialOverview(metrics);
+                renderRecentActivity(clients, contractors, crushers);
+
+                const lastUpdateEl = document.getElementById('lastUpdate');
+                if (lastUpdateEl) {
+                    const now = new Date().toLocaleString('ar-EG');
+                    lastUpdateEl.innerHTML = `<i class="fas fa-clock"></i> آخر تحديث: ${now}`;
+                }
+
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                showErrorMessage('خطأ في تحميل البيانات');
+            }
+        }
+
+        function renderStats(metrics) {
+            const container = document.getElementById('statsGrid');
+            container.innerHTML = `
+                <div class="stat-card success">
+                    <div class="stat-header">
+                        <div class="stat-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">إجمالي المبيعات</div>
+                        <div class="stat-value">${formatCurrency(metrics.totalSales || 0)}</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i> الإيرادات
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card danger">
+                    <div class="stat-header">
+                        <div class="stat-icon">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">إجمالي التكاليف</div>
+                        <div class="stat-value">${formatCurrency(metrics.totalExpenses || 0)}</div>
+                        <div class="stat-change negative">
+                            <i class="fas fa-arrow-down"></i> المصروفات
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card ${(metrics.netProfit || 0) >= 0 ? 'success' : 'danger'}">
+                    <div class="stat-header">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">صافي الربح</div>
+                        <div class="stat-value">${formatCurrency(metrics.netProfit || 0)}</div>
+                        <div class="stat-change ${(metrics.netProfit || 0) >= 0 ? 'positive' : 'negative'}">
+                            <i class="fas fa-${(metrics.netProfit || 0) >= 0 ? 'arrow-up' : 'arrow-down'}"></i> 
+                            ${(metrics.netProfit || 0) >= 0 ? 'ربح' : 'خسارة'}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card info">
+                    <div class="stat-header">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">العملاء</div>
+                        <div class="stat-value">${metrics.totalClients || 0}</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-check"></i> نشط
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card warning">
+                    <div class="stat-header">
+                        <div class="stat-icon">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">المقاولين</div>
+                        <div class="stat-value">${metrics.totalContractors || 0}</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-check"></i> نشط
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card info">
+                    <div class="stat-header">
+                        <div class="stat-icon">
+                            <i class="fas fa-industry"></i>
+                        </div>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">الكسارات</div>
+                        <div class="stat-value">${metrics.totalCrushers || 0}</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-check"></i> نشط
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card success">
+                    <div class="stat-header">
+                        <div class="stat-icon">
+                            <i class="fas fa-box"></i>
+                        </div>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">التسليمات</div>
+                        <div class="stat-value">${metrics.totalDeliveries || 0}</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-check"></i> مكتمل
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card warning">
+                    <div class="stat-header">
+                        <div class="stat-icon">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">الموظفين</div>
+                        <div class="stat-value">${metrics.totalEmployees || 0}</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-check"></i> نشط
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderFinancialOverview(metrics) {
+            const container = document.getElementById('financialOverview');
+            container.innerHTML = `
+                <div class="financial-item">
+                    <div class="financial-value">${formatCurrency(metrics.totalSales || 0)}</div>
+                    <div class="financial-label">إجمالي المبيعات</div>
+                </div>
+                <div class="financial-item">
+                    <div class="financial-value">${formatCurrency(metrics.totalCrusherCosts || 0)}</div>
+                    <div class="financial-label">تكلفة الكسارات</div>
+                </div>
+                <div class="financial-item">
+                    <div class="financial-value">${formatCurrency(metrics.totalContractorCosts || 0)}</div>
+                    <div class="financial-label">تكلفة المقاولين</div>
+                </div>
+                <div class="financial-item">
+                    <div class="financial-value">${formatCurrency(metrics.operatingExpenses || 0)}</div>
+                    <div class="financial-label">المصروفات التشغيلية</div>
+                </div>
+                <div class="financial-item">
+                    <div class="financial-value">${formatCurrency(metrics.totalEmployeeCosts || 0)}</div>
+                    <div class="financial-label">تكلفة الموظفين</div>
+                </div>
+                <div class="financial-item">
+                    <div class="financial-value">${formatCurrency(metrics.totalExpenses || 0)}</div>
+                    <div class="financial-label">إجمالي المصروفات</div>
+                </div>
+                <div class="financial-item">
+                    <div class="financial-value ${(metrics.netProfit || 0) >= 0 ? '' : 'text-danger'}">${formatCurrency(metrics.netProfit || 0)}</div>
+                    <div class="financial-label">صافي الربح</div>
+                </div>
+            `;
+        }
+
+        function renderRecentActivity(clients, contractors, crushers) {
+            const container = document.getElementById('recentActivity');
+            const activities = [];
+
+            clients.slice(0, 3).forEach(client => {
+                activities.push({
+                    icon: 'fa-user',
+                    iconBg: (client.balance || 0) > 0 ? 'var(--dashboard-danger)' : 'var(--dashboard-success)',
+                    title: `عميل: ${client.name}`,
+                    description: `الرصيد: ${formatCurrency(Math.abs(client.balance || 0))}`,
+                    time: formatDate(client.created_at)
+                });
+            });
+
+            contractors.slice(0, 2).forEach(contractor => {
+                activities.push({
+                    icon: 'fa-truck',
+                    iconBg: 'var(--dashboard-warning)',
+                    title: `مقاول: ${contractor.name}`,
+                    description: `الرصيد: ${formatCurrency(Math.abs(contractor.balance || 0))}`,
+                    time: formatDate(contractor.created_at)
+                });
+            });
+
+            crushers.slice(0, 2).forEach(crusher => {
+                activities.push({
+                    icon: 'fa-industry',
+                    iconBg: 'var(--dashboard-info)',
+                    title: `كسارة: ${crusher.name}`,
+                    description: `الصافي: ${formatCurrency(Math.abs(crusher.net || 0))}`,
+                    time: formatDate(crusher.created_at)
+                });
+            });
+
+            if (activities.length === 0) {
+                container.innerHTML = '<div class="loading">لا توجد أنشطة حديثة</div>';
+                return;
+            }
+
+            container.innerHTML = activities.map(activity => `
+                <div class="activity-item">
+                    <div class="activity-icon" style="background: ${activity.iconBg}">
+                        <i class="fas ${activity.icon}"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">${activity.title}</div>
+                        <div class="activity-time">${activity.description} • ${activity.time}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        let autoRefreshInterval;
+
+        function startAutoRefresh() {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+            autoRefreshInterval = setInterval(loadDashboardData, 60000); // Every minute
+        }
+
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeDashboard);
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                stopAutoRefresh();
+            } else {
+                startAutoRefresh();
+            }
+        });
+        window.addEventListener('beforeunload', stopAutoRefresh);
+    </script>
 </body>
 
 </html>

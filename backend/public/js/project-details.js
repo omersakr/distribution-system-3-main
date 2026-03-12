@@ -30,6 +30,28 @@ async function loadProjectDetails() {
         return;
     }
 
+    // Show loaders in financial cards sections
+    const cardIds = [
+        'capitalCard',
+        'operatingResultCard', 
+        'generalExpensesCard',
+        'netOperatingProfitCard',
+        'netOpeningBalanceCard',
+        'finalFinancialPositionCard'
+    ];
+    
+    cardIds.forEach(cardId => {
+        const card = document.getElementById(cardId);
+        if (card) {
+            showInlineLoader(cardId, 'جاري التحميل...');
+        }
+    });
+
+    showInlineLoader('expensesTableBody', 'جاري تحميل المصروفات...');
+    showInlineLoader('capitalInjectionsTableBody', 'جاري تحميل ضخ رأس المال...');
+    showInlineLoader('withdrawalsTableBody', 'جاري تحميل المسحوبات...');
+    showInlineLoader('assignedEmployeesTableBody', 'جاري تحميل الموظفين...');
+
     try {
         const clientData = await apiGet(`/clients/${currentClientId}`);
         currentClient = clientData.client;
@@ -97,7 +119,7 @@ async function displayDetailedFinancialCards() {
             const matchingProject = projects.find(p => String(p.client_id) === String(currentClientId));
             if (matchingProject) {
                 projectId = matchingProject.id;
-                console.log('📋 Found matching Project for this Client:', projectId);
+                console.log('<i class="fas fa-clipboard"></i> Found matching Project for this Client:', projectId);
             }
         } catch (error) {
             console.error('Error finding matching project:', error);
@@ -111,7 +133,7 @@ async function displayDetailedFinancialCards() {
         const deliveriesWithMissingPrices = deliveries.filter(d => !d.material_price_at_time || d.material_price_at_time === 0);
 
         if (deliveriesWithMissingPrices.length > 0) {
-            console.warn('⚠️ Found deliveries with missing material_price_at_time:', deliveriesWithMissingPrices.length);
+            console.warn('<i class="fas fa-exclamation-triangle"></i> Found deliveries with missing material_price_at_time:', deliveriesWithMissingPrices.length);
             // We'll calculate costs without these for now, but log a warning
         }
 
@@ -174,7 +196,7 @@ async function displayDetailedFinancialCards() {
             const employeesData = await apiGet('/employees');
             const allEmployees = employeesData.employees || [];
 
-            console.log('💰 Salaries Debug:');
+            console.log('<i class="fas fa-money-bill-wave"></i> Salaries Debug:');
             console.log('Total employees in system:', allEmployees.length);
 
             // For each employee, check if they're assigned to this project
@@ -270,7 +292,7 @@ async function displayDetailedFinancialCards() {
             }
 
             totalCapitalInjections = projectInjections.reduce((sum, inj) => sum + (inj.amount || 0), 0);
-            console.log('💰 Capital Injections Debug:');
+            console.log('<i class="fas fa-money-bill-wave"></i> Capital Injections Debug:');
             console.log('All injections:', allInjections.length);
             console.log('Current Client ID:', currentClientId);
             console.log('Matching Project ID:', projectId);
@@ -323,10 +345,10 @@ async function displayDetailedFinancialCards() {
         const netOpeningBalance = clientOpeningBalance - totalCrusherOpeningBalances - totalContractorOpeningBalances - totalSupplierOpeningBalances;
 
         console.log('═══════════════════════════════════════════════════════');
-        console.log('📊 COMPLETE FINANCIAL CALCULATIONS DEBUG');
+        console.log('<i class="fas fa-chart-line"></i> COMPLETE FINANCIAL CALCULATIONS DEBUG');
         console.log('═══════════════════════════════════════════════════════');
         console.log('');
-        console.log('💵 REVENUE & COSTS:');
+        console.log('<i class="fas fa-dollar-sign"></i> REVENUE & COSTS:');
         console.log('  Total Revenue:', totalRevenue);
         console.log('  Material Costs:', materialCosts);
         console.log('  Contractor Costs:', contractorCosts);
@@ -339,10 +361,10 @@ async function displayDetailedFinancialCards() {
         console.log('  Operational Expenses:', operationalExpenses);
         console.log('  Total Expenses:', totalExpenses);
         console.log('');
-        console.log('💰 CAPITAL:');
+        console.log('<i class="fas fa-money-bill-wave"></i> CAPITAL:');
         console.log('  Total Capital Injections:', totalCapitalInjections);
         console.log('');
-        console.log('📋 OPENING BALANCES:');
+        console.log('<i class="fas fa-clipboard"></i> OPENING BALANCES:');
         console.log('  Client Opening Balance:', clientOpeningBalance);
         console.log('  Crusher Opening Balances:', totalCrusherOpeningBalances);
         console.log('  Contractor Opening Balances:', totalContractorOpeningBalances);
@@ -355,7 +377,7 @@ async function displayDetailedFinancialCards() {
         console.log('💳 PAYMENTS:');
         console.log('  Total Payments:', totalPayments);
         console.log('');
-        console.log('📈 CALCULATED RESULTS:');
+        console.log('<i class="fas fa-chart-bar"></i> CALCULATED RESULTS:');
         console.log('  Net Profit (Operating Result - Expenses):', netProfit);
 
         // Final Financial Position = Net Operating Profit + Net Opening Balance + Total Adjustments
@@ -576,8 +598,26 @@ async function loadCapitalInjections() {
     try {
         const data = await apiGet('/administration/capital-injections');
         const allInjections = data.capital_injections || data.capitalInjections || [];
-        // Filter by currentClientId since clients ARE projects in this system
-        const injections = allInjections.filter(injection => injection.project_id === currentClientId);
+        
+        // Find the matching project ID first
+        let projectId = null;
+        try {
+            const projectsData = await apiGet('/projects');
+            const projects = projectsData.projects || [];
+            const matchingProject = projects.find(p => String(p.client_id) === String(currentClientId));
+            if (matchingProject) {
+                projectId = matchingProject.id;
+            }
+        } catch (error) {
+            console.error('Error finding matching project:', error);
+        }
+        
+        // Filter by Project ID (not Client ID)
+        const injections = allInjections.filter(injection => {
+            const injProjectId = injection.project_id?._id || injection.project_id;
+            return projectId && String(injProjectId) === String(projectId);
+        });
+        
         displayCapitalInjections(injections);
     } catch (error) {
         console.error('Error loading capital injections:', error);
@@ -611,8 +651,26 @@ async function loadWithdrawals() {
     try {
         const data = await apiGet('/administration/withdrawals');
         const allWithdrawals = data.withdrawals || [];
-        // Filter by currentClientId since clients ARE projects in this system
-        const withdrawals = allWithdrawals.filter(withdrawal => withdrawal.project_id === currentClientId);
+        
+        // Find the matching project ID first
+        let projectId = null;
+        try {
+            const projectsData = await apiGet('/projects');
+            const projects = projectsData.projects || [];
+            const matchingProject = projects.find(p => String(p.client_id) === String(currentClientId));
+            if (matchingProject) {
+                projectId = matchingProject.id;
+            }
+        } catch (error) {
+            console.error('Error finding matching project:', error);
+        }
+        
+        // Filter by Project ID (not Client ID)
+        const withdrawals = allWithdrawals.filter(withdrawal => {
+            const wProjectId = withdrawal.project_id?._id || withdrawal.project_id;
+            return projectId && String(wProjectId) === String(projectId);
+        });
+        
         displayWithdrawals(withdrawals);
     } catch (error) {
         console.error('Error loading withdrawals:', error);
@@ -657,7 +715,7 @@ async function loadAssignedEmployees() {
 }
 
 function displayAssignedEmployees(employees) {
-    const tbody = document.getElementById('employeesTableBody');
+    const tbody = document.getElementById('assignedEmployeesTableBody');
 
     if (!employees || employees.length === 0) {
         tbody.innerHTML = `

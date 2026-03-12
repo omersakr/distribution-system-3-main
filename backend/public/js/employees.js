@@ -22,12 +22,12 @@ function createEmployeeCard(employee) {
 
     const detailsBtn = document.createElement('button');
     detailsBtn.className = 'btn btn-sm btn-primary';
-    detailsBtn.innerHTML = '📊 التفاصيل';
+    detailsBtn.innerHTML = '<i class="fas fa-chart-line"></i> التفاصيل';
     detailsBtn.onclick = () => window.location.href = `employee-details.html?id=${employee.id}`;
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'btn btn-sm btn-danger';
-    deleteBtn.innerHTML = '🗑️ حذف';
+    deleteBtn.innerHTML = '<i class="fas fa-trash"></i> حذف';
     deleteBtn.onclick = () => deleteEmployee(employee.id, employee.name);
 
     actions.appendChild(detailsBtn);
@@ -256,6 +256,7 @@ async function deleteEmployee(employeeId, employeeName) {
 // Global function to load and render employees
 window.loadEmployees = async function () {
     const container = document.getElementById('employeesContainer');
+    showInlineLoader('employeesContainer', 'جاري تحميل الموظفين...');
     try {
         const employees = await fetchEmployees();
         renderEmployees(employees);

@@ -47,12 +47,12 @@ function createSupplierCard(supplier) {
 
     const detailsBtn = document.createElement('button');
     detailsBtn.className = 'btn btn-sm btn-primary';
-    detailsBtn.innerHTML = '📊 التفاصيل';
+    detailsBtn.innerHTML = '<i class="fas fa-chart-line"></i> التفاصيل';
     detailsBtn.onclick = () => window.location.href = `supplier-details.html?id=${supplier.id}`;
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'btn btn-sm btn-danger';
-    deleteBtn.innerHTML = '🗑️ حذف';
+    deleteBtn.innerHTML = '<i class="fas fa-trash"></i> حذف';
     deleteBtn.onclick = () => deleteSupplier(supplier.id, supplier.name);
 
     actions.appendChild(detailsBtn);
@@ -145,7 +145,7 @@ function renderSuppliers(suppliers) {
     if (!suppliers || suppliers.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">🏭</div>
+                <div class="empty-icon"><i class="fas fa-industry"></i></div>
                 <div class="empty-text">لا توجد موردين مسجلين</div>
                 <button class="btn btn-primary" onclick="showModal('addSupplierModal')">
                     إضافة مورد جديد
@@ -312,6 +312,7 @@ function setupEventHandlers() {
 
 // Load suppliers data
 async function loadSuppliers() {
+    showInlineLoader('suppliersContainer', 'جاري تحميل الموردين...');
     try {
         suppliersData = await fetchSuppliers();
         renderSuppliers(suppliersData);
@@ -320,7 +321,7 @@ async function loadSuppliers() {
         const container = document.getElementById('suppliersContainer');
         container.innerHTML = `
             <div class="error-state">
-                <div class="error-icon">❌</div>
+                <div class="error-icon"><i class="fas fa-times-circle"></i></div>
                 <div class="error-text">خطأ في تحميل بيانات الموردين</div>
                 <div class="error-details">${error.message}</div>
                 <button class="btn btn-primary" onclick="loadSuppliers()">إعادة المحاولة</button>
@@ -485,7 +486,7 @@ function addSupplierOpeningBalanceRow() {
     const removeBtn = document.createElement('button');
     removeBtn.type = 'button';
     removeBtn.className = 'btn btn-sm btn-danger';
-    removeBtn.innerHTML = '🗑️';
+    removeBtn.innerHTML = '<i class="fas fa-trash"></i>';
     removeBtn.onclick = () => document.getElementById(rowId).remove();
     removeCol.appendChild(removeBtn);
 

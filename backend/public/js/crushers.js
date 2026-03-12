@@ -47,17 +47,17 @@ function createCrusherCard(crusher) {
 
     const editPricesBtn = document.createElement('button');
     editPricesBtn.className = 'btn btn-sm btn-secondary';
-    editPricesBtn.innerHTML = '💰 تعديل الأسعار';
+    editPricesBtn.innerHTML = '<i class="fas fa-money-bill-wave"></i> تعديل الأسعار';
     editPricesBtn.onclick = () => openEditPricesModal(crusher);
 
     const detailsBtn = document.createElement('button');
     detailsBtn.className = 'btn btn-sm btn-primary';
-    detailsBtn.innerHTML = '📊 التفاصيل';
+    detailsBtn.innerHTML = '<i class="fas fa-chart-line"></i> التفاصيل';
     detailsBtn.onclick = () => window.location.href = `crusher-details.html?id=${crusher.id}`;
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'btn btn-sm btn-danger';
-    deleteBtn.innerHTML = '🗑️ حذف';
+    deleteBtn.innerHTML = '<i class="fas fa-trash"></i> حذف';
     deleteBtn.onclick = () => deleteCrusher(crusher.id, crusher.name);
 
     actions.appendChild(editPricesBtn);
@@ -152,7 +152,7 @@ function renderCrushers(crushers) {
     if (!crushers || crushers.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">🏭</div>
+                <div class="empty-icon"><i class="fas fa-industry"></i></div>
                 <div class="empty-text">لا توجد كسارات مسجلة</div>
                 <button class="btn btn-primary" onclick="showModal('addCrusherModal')">
                     إضافة كسارة جديدة
@@ -320,6 +320,7 @@ function setupEventHandlers() {
 
 // Load crushers data
 async function loadCrushers() {
+    showInlineLoader('crushersContainer', 'جاري تحميل الكسارات...');
     try {
         crushersData = await fetchCrushers();
         renderCrushers(crushersData);
@@ -328,7 +329,7 @@ async function loadCrushers() {
         const container = document.getElementById('crushersContainer');
         container.innerHTML = `
             <div class="error-state">
-                <div class="error-icon">❌</div>
+                <div class="error-icon"><i class="fas fa-times-circle"></i></div>
                 <div class="error-text">خطأ في تحميل بيانات الكسارات</div>
                 <div class="error-details">${error.message}</div>
                 <button class="btn btn-primary" onclick="loadCrushers()">إعادة المحاولة</button>
@@ -496,7 +497,7 @@ function addCrusherOpeningBalanceRow() {
     const removeBtn = document.createElement('button');
     removeBtn.type = 'button';
     removeBtn.className = 'btn btn-sm btn-danger';
-    removeBtn.innerHTML = '🗑️';
+    removeBtn.innerHTML = '<i class="fas fa-trash"></i>';
     removeBtn.onclick = () => document.getElementById(rowId).remove();
     removeCol.appendChild(removeBtn);
 

@@ -15,16 +15,27 @@
             margin: 0 auto;
         }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/loaders.css">
 </head>
 
 <body>
+    <!-- Global Loader -->
+    <div class="loader-overlay" id="globalLoader">
+        <div class="loader-container">
+            <div class="loader"></div>
+            <div class="loader-text">جاري التحميل...</div>
+        </div>
+    </div>
+
+
     <div id="sidebar-placeholder"></div>
 
     <div class="main-content">
         <div class="page-header">
             <h1 class="page-title">إدارة العملاء</h1>
             <button class="btn btn-primary" id="addClientBtn">
-                <span>➕</span> إضافة عميل جديد
+                <i class="fas fa-plus"></i> إضافة عميل جديد
             </button>
         </div>
 
@@ -32,8 +43,8 @@
             <div class="search-controls">
                 <div class="search-box">
                     <input type="text" id="clientSearch" class="form-input" placeholder="ابحث عن عميل...">
-                    <button id="searchBtn" class="btn btn-secondary">🔍 بحث</button>
-                    <button id="clearSearchBtn" class="btn btn-secondary">✖ مسح</button>
+                    <button id="searchBtn" class="btn btn-secondary"><i class="fas fa-search"></i> بحث</button>
+                    <button id="clearSearchBtn" class="btn btn-secondary"><i class="fas fa-times"></i> مسح</button>
                 </div>
             </div>
 
@@ -82,6 +93,7 @@
     <script src="js/csp-fix.js"></script>
     <script src="js/sidebar.js"></script>
     <script src="js/clients.js"></script>
+    <script src="js/utils/loader.js"></script>
 </body>
 
 </html>

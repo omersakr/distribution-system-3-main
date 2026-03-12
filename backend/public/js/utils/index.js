@@ -22,6 +22,7 @@ async function loadUtilities() {
         await loadScript('js/utils/formatters.js');
         await loadScript('js/utils/validation.js');
         await loadScript('js/utils/dom.js');
+        await loadScript('js/utils/loader.js');
 
         // API utilities (depends on auth.js being loaded first)
         await loadScript('js/utils/api.js');

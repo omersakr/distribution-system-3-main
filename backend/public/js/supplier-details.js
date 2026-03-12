@@ -95,7 +95,7 @@ function renderMaterials(materials) {
     if (!materials || materials.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">📦</div>
+                <div class="empty-icon"><i class="fas fa-box"></i></div>
                 <div>لا توجد مواد</div>
             </div>
         `;
@@ -114,8 +114,8 @@ function renderMaterials(materials) {
                 <strong>${formatCurrency(material.price_per_unit)}</strong>
             </div>
             <div style="margin-top: 12px; display: flex; gap: 8px; justify-content: flex-end;">
-                <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="material" data-id="${material.id}" title="تعديل">✏️</button>
-                <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="material" data-id="${material.id}" title="حذف">🗑️</button>
+                <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="material" data-id="${material.id}" title="تعديل"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="material" data-id="${material.id}" title="حذف"><i class="fas fa-trash"></i></button>
             </div>
         `;
         container.appendChild(card);
@@ -185,7 +185,7 @@ function renderPayments(payments) {
     if (!payments || payments.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">💰</div>
+                <div class="empty-icon"><i class="fas fa-money-bill-wave"></i></div>
                 <div>لا توجد مدفوعات مسجلة</div>
             </div>
         `;
@@ -232,7 +232,7 @@ function renderPayments(payments) {
         if (payment.payment_image) {
             imageCell.innerHTML = `
                 <button class="btn btn-sm btn-secondary" data-image="${payment.payment_image}" onclick="showImageModal(this.getAttribute('data-image'))" title="عرض الصورة">
-                    🖼️ عرض
+                    <i class="fas fa-image"></i> عرض
                 </button>
             `;
         } else {
@@ -243,9 +243,9 @@ function renderPayments(payments) {
         // Actions cell
         const actionsCell = document.createElement('td');
         actionsCell.innerHTML = `
-            <button class="btn btn-sm btn-secondary crud-btn" data-action="view" data-type="payment" data-id="${payment.id}" title="عرض التفاصيل">👁️</button>
-            <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="payment" data-id="${payment.id}" title="تعديل">✏️</button>
-            <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="payment" data-id="${payment.id}" title="حذف">🗑️</button>
+            <button class="btn btn-sm btn-secondary crud-btn" data-action="view" data-type="payment" data-id="${payment.id}" title="عرض التفاصيل"><i class="fas fa-eye"></i></button>
+            <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="payment" data-id="${payment.id}" title="تعديل"><i class="fas fa-edit"></i></button>
+            <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="payment" data-id="${payment.id}" title="حذف"><i class="fas fa-trash"></i></button>
         `;
         row.appendChild(actionsCell);
 
@@ -263,7 +263,7 @@ function renderAdjustments(adjustments) {
     if (!adjustments || adjustments.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">⚖️</div>
+                <div class="empty-icon"><i class="fas fa-balance-scale"></i></div>
                 <div>لا توجد تسويات مسجلة</div>
             </div>
         `;
@@ -322,7 +322,7 @@ function renderAdjustments(adjustments) {
         if (adjustment.payment_image) {
             imageCell.innerHTML = `
                 <button class="btn btn-sm btn-secondary" data-image="${adjustment.payment_image}" onclick="showImageModal(this.getAttribute('data-image'))" title="عرض الصورة">
-                    🖼️ عرض
+                    <i class="fas fa-image"></i> عرض
                 </button>
             `;
         } else {
@@ -333,9 +333,9 @@ function renderAdjustments(adjustments) {
         // Actions cell
         const actionsCell = document.createElement('td');
         actionsCell.innerHTML = `
-            <button class="btn btn-sm btn-secondary crud-btn" data-action="view" data-type="adjustment" data-id="${adjustment.id}" title="عرض التفاصيل">👁️</button>
-            <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="adjustment" data-id="${adjustment.id}" title="تعديل">✏️</button>
-            <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="adjustment" data-id="${adjustment.id}" title="حذف">🗑️</button>
+            <button class="btn btn-sm btn-secondary crud-btn" data-action="view" data-type="adjustment" data-id="${adjustment.id}" title="عرض التفاصيل"><i class="fas fa-eye"></i></button>
+            <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="adjustment" data-id="${adjustment.id}" title="تعديل"><i class="fas fa-edit"></i></button>
+            <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="adjustment" data-id="${adjustment.id}" title="حذف"><i class="fas fa-trash"></i></button>
         `;
         row.appendChild(actionsCell);
 
@@ -638,7 +638,7 @@ async function showAdjustmentDetails(adjustmentId) {
                     <strong>الصورة:</strong>
                     <div>
                         <button class="btn btn-sm btn-secondary" onclick="showImageModal('${adjustment.payment_image}')" style="margin-top: 5px;">
-                            🖼️ عرض الصورة
+                            <i class="fas fa-image"></i> عرض الصورة
                         </button>
                     </div>
                 </div>
@@ -712,7 +712,7 @@ async function showPaymentDetails(paymentId) {
                     <strong>الصورة:</strong>
                     <div>
                         <button class="btn btn-sm btn-secondary" onclick="showImageModal('${payment.payment_image}')" style="margin-top: 5px;">
-                            🖼️ عرض الصورة
+                            <i class="fas fa-image"></i> عرض الصورة
                         </button>
                     </div>
                 </div>
@@ -801,6 +801,13 @@ async function loadSupplierDetails() {
         return;
     }
 
+    // Show loaders in each section
+    showInlineLoader('summaryGrid', 'جاري تحميل الملخص...');
+    showInlineLoader('materialsContainer', 'جاري تحميل المواد...');
+    showInlineLoader('deliveriesContainer', 'جاري تحميل التسليمات...');
+    showInlineLoader('paymentsContainer', 'جاري تحميل المدفوعات...');
+    showInlineLoader('adjustmentsContainer', 'جاري تحميل التسويات...');
+
     try {
         const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/suppliers/${supplierId}`);
 
@@ -826,7 +833,7 @@ async function loadSupplierDetails() {
         // Update page title
         document.getElementById('supplierName').textContent = `تفاصيل المورد: ${data.supplier.name}`;
 
-        // Render all sections
+        // Render all sections (loaders will be replaced automatically)
         renderSummary(data.totals || {});
         renderMaterials(data.supplier.materials || []);
         renderDeliveries(allDeliveries);
@@ -1444,7 +1451,7 @@ function addEditSupplierOpeningBalanceRow(existingData = null) {
     const deleteBtn = document.createElement('button');
     deleteBtn.type = 'button';
     deleteBtn.className = 'btn btn-sm btn-danger';
-    deleteBtn.textContent = '🗑️';
+    deleteBtn.textContent = '<i class="fas fa-trash"></i>';
     deleteBtn.onclick = () => row.remove();
     deleteCol.appendChild(deleteBtn);
     

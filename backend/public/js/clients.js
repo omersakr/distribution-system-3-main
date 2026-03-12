@@ -24,12 +24,12 @@ function createClientCard(client) {
 
     const detailsBtn = document.createElement('button');
     detailsBtn.className = 'btn btn-sm btn-primary';
-    detailsBtn.innerHTML = '📊 التفاصيل';
+    detailsBtn.innerHTML = '<i class="fas fa-chart-line"></i> التفاصيل';
     detailsBtn.onclick = () => window.location.href = `clients-details.html?id=${client.id}`;
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'btn btn-sm btn-danger';
-    deleteBtn.innerHTML = '🗑️ حذف';
+    deleteBtn.innerHTML = '<i class="fas fa-trash"></i> حذف';
     deleteBtn.onclick = () => deleteClient(client.id, client.name);
 
     actions.appendChild(detailsBtn);
@@ -130,7 +130,7 @@ function renderClients(clients) {
     if (!clients || clients.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">👥</div>
+                <div class="empty-icon"><i class="fas fa-users"></i></div>
                 <div class="empty-text">لا توجد عملاء مسجلين</div>
                 <button class="btn btn-primary" onclick="showModal('addClientModal')">
                     إضافة عميل جديد
@@ -186,12 +186,15 @@ function renderPagination(pagination) {
 
 // API functions
 async function loadClients(page = 1) {
+    const container = document.getElementById('clientsContainer');
+    showInlineLoader('clientsContainer', 'جاري تحميل العملاء...');
+    
     try {
         const params = new URLSearchParams();
         params.set('page', page);
         params.set('limit', 25);
         if (currentSearch) {
-            params.set('search', currentSearch); // Changed from 'q' to 'search'
+            params.set('search', currentSearch);
         }
 
         const result = await apiGet(`/clients?${params}`);
@@ -205,10 +208,9 @@ async function loadClients(page = 1) {
         }
     } catch (error) {
         console.error('Error loading clients:', error);
-        const container = document.getElementById('clientsContainer');
         container.innerHTML = `
             <div class="error-state">
-                <div class="error-icon">❌</div>
+                <div class="error-icon"><i class="fas fa-times-circle"></i></div>
                 <div class="error-text">خطأ في تحميل بيانات العملاء</div>
                 <div class="error-details">${error.message}</div>
                 <button class="btn btn-primary" onclick="loadClients()">إعادة المحاولة</button>

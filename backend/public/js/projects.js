@@ -24,7 +24,7 @@ function createProjectCard(client) {
 
     const detailsBtn = document.createElement('button');
     detailsBtn.className = 'btn btn-sm btn-primary';
-    detailsBtn.innerHTML = '📊 التفاصيل المالية';
+    detailsBtn.innerHTML = '<i class="fas fa-chart-line"></i> التفاصيل المالية';
     detailsBtn.onclick = () => window.location.href = `project-details.html?client_id=${client.id}`;
 
     actions.appendChild(detailsBtn);
@@ -127,7 +127,7 @@ function renderProjects(clients) {
     if (!clients || clients.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">📊</div>
+                <div class="empty-icon"><i class="fas fa-chart-line"></i></div>
                 <div class="empty-text">لا توجد مشاريع (عملاء) مسجلة</div>
                 <p>المشاريع تُنشأ تلقائياً عند إضافة عملاء جدد</p>
                 <button class="btn btn-primary" onclick="window.location.href='clients.html'">
@@ -184,6 +184,7 @@ function renderPagination(pagination) {
 
 // API functions - Load clients as projects
 async function loadProjects(page = 1) {
+    showInlineLoader('projectsContainer', 'جاري تحميل المشاريع...');
     try {
         const params = new URLSearchParams();
         params.set('page', page);
@@ -206,7 +207,7 @@ async function loadProjects(page = 1) {
         const container = document.getElementById('projectsContainer');
         container.innerHTML = `
             <div class="error-state">
-                <div class="error-icon">❌</div>
+                <div class="error-icon"><i class="fas fa-times-circle"></i></div>
                 <div class="error-text">خطأ في تحميل بيانات المشاريع</div>
                 <div class="error-details">${error.message}</div>
                 <button class="btn btn-primary" onclick="loadProjects()">إعادة المحاولة</button>

@@ -229,17 +229,17 @@ function renderProfitOverview(metrics) {
     const html = `
         <div class="profit-cards-grid">
             <div class="profit-card">
-                <div class="profit-icon">💰</div>
+                <div class="profit-icon"><i class="fas fa-money-bill-wave"></i></div>
                 <div class="profit-value">${formatCurrency(totalRevenue)}</div>
                 <div class="profit-label">إجمالي الإيرادات</div>
             </div>
             <div class="profit-card">
-                <div class="profit-icon">📊</div>
+                <div class="profit-icon"><i class="fas fa-chart-line"></i></div>
                 <div class="profit-value">${formatCurrency(totalCosts)}</div>
                 <div class="profit-label">إجمالي التكاليف</div>
             </div>
             <div class="profit-card">
-                <div class="profit-icon">📈</div>
+                <div class="profit-icon"><i class="fas fa-chart-bar"></i></div>
                 <div class="profit-value ${netProfitColorClass}">${formatCurrency(netProfit)}</div>
                 <div class="profit-label">صافي الربح</div>
             </div>
@@ -602,7 +602,7 @@ function renderOutstandingBalances(metrics) {
             
             <div class="balance-panel owed-to-us">
                 <div class="panel-header">
-                    <span class="panel-icon">💵</span>
+                    <span class="panel-icon"><i class="fas fa-dollar-sign"></i></span>
                     <h3 class="panel-title">مستحقات لنا</h3>
                 </div>
                 <div class="panel-total balance-positive">
@@ -646,27 +646,27 @@ function renderOperationalMetrics(metrics) {
         <h2 class="section-title">المقاييس التشغيلية</h2>
         <div class="operational-grid">
             <div class="operational-card">
-                <div class="operational-icon">🏢</div>
+                <div class="operational-icon"><i class="fas fa-building"></i></div>
                 <div class="operational-value">${totalClients}</div>
                 <div class="operational-label">إجمالي العملاء</div>
             </div>
             <div class="operational-card">
-                <div class="operational-icon">🏭</div>
+                <div class="operational-icon"><i class="fas fa-industry"></i></div>
                 <div class="operational-value">${totalCrushers}</div>
                 <div class="operational-label">إجمالي الكسارات</div>
             </div>
             <div class="operational-card">
-                <div class="operational-icon">📦</div>
+                <div class="operational-icon"><i class="fas fa-box"></i></div>
                 <div class="operational-value">${totalSuppliers}</div>
                 <div class="operational-label">إجمالي الموردين</div>
             </div>
             <div class="operational-card">
-                <div class="operational-icon">🚛</div>
+                <div class="operational-icon"><i class="fas fa-truck"></i></div>
                 <div class="operational-value">${totalContractors}</div>
                 <div class="operational-label">إجمالي المقاولين</div>
             </div>
             <div class="operational-card">
-                <div class="operational-icon">📋</div>
+                <div class="operational-icon"><i class="fas fa-clipboard"></i></div>
                 <div class="operational-value">${totalProjects}</div>
                 <div class="operational-label">إجمالي المشاريع</div>
             </div>
@@ -874,7 +874,7 @@ function renderRecentActivity(clients, contractors, crushers, employees, adminis
             title: 'خطأ في تحميل بيانات الموظفين',
             description: 'فشل في تحميل النشاط الأخير للموظفين',
             time: '',
-            icon: '⚠️',
+            icon: '<i class="fas fa-exclamation-triangle"></i>',
             iconBg: 'var(--danger-100)'
         });
     } else if (employees && employees.length > 0) {
@@ -907,7 +907,7 @@ function renderRecentActivity(clients, contractors, crushers, employees, adminis
             title: 'خطأ في تحميل بيانات الإدارة',
             description: 'فشل في تحميل النشاط الأخير للإدارة',
             time: '',
-            icon: '⚠️',
+            icon: '<i class="fas fa-exclamation-triangle"></i>',
             iconBg: 'var(--danger-100)'
         });
     } else if (administration && administration.length > 0) {
@@ -929,7 +929,7 @@ function renderRecentActivity(clients, contractors, crushers, employees, adminis
                 title: `إدارة: ${admin.name || admin.entity_name || 'غير محدد'}`,
                 description: description,
                 time: formatDate(admin.created_at),
-                icon: '🏢',
+                icon: '<i class="fas fa-building"></i>',
                 iconBg: 'var(--primary-100)'
             });
         });
@@ -942,7 +942,7 @@ function renderRecentActivity(clients, contractors, crushers, employees, adminis
             title: 'خطأ في تحميل بيانات المشاريع',
             description: 'فشل في تحميل النشاط الأخير للمشاريع',
             time: '',
-            icon: '⚠️',
+            icon: '<i class="fas fa-exclamation-triangle"></i>',
             iconBg: 'var(--danger-100)'
         });
     } else if (projects && projects.length > 0) {
@@ -977,7 +977,7 @@ function renderRecentActivity(clients, contractors, crushers, employees, adminis
             title: 'خطأ في تحميل بيانات الموردين',
             description: 'فشل في تحميل النشاط الأخير للموردين',
             time: '',
-            icon: '⚠️',
+            icon: '<i class="fas fa-exclamation-triangle"></i>',
             iconBg: 'var(--danger-100)'
         });
     } else if (suppliers && suppliers.length > 0) {
@@ -1003,7 +1003,7 @@ function renderRecentActivity(clients, contractors, crushers, employees, adminis
                 title: `عميل: ${client.name}`,
                 description: `الرصيد: ${formatCurrency(client.balance)}`,
                 time: formatDate(client.created_at),
-                icon: '👤',
+                icon: '<i class="fas fa-user"></i>',
                 iconBg: client.balance > 0 ? 'var(--success-100)' : client.balance < 0 ? 'var(--danger-100)' : 'var(--gray-100)'
             });
         });
@@ -1017,7 +1017,7 @@ function renderRecentActivity(clients, contractors, crushers, employees, adminis
                 title: `مقاول: ${contractor.name}`,
                 description: `الرصيد: ${formatCurrency(contractor.balance)}`,
                 time: formatDate(contractor.created_at),
-                icon: '🚛',
+                icon: '<i class="fas fa-truck"></i>',
                 iconBg: contractor.balance > 0 ? 'var(--warning-100)' : 'var(--success-100)'
             });
         });
@@ -1031,7 +1031,7 @@ function renderRecentActivity(clients, contractors, crushers, employees, adminis
                 title: `كسارة: ${crusher.name}`,
                 description: `الصافي: ${formatCurrency(crusher.net || 0)}`,
                 time: formatDate(crusher.created_at),
-                icon: '🏭',
+                icon: '<i class="fas fa-industry"></i>',
                 iconBg: 'var(--primary-100)'
             });
         });

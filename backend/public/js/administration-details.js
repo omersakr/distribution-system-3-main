@@ -54,6 +54,12 @@ async function loadAdministrationDetails() {
         return;
     }
 
+    // Show loaders in each section
+    showInlineLoader('financialSummary', 'جاري تحميل الملخص المالي...');
+    showInlineLoader('capitalInjectionsTableBody', 'جاري تحميل ضخ رأس المال...');
+    showInlineLoader('withdrawalsTableBody', 'جاري تحميل المسحوبات...');
+    showInlineLoader('projectBreakdownContainer', 'جاري تحميل تفاصيل المشاريع...');
+
     try {
         const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/administration/${currentAdministrationId}`);
         if (!response.ok) throw new Error('فشل في تحميل بيانات الإدارة');

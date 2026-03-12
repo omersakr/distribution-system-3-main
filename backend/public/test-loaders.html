@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار اللودرز والأيقونات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/modern-theme.css">
+    <link rel="stylesheet" href="css/loaders.css">
+    <style>
+        body {
+            padding: 2rem;
+            font-family: 'Cairo', sans-serif;
+        }
+        .test-section {
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section h2 {
+            margin-bottom: 1.5rem;
+            color: #1f2937;
+            border-bottom: 2px solid #3b82f6;
+            padding-bottom: 0.5rem;
+        }
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .icon-item {
+            text-align: center;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+        }
+        .icon-item i {
+            font-size: 2rem;
+            color: #3b82f6;
+            margin-bottom: 0.5rem;
+        }
+        .icon-item span {
+            display: block;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+        .loader-demo {
+            min-height: 200px;
+            border: 2px dashed #e5e7eb;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        #tableDemo {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        #tableDemo th,
+        #tableDemo td {
+            padding: 0.75rem;
+            text-align: right;
+            border: 1px solid #e5e7eb;
+        }
+        #tableDemo th {
+            background: #f3f4f6;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Global Loader -->
+    <div class="loader-overlay" id="globalLoader">
+        <div class="loader-container">
+            <div class="loader"></div>
+            <div class="loader-text">جاري التحميل...</div>
+        </div>
+    </div>
+
+    <h1 style="text-align: center; margin-bottom: 2rem;">اختبار اللودرز والأيقونات</h1>
+
+    <!-- اختبار الأيقونات -->
+    <div class="test-section">
+        <h2><i class="fas fa-icons"></i> الأيقونات المستخدمة</h2>
+        <div class="icon-grid">
+            <div class="icon-item">
+                <i class="fas fa-users"></i>
+                <span>العملاء</span>
+            </div>
+            <div class="icon-item">
+                <i class="fas fa-truck"></i>
+                <span>المقاولين</span>
+            </div>
+            <div class="icon-item">
+                <i class="fas fa-industry"></i>
+                <span>الكسارات</span>
+            </div>
+            <div class="icon-item">
+                <i class="fas fa-money-bill-wave"></i>
+                <span>المصروفات</span>
+            </div>
+            <div class="icon-item">
+                <i class="fas fa-plus-circle"></i>
+                <span>إضافة</span>
+            </div>
+            <div class="icon-item">
+                <i class="fas fa-edit"></i>
+                <span>تعديل</span>
+            </div>
+            <div class="icon-item">
+                <i class="fas fa-sync-alt"></i>
+                <span>تحديث</span>
+            </div>
+            <div class="icon-item">
+                <i class="fas fa-search"></i>
+                <span>بحث</span>
+            </div>
+            <div class="icon-item">
+                <i class="fas fa-times"></i>
+                <span>إغلاق</span>
+            </div>
+            <div class="icon-item">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>تحذير</span>
+            </div>
+            <div class="icon-item">
+                <i class="fas fa-file-pdf"></i>
+                <span>PDF</span>
+            </div>
+            <div class="icon-item">
+                <i class="fas fa-chart-line"></i>
+                <span>تقرير</span>
+            </div>
+            <div class="icon-item">
+                <i class="fas fa-trash"></i>
+                <span>حذف</span>
+            </div>
+            <div class="icon-item">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>دخول</span>
+            </div>
+            <div class="icon-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>خروج</span>
+            </div>
+            <div class="icon-item">
+                <i class="fas fa-ban"></i>
+                <span>محظور</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- اختبار اللودر الشامل -->
+    <div class="test-section">
+        <h2><i class="fas fa-spinner"></i> اللودر الشامل</h2>
+        <div class="button-group">
+            <button class="btn btn-primary" onclick="testGlobalLoader()">
+                <i class="fas fa-play"></i> اختبار اللودر الشامل
+            </button>
+        </div>
+    </div>
+
+    <!-- اختبار اللودر الداخلي -->
+    <div class="test-section">
+        <h2><i class="fas fa-circle-notch"></i> اللودر الداخلي</h2>
+        <div class="button-group">
+            <button class="btn btn-primary" onclick="testInlineLoader()">
+                <i class="fas fa-play"></i> اختبار اللودر الداخلي
+            </button>
+        </div>
+        <div id="inlineLoaderDemo" class="loader-demo">
+            <p>انقر على الزر لاختبار اللودر الداخلي</p>
+        </div>
+    </div>
+
+    <!-- اختبار حالة التحميل للأزرار -->
+    <div class="test-section">
+        <h2><i class="fas fa-mouse-pointer"></i> حالة التحميل للأزرار</h2>
+        <div class="button-group">
+            <button class="btn btn-primary" id="testBtn1" onclick="testButtonLoading(this)">
+                <i class="fas fa-save"></i> حفظ البيانات
+            </button>
+            <button class="btn btn-secondary" id="testBtn2" onclick="testButtonLoading(this)">
+                <i class="fas fa-upload"></i> رفع ملف
+            </button>
+        </div>
+    </div>
+
+    <!-- اختبار حالة التحميل للجداول -->
+    <div class="test-section">
+        <h2><i class="fas fa-table"></i> حالة التحميل للجداول</h2>
+        <div class="button-group">
+            <button class="btn btn-primary" onclick="testTableLoading()">
+                <i class="fas fa-play"></i> اختبار تحميل الجدول
+            </button>
+        </div>
+        <table id="tableDemo">
+            <thead>
+                <tr>
+                    <th>الاسم</th>
+                    <th>البريد الإلكتروني</th>
+                    <th>الحالة</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>محمد أحمد</td>
+                    <td>mohamed@example.com</td>
+                    <td>نشط</td>
+                </tr>
+                <tr>
+                    <td>أحمد علي</td>
+                    <td>ahmed@example.com</td>
+                    <td>نشط</td>
+                </tr>
+                <tr>
+                    <td>سارة محمود</td>
+                    <td>sara@example.com</td>
+                    <td>غير نشط</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- اختبار Skeleton Loaders -->
+    <div class="test-section">
+        <h2><i class="fas fa-bone"></i> Skeleton Loaders</h2>
+        <div class="button-group">
+            <button class="btn btn-primary" onclick="testSkeletonLoader()">
+                <i class="fas fa-play"></i> اختبار Skeleton Loader
+            </button>
+        </div>
+        <div id="skeletonDemo" class="loader-demo">
+            <p>انقر على الزر لاختبار Skeleton Loader</p>
+        </div>
+    </div>
+
+    <!-- اختبار Loading Dots -->
+    <div class="test-section">
+        <h2><i class="fas fa-ellipsis-h"></i> Loading Dots</h2>
+        <div class="button-group">
+            <button class="btn btn-primary" onclick="testLoadingDots()">
+                <i class="fas fa-play"></i> اختبار Loading Dots
+            </button>
+        </div>
+        <div id="dotsDemo" class="loader-demo">
+            <p>انقر على الزر لاختبار Loading Dots</p>
+        </div>
+    </div>
+
+    <script src="js/utils/loader.js"></script>
+    <script>
+        // اختبار اللودر الشامل
+        function testGlobalLoader() {
+            showLoader('جاري التحميل...');
+            setTimeout(() => {
+                hideLoader();
+            }, 3000);
+        }
+
+        // اختبار اللودر الداخلي
+        function testInlineLoader() {
+            showInlineLoader('inlineLoaderDemo', 'جاري تحميل البيانات...');
+            setTimeout(() => {
+                document.getElementById('inlineLoaderDemo').innerHTML = 
+                    '<p style="color: green;"><i class="fas fa-check-circle"></i> تم التحميل بنجاح!</p>';
+            }, 3000);
+        }
+
+        // اختبار حالة التحميل للأزرار
+        function testButtonLoading(button) {
+            setButtonLoading(button, true);
+            setTimeout(() => {
+                setButtonLoading(button, false);
+            }, 3000);
+        }
+
+        // اختبار حالة التحميل للجداول
+        function testTableLoading() {
+            setTableLoading('tableDemo', true);
+            setTimeout(() => {
+                setTableLoading('tableDemo', false);
+            }, 3000);
+        }
+
+        // اختبار Skeleton Loader
+        function testSkeletonLoader() {
+            const container = document.getElementById('skeletonDemo');
+            container.innerHTML = `
+                <div style="width: 100%; padding: 1rem;">
+                    ${createSkeletonLoader('title', 1)}
+                    ${createSkeletonLoader('text', 3)}
+                    ${createSkeletonLoader('card', 1)}
+                </div>
+            `;
+            setTimeout(() => {
+                container.innerHTML = 
+                    '<p style="color: green;"><i class="fas fa-check-circle"></i> تم التحميل بنجاح!</p>';
+            }, 3000);
+        }
+
+        // اختبار Loading Dots
+        function testLoadingDots() {
+            const container = document.getElementById('dotsDemo');
+            container.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span>جاري المعالجة</span>
+                    ${createLoadingDots()}
+                </div>
+            `;
+            setTimeout(() => {
+                container.innerHTML = 
+                    '<p style="color: green;"><i class="fas fa-check-circle"></i> تمت المعالجة بنجاح!</p>';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

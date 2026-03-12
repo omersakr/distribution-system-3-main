@@ -55,7 +55,7 @@ function renderMaterials(materialTotals) {
     if (!materialTotals || materialTotals.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">📦</div>
+                <div class="empty-icon"><i class="fas fa-box"></i></div>
                 <div>لا توجد بيانات مواد</div>
             </div>
         `;
@@ -138,8 +138,8 @@ function renderDeliveries(deliveries) {
         // Actions cell
         const actionsCell = document.createElement('td');
         actionsCell.innerHTML = `
-            <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="delivery" data-id="${delivery.id}" title="تعديل">✏️</button>
-            <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="delivery" data-id="${delivery.id}" title="حذف">🗑️</button>
+            <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="delivery" data-id="${delivery.id}" title="تعديل"><i class="fas fa-edit"></i></button>
+            <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="delivery" data-id="${delivery.id}" title="حذف"><i class="fas fa-trash"></i></button>
         `;
         row.appendChild(actionsCell);
 
@@ -157,7 +157,7 @@ function renderPayments(payments) {
     if (!payments || payments.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">💰</div>
+                <div class="empty-icon"><i class="fas fa-money-bill-wave"></i></div>
                 <div>لا توجد مدفوعات مسجلة</div>
             </div>
         `;
@@ -204,7 +204,7 @@ function renderPayments(payments) {
         if (payment.payment_image) {
             imageCell.innerHTML = `
                 <button class="btn btn-sm btn-secondary" data-image="${payment.payment_image}" onclick="showImageModal(this.getAttribute('data-image'))" title="عرض الصورة">
-                    🖼️ عرض
+                    <i class="fas fa-image"></i> عرض
                 </button>
             `;
         } else {
@@ -215,9 +215,9 @@ function renderPayments(payments) {
         // Actions cell - Using CRUD button system like adjustments
         const actionsCell = document.createElement('td');
         actionsCell.innerHTML = `
-            <button class="btn btn-sm btn-secondary crud-btn" data-action="view" data-type="payment" data-id="${payment.id}" title="عرض التفاصيل">👁️</button>
-            <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="payment" data-id="${payment.id}" title="تعديل">✏️</button>
-            <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="payment" data-id="${payment.id}" title="حذف">🗑️</button>
+            <button class="btn btn-sm btn-secondary crud-btn" data-action="view" data-type="payment" data-id="${payment.id}" title="عرض التفاصيل"><i class="fas fa-eye"></i></button>
+            <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="payment" data-id="${payment.id}" title="تعديل"><i class="fas fa-edit"></i></button>
+            <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="payment" data-id="${payment.id}" title="حذف"><i class="fas fa-trash"></i></button>
         `;
         console.log('Payment actions cell created for payment ID:', payment.id);
         row.appendChild(actionsCell);
@@ -236,7 +236,7 @@ function renderAdjustments(adjustments) {
     if (!adjustments || adjustments.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">⚖️</div>
+                <div class="empty-icon"><i class="fas fa-balance-scale"></i></div>
                 <div>لا توجد تسويات مسجلة</div>
             </div>
         `;
@@ -295,7 +295,7 @@ function renderAdjustments(adjustments) {
         if (adjustment.payment_image) {
             imageCell.innerHTML = `
                 <button class="btn btn-sm btn-secondary" data-image="${adjustment.payment_image}" onclick="showImageModal(this.getAttribute('data-image'))" title="عرض الصورة">
-                    🖼️ عرض
+                    <i class="fas fa-image"></i> عرض
                 </button>
             `;
         } else {
@@ -306,9 +306,9 @@ function renderAdjustments(adjustments) {
         // Actions cell
         const actionsCell = document.createElement('td');
         actionsCell.innerHTML = `
-            <button class="btn btn-sm btn-secondary crud-btn" data-action="view" data-type="adjustment" data-id="${adjustment.id}" title="عرض التفاصيل">👁️</button>
-            <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="adjustment" data-id="${adjustment.id}" title="تعديل">✏️</button>
-            <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="adjustment" data-id="${adjustment.id}" title="حذف">🗑️</button>
+            <button class="btn btn-sm btn-secondary crud-btn" data-action="view" data-type="adjustment" data-id="${adjustment.id}" title="عرض التفاصيل"><i class="fas fa-eye"></i></button>
+            <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="adjustment" data-id="${adjustment.id}" title="تعديل"><i class="fas fa-edit"></i></button>
+            <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="adjustment" data-id="${adjustment.id}" title="حذف"><i class="fas fa-trash"></i></button>
         `;
         console.log('Adjustment actions cell created for adjustment ID:', adjustment.id);
         row.appendChild(actionsCell);
@@ -422,7 +422,7 @@ async function showAdjustmentDetails(adjustmentId) {
                     <strong>الصورة:</strong>
                     <div>
                         <button class="btn btn-sm btn-secondary" onclick="showImageModal('${adjustment.payment_image}')" style="margin-top: 5px;">
-                            🖼️ عرض الصورة
+                            <i class="fas fa-image"></i> عرض الصورة
                         </button>
                     </div>
                 </div>
@@ -496,7 +496,7 @@ async function showPaymentDetails(paymentId) {
                     <strong>الصورة:</strong>
                     <div>
                         <button class="btn btn-sm btn-secondary" onclick="showImageModal('${payment.payment_image}')" style="margin-top: 5px;">
-                            🖼️ عرض الصورة
+                            <i class="fas fa-image"></i> عرض الصورة
                         </button>
                     </div>
                 </div>
@@ -1038,6 +1038,13 @@ async function loadClientDetails() {
         return;
     }
 
+    // Show loaders in each section
+    showInlineLoader('summaryGrid', 'جاري تحميل الملخص...');
+    showInlineLoader('materialsContainer', 'جاري تحميل المواد...');
+    showInlineLoader('deliveriesContainer', 'جاري تحميل التسليمات...');
+    showInlineLoader('paymentsContainer', 'جاري تحميل المدفوعات...');
+    showInlineLoader('adjustmentsContainer', 'جاري تحميل التسويات...');
+
     try {
         const data = await apiGet(`/clients/${clientId}`);
         clientData = data;
@@ -1050,7 +1057,7 @@ async function loadClientDetails() {
         // Update page title
         document.getElementById('clientName').textContent = `تفاصيل العميل: ${data.client.name}`;
 
-        // Render all sections
+        // Render all sections (loaders will be replaced automatically)
         renderSummary(data.totals || {});
         renderMaterials(data.materialTotals || []);
         renderDeliveries(allDeliveries);
@@ -1095,10 +1102,10 @@ function openEditClientModal() {
 
 async function updateClient(clientId, clientData) {
     try {
-        console.log('🔄 Updating client:', clientId, clientData);
+        console.log('<i class="fas fa-sync-alt"></i> Updating client:', clientId, clientData);
         return await apiPut(`/clients/${clientId}`, clientData);
     } catch (error) {
-        console.error('❌ Update client error:', error);
+        console.error('<i class="fas fa-times-circle"></i> Update client error:', error);
         throw error;
     }
 }
@@ -1201,7 +1208,7 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('click', function (e) {
     // Debug: Log all clicks to see if events are being captured
     if (e.target.classList.contains('crud-btn')) {
-        console.log('🔍 CRUD button detected:', e.target);
+        console.log('<i class="fas fa-search"></i> CRUD button detected:', e.target);
     }
 
     // Handle modal close buttons
@@ -1243,37 +1250,37 @@ document.addEventListener('click', function (e) {
         console.log('🎯 CRUD button clicked:', { action, type, id, element: e.target });
 
         if (!action || !type || !id) {
-            console.error('❌ Missing required attributes:', { action, type, id });
+            console.error('<i class="fas fa-times-circle"></i> Missing required attributes:', { action, type, id });
             return;
         }
 
         try {
             if (action === 'view' && type === 'payment') {
-                console.log('👁️ Calling showPaymentDetails with ID:', id);
+                console.log('<i class="fas fa-eye"></i> Calling showPaymentDetails with ID:', id);
                 showPaymentDetails(id);
             } else if (action === 'edit' && type === 'payment') {
-                console.log('✏️ Calling editPayment with ID:', id);
+                console.log('<i class="fas fa-edit"></i> Calling editPayment with ID:', id);
                 editPayment(id);
             } else if (action === 'delete' && type === 'payment') {
-                console.log('🗑️ Calling deletePayment with ID:', id);
+                console.log('<i class="fas fa-trash"></i> Calling deletePayment with ID:', id);
                 deletePayment(id);
             } else if (action === 'view' && type === 'adjustment') {
-                console.log('👁️ Calling showAdjustmentDetails with ID:', id);
+                console.log('<i class="fas fa-eye"></i> Calling showAdjustmentDetails with ID:', id);
                 showAdjustmentDetails(id);
             } else if (action === 'edit' && type === 'adjustment') {
-                console.log('✏️ Calling editAdjustment with ID:', id);
+                console.log('<i class="fas fa-edit"></i> Calling editAdjustment with ID:', id);
                 editAdjustment(id);
             } else if (action === 'delete' && type === 'adjustment') {
-                console.log('🗑️ Calling deleteAdjustment with ID:', id);
+                console.log('<i class="fas fa-trash"></i> Calling deleteAdjustment with ID:', id);
                 deleteAdjustment(id);
             } else if (action === 'edit' && type === 'delivery') {
-                console.log('✏️ Calling editDelivery with ID:', id);
+                console.log('<i class="fas fa-edit"></i> Calling editDelivery with ID:', id);
                 editDelivery(id);
             } else if (action === 'delete' && type === 'delivery') {
-                console.log('🗑️ Calling deleteDelivery with ID:', id);
+                console.log('<i class="fas fa-trash"></i> Calling deleteDelivery with ID:', id);
                 deleteDelivery(id);
             } else {
-                console.warn('⚠️ Unhandled CRUD operation:', { action, type, id });
+                console.warn('<i class="fas fa-exclamation-triangle"></i> Unhandled CRUD operation:', { action, type, id });
             }
         } catch (error) {
             console.error('💥 Error executing CRUD operation:', error);

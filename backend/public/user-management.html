@@ -173,8 +173,19 @@
             display: none;
         }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/loaders.css">
 </head>
 <body>
+    <!-- Global Loader -->
+    <div class="loader-overlay" id="globalLoader">
+        <div class="loader-container">
+            <div class="loader"></div>
+            <div class="loader-text">جاري التحميل...</div>
+        </div>
+    </div>
+
+
     <div id="sidebar-placeholder"></div>
 
     <div class="main-content">
@@ -452,5 +463,6 @@
             }
         });
     </script>
+    <script src="js/utils/loader.js"></script>
 </body>
 </html>

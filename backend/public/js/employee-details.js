@@ -26,6 +26,12 @@ async function loadEmployeeDetails() {
         return;
     }
 
+    // Show loaders in each section
+    showInlineLoader('financialSummary', 'جاري تحميل الملخص المالي...');
+    showInlineLoader('attendanceTableBody', 'جاري تحميل سجلات الحضور...');
+    showInlineLoader('adjustmentsTableBody', 'جاري تحميل التسويات...');
+    showInlineLoader('paymentsTableBody', 'جاري تحميل المدفوعات...');
+
     try {
         const data = await apiGet(`/employees/${currentEmployeeId}`);
         currentEmployee = data.employee;

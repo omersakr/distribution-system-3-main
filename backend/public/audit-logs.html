@@ -166,8 +166,19 @@
             cursor: not-allowed;
         }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/loaders.css">
 </head>
 <body>
+    <!-- Global Loader -->
+    <div class="loader-overlay" id="globalLoader">
+        <div class="loader-container">
+            <div class="loader"></div>
+            <div class="loader-text">جاري التحميل...</div>
+        </div>
+    </div>
+
+
     <div id="sidebar-placeholder"></div>
 
     <div class="main-content">
@@ -276,16 +287,16 @@
 
         function getActionIcon(actionType) {
             const icons = {
-                'create': '➕',
-                'update': '✏️',
-                'delete': '🗑️',
-                'login': '🔑',
-                'logout': '🚪',
-                'blocked_attempt': '🚫',
-                'restore': '♻️',
-                'permanent_delete': '💀'
+                'create': '<i class="fas fa-plus-circle"></i>',
+                'update': '<i class="fas fa-edit"></i>',
+                'delete': '<i class="fas fa-trash"></i>',
+                'login': '<i class="fas fa-sign-in-alt"></i>',
+                'logout': '<i class="fas fa-sign-out-alt"></i>',
+                'blocked_attempt': '<i class="fas fa-ban"></i>',
+                'restore': '<i class="fas fa-recycle"></i>',
+                'permanent_delete': '<i class="fas fa-skull-crossbones"></i>'
             };
-            return icons[actionType] || '📝';
+            return icons[actionType] || '<i class="fas fa-file-alt"></i>';
         }
 
         function getActionText(actionType) {
@@ -472,5 +483,6 @@
             }
         });
     </script>
+    <script src="js/utils/loader.js"></script>
 </body>
 </html>

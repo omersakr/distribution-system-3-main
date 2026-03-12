@@ -270,9 +270,20 @@
             margin: 0 auto;
         }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/loaders.css">
 </head>
 
 <body>
+    <!-- Global Loader -->
+    <div class="loader-overlay" id="globalLoader">
+        <div class="loader-container">
+            <div class="loader"></div>
+            <div class="loader-text">جاري التحميل...</div>
+        </div>
+    </div>
+
+
     <div id="sidebar-placeholder"></div>
 
     <div class="main-content">
@@ -280,7 +291,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                 <h1 class="page-title" id="clientName">تفاصيل العميل</h1>
                 <button class="btn btn-secondary" id="editClientBtn" style="margin-right: auto;">
-                    ✏️ تعديل البيانات
+                    <i class="fas fa-edit"></i> تعديل البيانات
                 </button>
             </div>
         </div>
@@ -587,7 +598,7 @@
                     <input type="text" class="form-input" id="editDeliveryCarTail" placeholder="رقم المقطورة">
                 </div>
                 <div class="warning-box" style="margin: 15px 0;">
-                    <div class="warning-icon">⚠️</div>
+                    <div class="warning-icon"><i class="fas fa-exclamation-triangle"></i></div>
                     <div>
                         <strong>تنبيه:</strong> لن يتم تعديل السعر التاريخي للمادة للحفاظ على دقة الحسابات المحاسبية.
                     </div>
@@ -659,6 +670,7 @@
     <script src="js/auth.js"></script>
     <script src="js/sidebar.js"></script>
     <script src="js/clients-details.js"></script>
+    <script src="js/utils/loader.js"></script>
 </body>
 
 </html>

@@ -188,8 +188,19 @@
             cursor: not-allowed;
         }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/loaders.css">
 </head>
 <body>
+    <!-- Global Loader -->
+    <div class="loader-overlay" id="globalLoader">
+        <div class="loader-container">
+            <div class="loader"></div>
+            <div class="loader-text">جاري التحميل...</div>
+        </div>
+    </div>
+
+
     <div id="sidebar-placeholder"></div>
 
     <div class="main-content">
@@ -277,15 +288,15 @@
 
         function getEntityIcon(entityType) {
             const icons = {
-                'clients': '👥',
-                'crushers': '🏭',
-                'contractors': '🚛',
-                'employees': '👤',
-                'deliveries': '📦',
-                'administration': '🏢',
-                'suppliers': '🏪'
+                'clients': '<i class="fas fa-users"></i>',
+                'crushers': '<i class="fas fa-industry"></i>',
+                'contractors': '<i class="fas fa-truck"></i>',
+                'employees': '<i class="fas fa-user"></i>',
+                'deliveries': '<i class="fas fa-box"></i>',
+                'administration': '<i class="fas fa-building"></i>',
+                'suppliers': '<i class="fas fa-store"></i>'
             };
-            return icons[entityType] || '📄';
+            return icons[entityType] || '<i class="fas fa-file"></i>';
         }
 
         function getEntityText(entityType) {
@@ -340,7 +351,7 @@
             if (!items || items.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
-                        <div class="icon">🗑️</div>
+                        <div class="icon"><i class="fas fa-trash-alt"></i></div>
                         <h3>سلة المحذوفات فارغة</h3>
                         <p>لا توجد عناصر محذوفة للعرض</p>
                     </div>
@@ -548,5 +559,6 @@
             }
         });
     </script>
+    <script src="js/utils/loader.js"></script>
 </body>
 </html>

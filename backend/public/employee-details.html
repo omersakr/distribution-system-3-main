@@ -404,9 +404,20 @@
             margin: 0 auto;
         }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/loaders.css">
 </head>
 
 <body>
+    <!-- Global Loader -->
+    <div class="loader-overlay" id="globalLoader">
+        <div class="loader-container">
+            <div class="loader"></div>
+            <div class="loader-text">جاري التحميل...</div>
+        </div>
+    </div>
+
+
     <div id="sidebar-placeholder"></div>
 
     <div class="main-content">
@@ -430,7 +441,7 @@
             <div class="section-header">
                 <h3 class="section-title">معلومات الموظف</h3>
                 <button class="btn btn-primary" id="editEmployeeBtn">
-                    <span>✏️</span> تعديل الموظف
+                    <i class="fas fa-edit"></i> تعديل الموظف
                 </button>
             </div>
             <div class="section-content">
@@ -445,7 +456,7 @@
             <div class="section-header">
                 <h3 class="section-title">سجلات الحضور والغياب</h3>
                 <button class="btn btn-primary" id="addAttendanceBtn">
-                    <span>➕</span> إضافة سجل شهري
+                    <i class="fas fa-plus"></i> إضافة سجل شهري
                 </button>
             </div>
             <div class="section-content">
@@ -476,7 +487,7 @@
             <div class="section-header">
                 <h3 class="section-title">التسويات</h3>
                 <button class="btn btn-primary" id="addAdjustmentBtn">
-                    <span>➕</span> إضافة تسوية
+                    <i class="fas fa-plus"></i> إضافة تسوية
                 </button>
             </div>
             <div class="section-content">
@@ -505,7 +516,7 @@
             <div class="section-header">
                 <h3 class="section-title">المدفوعات</h3>
                 <button class="btn btn-primary" id="addPaymentBtn">
-                    <span>➕</span> إضافة دفعة
+                    <i class="fas fa-plus"></i> إضافة دفعة
                 </button>
             </div>
             <div class="section-content">
@@ -796,6 +807,7 @@
     <script src="js/auth.js"></script>
     <script src="js/sidebar.js"></script>
     <script src="js/employee-details.js"></script>
+    <script src="js/utils/loader.js"></script>
 </body>
 
 </html>

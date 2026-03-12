@@ -148,7 +148,7 @@ function renderDeliveries(deliveries) {
     if (!deliveries || deliveries.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">🚛</div>
+                <div class="empty-icon"><i class="fas fa-truck"></i></div>
                 <div>لا توجد مشاوير مسجلة</div>
             </div>
         `;
@@ -198,8 +198,8 @@ function renderDeliveries(deliveries) {
         // Actions cell
         const actionsCell = document.createElement('td');
         actionsCell.innerHTML = `
-            <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="delivery" data-id="${delivery.id}" title="تعديل">✏️</button>
-            <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="delivery" data-id="${delivery.id}" title="حذف">🗑️</button>
+            <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="delivery" data-id="${delivery.id}" title="تعديل"><i class="fas fa-edit"></i></button>
+            <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="delivery" data-id="${delivery.id}" title="حذف"><i class="fas fa-trash"></i></button>
         `;
         row.appendChild(actionsCell);
 
@@ -217,7 +217,7 @@ function renderPayments(payments) {
     if (!payments || payments.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">💰</div>
+                <div class="empty-icon"><i class="fas fa-money-bill-wave"></i></div>
                 <div>لا توجد مدفوعات مسجلة</div>
             </div>
         `;
@@ -265,7 +265,7 @@ function renderPayments(payments) {
             const imageBtn = document.createElement('button');
             imageBtn.className = 'btn btn-sm btn-secondary';
             imageBtn.title = 'عرض الصورة';
-            imageBtn.innerHTML = '🖼️ عرض';
+            imageBtn.innerHTML = '<i class="fas fa-image"></i> عرض';
             imageBtn.setAttribute('data-image', payment.payment_image);
             imageBtn.onclick = function () {
                 const imageData = this.getAttribute('data-image');
@@ -280,8 +280,8 @@ function renderPayments(payments) {
         // Actions cell
         const actionsCell = document.createElement('td');
         actionsCell.innerHTML = `
-            <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="payment" data-id="${payment.id}" title="تعديل">✏️</button>
-            <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="payment" data-id="${payment.id}" title="حذف">🗑️</button>
+            <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="payment" data-id="${payment.id}" title="تعديل"><i class="fas fa-edit"></i></button>
+            <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="payment" data-id="${payment.id}" title="حذف"><i class="fas fa-trash"></i></button>
         `;
         row.appendChild(actionsCell);
 
@@ -299,7 +299,7 @@ function renderAdjustments(adjustments) {
     if (!adjustments || adjustments.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">⚖️</div>
+                <div class="empty-icon"><i class="fas fa-balance-scale"></i></div>
                 <div>لا توجد تسويات مسجلة</div>
             </div>
         `;
@@ -352,8 +352,8 @@ function renderAdjustments(adjustments) {
         // Actions cell
         const actionsCell = document.createElement('td');
         actionsCell.innerHTML = `
-            <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="adjustment" data-id="${adjustment.id}" title="تعديل">✏️</button>
-            <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="adjustment" data-id="${adjustment.id}" title="حذف">🗑️</button>
+            <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="adjustment" data-id="${adjustment.id}" title="تعديل"><i class="fas fa-edit"></i></button>
+            <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="adjustment" data-id="${adjustment.id}" title="حذف"><i class="fas fa-trash"></i></button>
         `;
         row.appendChild(actionsCell);
 
@@ -944,6 +944,12 @@ async function loadContractorDetails() {
         return;
     }
 
+    // Show loaders in each section
+    showInlineLoader('summaryGrid', 'جاري تحميل الملخص...');
+    showInlineLoader('deliveriesContainer', 'جاري تحميل المشاوير...');
+    showInlineLoader('paymentsContainer', 'جاري تحميل المدفوعات...');
+    showInlineLoader('adjustmentsContainer', 'جاري تحميل التسويات...');
+
     try {
         const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/contractors/${contractorId}`);
 
@@ -969,7 +975,7 @@ async function loadContractorDetails() {
         // Update page title
         document.getElementById('contractorName').textContent = `تفاصيل المقاول: ${data.contractor.name}`;
 
-        // Render all sections
+        // Render all sections (loaders will be replaced automatically)
         renderSummary(data.totals || {});
         renderDeliveries(allDeliveries);
         renderPayments(allPayments);
@@ -1136,7 +1142,7 @@ function addEditContractorOpeningBalanceRow(existingData = null) {
     const deleteBtn = document.createElement('button');
     deleteBtn.type = 'button';
     deleteBtn.className = 'btn btn-sm btn-danger';
-    deleteBtn.textContent = '🗑️';
+    deleteBtn.textContent = '<i class="fas fa-trash"></i>';
     deleteBtn.onclick = () => row.remove();
     deleteCol.appendChild(deleteBtn);
     
@@ -1185,7 +1191,7 @@ function getEditContractorOpeningBalances() {
 
 async function updateContractor(contractorId, contractorData) {
     try {
-        console.log('🔄 Updating contractor:', contractorId, contractorData);
+        console.log('<i class="fas fa-sync-alt"></i> Updating contractor:', contractorId, contractorData);
         console.log('📤 API URL:', `${API_BASE}/contractors/${contractorId}`);
 
         const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/contractors/${contractorId}`, {
@@ -1203,20 +1209,20 @@ async function updateContractor(contractorId, contractorData) {
             try {
                 const errorData = await response.json();
                 errorMessage = errorData.message || errorMessage;
-                console.error('❌ Server error data:', errorData);
+                console.error('<i class="fas fa-times-circle"></i> Server error data:', errorData);
             } catch (e) {
                 const errorText = await response.text();
-                console.error('❌ Server error text:', errorText);
+                console.error('<i class="fas fa-times-circle"></i> Server error text:', errorText);
                 errorMessage = `خطأ في السيرفر (${response.status}): ${errorText}`;
             }
             throw new Error(errorMessage);
         }
 
         const result = await response.json();
-        console.log('✅ Update successful:', result);
+        console.log('<i class="fas fa-check-circle"></i> Update successful:', result);
         return result;
     } catch (error) {
-        console.error('❌ Update contractor error:', error);
+        console.error('<i class="fas fa-times-circle"></i> Update contractor error:', error);
         throw error;
     }
 }

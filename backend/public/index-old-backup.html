@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - نظام التوزيع</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/modern-theme.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/loaders.css">
+    <link rel="stylesheet" href="css/dashboard-modern.css">
+</head>
+
+
+<body>
+    <!-- Global Loader -->
+    <div class="loader-overlay" id="globalLoader">
+        <div class="loader-container">
+            <div class="loader"></div>
+            <div class="loader-text">جاري التحميل...</div>
+        </div>
+    </div>
+
+    <div id="sidebar-placeholder"></div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h1 class="page-title"><i class="fas fa-chart-line"></i> لوحة التحكم</h1>
+                    <p class="page-subtitle">نظرة شاملة على أداء النظام المالي</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button id="refreshBtn">
+                        <i class="fas fa-sync-alt"></i> تحديث البيانات
+                    </button>
+                    <div id="lastUpdate">
+                        <i class="fas fa-clock"></i> جاري التحميل...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profit Overview Section - Top Priority -->
+        <section class="profit-overview-section" dir="rtl" id="profitOverviewSection">
+            <div class="profit-cards-grid">
+                <div class="loading">جاري تحميل نظرة عامة على الربح...</div>
+            </div>
+        </section>
+
+        <!-- Final Financial Result Card -->
+        <section class="final-result-section" dir="rtl" id="finalResultSection">
+            <div class="loading" style="text-align: center; padding: var(--space-8); color: var(--gray-500);">
+                جاري تحميل النتيجة المالية النهائية...
+            </div>
+        </section>
+
+        <!-- Cost Breakdown Section -->
+        <section class="cost-breakdown-section" dir="rtl" id="costBreakdownSection">
+            <h2 class="section-title">توزيع التكاليف</h2>
+            <div class="loading" style="text-align: center; padding: var(--space-8); color: var(--gray-500);">
+                جاري تحميل توزيع التكاليف...
+            </div>
+        </section>
+
+        <!-- Cash Flow Section -->
+        <section class="cash-flow-section" dir="rtl" id="cashFlowSection">
+            <h2 class="section-title">حركة النقد</h2>
+            <div class="loading" style="text-align: center; padding: var(--space-8); color: var(--gray-500);">
+                جاري تحميل حركة النقد...
+            </div>
+        </section>
+
+        <!-- Outstanding Balances Section -->
+        <section class="outstanding-balances-section" dir="rtl" id="outstandingBalancesSection">
+            <h2 class="section-title">الأرصدة المستحقة</h2>
+            <div class="loading" style="text-align: center; padding: var(--space-8); color: var(--gray-500);">
+                جاري تحميل الأرصدة المستحقة...
+            </div>
+        </section>
+
+        <!-- Operational Metrics Section -->
+        <section class="operational-metrics-section" dir="rtl" id="operationalMetricsSection">
+            <h2 class="section-title">المقاييس التشغيلية</h2>
+            <div class="loading" style="text-align: center; padding: var(--space-8); color: var(--gray-500);">
+                جاري تحميل المقاييس التشغيلية...
+            </div>
+        </section>
+
+        <div class="financial-overview">
+            <h2 class="text-xl font-semibold mb-4">الملخص المالي</h2>
+            <div class="financial-grid" id="financialOverview">
+                <div class="loading">جاري تحميل البيانات المالية...</div>
+            </div>
+        </div>
+
+        <div class="quick-actions">
+            <a href="clients.html" class="action-card">
+                <div class="action-icon"><i class="fas fa-users"></i></div>
+                <div class="action-title">إدارة العملاء</div>
+                <div class="action-description">عرض وإدارة حسابات العملاء والمدفوعات</div>
+            </a>
+
+            <a href="contractors.html" class="action-card">
+                <div class="action-icon"><i class="fas fa-truck"></i></div>
+                <div class="action-title">مقاولو النقل</div>
+                <div class="action-description">إدارة مقاولي النقل ومستحقاتهم</div>
+            </a>
+
+            <a href="crushers.html" class="action-card">
+                <div class="action-icon"><i class="fas fa-industry"></i></div>
+                <div class="action-title">الكسارات</div>
+                <div class="action-description">متابعة الكسارات والمدفوعات المستحقة</div>
+            </a>
+
+            <a href="expenses.html" class="action-card">
+                <div class="action-icon"><i class="fas fa-money-bill-wave"></i></div>
+                <div class="action-title">المصروفات</div>
+                <div class="action-description">إدارة وتتبع جميع المصروفات والنفقات</div>
+            </a>
+
+            <a href="new-entry.html" class="action-card">
+                <div class="action-icon"><i class="fas fa-plus-circle"></i></div>
+                <div class="action-title">تسليم جديد</div>
+                <div class="action-description">إضافة عملية تسليم جديدة</div>
+            </a>
+        </div>
+
+        <div class="recent-activity">
+            <div class="card-header">
+                <h3 class="card-title">النشاط الأخير</h3>
+            </div>
+            <div id="recentActivity">
+                <div class="loading">جاري تحميل النشاط الأخير...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/utils/index.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+
+</html>

@@ -31,33 +31,47 @@ async function makeApiRequest(url, options = {}) {
 /**
  * Generic GET request
  * @param {string} endpoint - API endpoint
+ * @param {boolean} showLoading - Show global loader (default: false)
  * @returns {Promise<any>} Response data
  */
-async function apiGet(endpoint) {
-    const response = await makeApiRequest(`${API_BASE}${endpoint}`);
-    if (!response.ok) {
-        throw new Error(`فشل في تحميل البيانات من ${endpoint}`);
+async function apiGet(endpoint, showLoading = false) {
+    if (showLoading) showLoader('جاري تحميل البيانات...');
+    
+    try {
+        const response = await makeApiRequest(`${API_BASE}${endpoint}`);
+        if (!response.ok) {
+            throw new Error(`فشل في تحميل البيانات من ${endpoint}`);
+        }
+        return response.json();
+    } finally {
+        if (showLoading) hideLoader();
     }
-    return response.json();
 }
 
 /**
  * Generic POST request
  * @param {string} endpoint - API endpoint
  * @param {object} data - Data to send
+ * @param {boolean} showLoading - Show global loader (default: false)
  * @returns {Promise<any>} Response data
  */
-async function apiPost(endpoint, data) {
-    const response = await makeApiRequest(`${API_BASE}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-    if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `فشل في إضافة البيانات إلى ${endpoint}`);
+async function apiPost(endpoint, data, showLoading = false) {
+    if (showLoading) showLoader('جاري الحفظ...');
+    
+    try {
+        const response = await makeApiRequest(`${API_BASE}${endpoint}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `فشل في إضافة البيانات إلى ${endpoint}`);
+        }
+        return response.json();
+    } finally {
+        if (showLoading) hideLoader();
     }
-    return response.json();
 }
 
 /**

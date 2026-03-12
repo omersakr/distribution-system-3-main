@@ -131,9 +131,20 @@
             margin: 0 auto;
         }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/loaders.css">
 </head>
 
 <body>
+    <!-- Global Loader -->
+    <div class="loader-overlay" id="globalLoader">
+        <div class="loader-container">
+            <div class="loader"></div>
+            <div class="loader-text">جاري التحميل...</div>
+        </div>
+    </div>
+
+
     <div id="sidebar-placeholder"></div>
 
     <div class="main-content">
@@ -141,7 +152,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                 <h1 class="page-title" id="contractorName">تفاصيل المقاول</h1>
                 <button class="btn btn-secondary" id="editContractorBtn" style="margin-right: auto;">
-                    ✏️ تعديل البيانات
+                    <i class="fas fa-edit"></i> تعديل البيانات
                 </button>
             </div>
         </div>
@@ -166,7 +177,7 @@
                             <!-- Opening balance rows will be added here dynamically -->
                         </div>
                         <button type="button" class="btn btn-secondary" id="addEditContractorOpeningBalanceBtn" style="margin-top: 10px;">
-                            ➕ إضافة رصيد افتتاحي
+                            <i class="fas fa-plus"></i> إضافة رصيد افتتاحي
                         </button>
                         <small class="form-help">الرصيد الافتتاحي لكل مشروع/عميل (موجب = نحن مدينون لهم)</small>
                     </div>
@@ -282,7 +293,7 @@
                         </div>
                         <button id="generateDeliveriesReportBtn" class="btn"
                             style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); width: 100%;">
-                            📄 إنشاء تقرير المشاوير
+                            <i class="fas fa-file-pdf"></i> إنشاء تقرير المشاوير
                         </button>
                     </div>
 
@@ -311,7 +322,7 @@
 
                         <button id="generateAccountStatementBtn" class="btn"
                             style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); width: 100%;">
-                            📊 إنشاء كشف الحساب
+                            <i class="fas fa-chart-line"></i> إنشاء كشف الحساب
                         </button>
                     </div>
                 </div>
@@ -434,7 +445,7 @@
                     <input type="number" class="form-input" id="editDeliveryContractorCharge" min="0" step="0.01">
                 </div>
                 <div class="warning-box" style="margin: 15px 0;">
-                    <div class="warning-icon">⚠️</div>
+                    <div class="warning-icon"><i class="fas fa-exclamation-triangle"></i></div>
                     <div>
                         <strong>تنبيه:</strong> لن يتم تعديل السعر التاريخي للمادة للحفاظ على دقة الحسابات المحاسبية.
                     </div>
@@ -465,6 +476,7 @@
     <script src="js/auth.js"></script>
     <script src="js/sidebar.js"></script>
     <script src="js/contractor-details.js"></script>
+    <script src="js/utils/loader.js"></script>
 </body>
 
 </html>

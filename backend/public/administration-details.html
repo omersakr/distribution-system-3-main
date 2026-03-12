@@ -193,9 +193,20 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/loaders.css">
 </head>
 
 <body>
+    <!-- Global Loader -->
+    <div class="loader-overlay" id="globalLoader">
+        <div class="loader-container">
+            <div class="loader"></div>
+            <div class="loader-text">جاري التحميل...</div>
+        </div>
+    </div>
+
+
     <div id="sidebar-placeholder"></div>
 
     <div class="main-content">
@@ -219,7 +230,7 @@
             <div class="section-header">
                 <h3 class="section-title">معلومات الإدارة</h3>
                 <button class="btn btn-primary" id="editAdministrationBtn">
-                    <span>✏️</span> تعديل الإدارة
+                    <i class="fas fa-edit"></i> تعديل الإدارة
                 </button>
             </div>
             <div class="section-content">
@@ -234,7 +245,7 @@
             <div class="section-header">
                 <h3 class="section-title">ضخ رأس المال</h3>
                 <button class="btn btn-primary" id="addCapitalInjectionBtn">
-                    <span>➕</span> إضافة ضخ رأس مال
+                    <i class="fas fa-plus"></i> إضافة ضخ رأس مال
                 </button>
             </div>
             <div class="section-content">
@@ -262,7 +273,7 @@
             <div class="section-header">
                 <h3 class="section-title">المسحوبات</h3>
                 <button class="btn btn-primary" id="addWithdrawalBtn">
-                    <span>➕</span> إضافة مسحوبات
+                    <i class="fas fa-plus"></i> إضافة مسحوبات
                 </button>
             </div>
             <div class="section-content">
@@ -371,6 +382,7 @@
     <script src="js/auth.js"></script>
     <script src="js/sidebar.js"></script>
     <script src="js/administration-details.js"></script>
+    <script src="js/utils/loader.js"></script>
 </body>
 
 </html>
