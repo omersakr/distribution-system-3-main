@@ -73,6 +73,48 @@
             gap: 0.5rem;
         }
 
+        .client-actions .action-btn-modern {
+            padding: 0.5rem 0.75rem;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            color: var(--on-surface-variant);
+            font-size: 0.9375rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 36px;
+            height: 36px;
+        }
+
+        .client-actions .action-btn-modern:hover {
+            transform: translateY(-2px);
+        }
+
+        .client-actions .action-btn-modern.view {
+            background: rgba(14, 165, 233, 0.1);
+            color: var(--primary);
+        }
+
+        .client-actions .action-btn-modern.view:hover {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.3);
+        }
+
+        .client-actions .action-btn-modern.danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+        }
+
+        .client-actions .action-btn-modern.danger:hover {
+            background: var(--error);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3);
+        }
+
         .client-contact {
             margin-bottom: 1rem;
         }
@@ -229,7 +271,8 @@
             <!-- Search Controls -->
             <div class="search-controls">
                 <div class="search-box">
-                    <input type="text" id="clientSearch" class="form-input-modern" placeholder="ابحث عن عميل بالاسم أو رقم الهاتف...">
+                    <input type="text" id="clientSearch" class="form-input-modern"
+                        placeholder="ابحث عن عميل بالاسم أو رقم الهاتف...">
                     <button id="searchBtn" class="btn-modern btn-secondary-modern">
                         <i class="fas fa-search"></i> بحث
                     </button>
@@ -258,23 +301,28 @@
             <form id="addClientForm">
                 <div class="form-group-modern">
                     <label class="form-label-modern" for="clientName">اسم العميل *</label>
-                    <input type="text" class="form-input-modern" id="clientName" name="name" required autocomplete="name" placeholder="أدخل اسم العميل">
+                    <input type="text" class="form-input-modern" id="clientName" name="name" required
+                        autocomplete="name" placeholder="أدخل اسم العميل">
                 </div>
 
                 <div class="form-group-modern">
                     <label class="form-label-modern" for="clientPhone">رقم الهاتف</label>
-                    <input type="tel" class="form-input-modern" id="clientPhone" name="phone" placeholder="اختياري" autocomplete="tel">
+                    <input type="tel" class="form-input-modern" id="clientPhone" name="phone" placeholder="اختياري"
+                        autocomplete="tel">
                 </div>
 
                 <div class="form-group-modern">
                     <label class="form-label-modern" for="openingBalance">الرصيد الافتتاحي (جنيه)</label>
-                    <input type="number" class="form-input-modern" id="openingBalance" name="opening_balance" step="0.01" placeholder="0.00" autocomplete="off">
-                    <small style="display: block; margin-top: 0.5rem; font-size: 0.75rem; color: var(--on-surface-variant);">
+                    <input type="number" class="form-input-modern" id="openingBalance" name="opening_balance"
+                        step="0.01" placeholder="0.00" autocomplete="off">
+                    <small
+                        style="display: block; margin-top: 0.5rem; font-size: 0.75rem; color: var(--on-surface-variant);">
                         موجب = العميل يدين لنا، سالب = نحن ندين للعميل
                     </small>
                 </div>
 
-                <div class="modal-actions" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                <div class="modal-actions"
+                    style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
                     <button type="button" class="btn-modern btn-secondary-modern modal-close">إلغاء</button>
                     <button type="submit" class="btn-modern btn-primary-modern">إضافة العميل</button>
                 </div>

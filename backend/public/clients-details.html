@@ -1,17 +1,230 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تفاصيل العميل - نظام التوزيع</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="css/sidebar.css">
     <link rel="stylesheet" href="css/modern-pages.css">
     <link rel="stylesheet" href="css/loaders.css">
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+            vertical-align: middle;
+        }
+
+        body {
+            font-family: "Inter", "IBM Plex Sans Arabic", sans-serif;
+        }
+
+        .font-headline {
+            font-family: "Manrope", "IBM Plex Sans Arabic", sans-serif;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 0;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        .modal-close:hover {
+            color: #111827;
+        }
+
+        .modal form {
+            padding: 1.5rem;
+        }
+
+        .modal-actions {
+            padding: 1.5rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        /* Form styles for Tailwind compatibility */
+        .form-group-modern {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label-modern {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .form-input-modern,
+        .form-select-modern,
+        .form-textarea-modern {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .form-textarea-modern {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .btn-modern {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary-modern {
+            background-color: #545f73;
+            color: #f6f7ff;
+        }
+
+        .btn-primary-modern:hover {
+            background-color: #485367;
+        }
+
+        .btn-secondary-modern {
+            background-color: #506076;
+            color: #f7f9ff;
+        }
+
+        .btn-secondary-modern:hover {
+            background-color: #44546a;
+        }
+    </style>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "tertiary-container": "#69f6b8",
+                        "surface-variant": "#d9e4ea",
+                        "primary-dim": "#485367",
+                        "error-dim": "#4e0309",
+                        "surface-container": "#e8eff3",
+                        "on-tertiary-fixed-variant": "#006544",
+                        "surface-dim": "#cfdce3",
+                        "on-surface": "#2a3439",
+                        "secondary-container": "#d3e4fe",
+                        outline: "#717c82",
+                        "on-tertiary-fixed": "#00452d",
+                        secondary: "#506076",
+                        "tertiary-fixed-dim": "#58e7ab",
+                        "on-background": "#2a3439",
+                        "primary-fixed": "#d8e3fb",
+                        "outline-variant": "#a9b4b9",
+                        "error-container": "#fe8983",
+                        "secondary-dim": "#44546a",
+                        "surface-tint": "#545f73",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#f7f9fb",
+                        "on-surface-variant": "#566166",
+                        background: "#f7f9fb",
+                        "on-secondary-fixed-variant": "#4d5d73",
+                        "inverse-surface": "#0b0f10",
+                        "on-tertiary": "#e6ffee",
+                        "tertiary-dim": "#005f40",
+                        primary: "#545f73",
+                        "primary-container": "#d8e3fb",
+                        "on-primary-fixed": "#354053",
+                        "inverse-on-surface": "#9a9d9f",
+                        "on-primary": "#f6f7ff",
+                        "surface-container-low": "#f0f4f7",
+                        "on-primary-fixed-variant": "#515c70",
+                        "secondary-fixed": "#d3e4fe",
+                        "inverse-primary": "#dae6fe",
+                        error: "#9f403d",
+                        "on-tertiary-container": "#005a3c",
+                        "surface-container-high": "#e1e9ee",
+                        "on-secondary-fixed": "#314055",
+                        "on-error-container": "#752121",
+                        "on-secondary-container": "#435368",
+                        "secondary-fixed-dim": "#c5d6f0",
+                        "on-error": "#fff7f6",
+                        "tertiary-fixed": "#69f6b8",
+                        "surface-container-highest": "#d9e4ea",
+                        "on-primary-container": "#475266",
+                        surface: "#f7f9fb",
+                        tertiary: "#006d4a",
+                        "primary-fixed-dim": "#cad5ed",
+                        "on-secondary": "#f7f9ff",
+                    },
+                    fontFamily: {
+                        headline: ["Manrope", "IBM Plex Sans Arabic"],
+                        body: ["Inter", "IBM Plex Sans Arabic"],
+                        label: ["Inter", "IBM Plex Sans Arabic"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.25rem",
+                        lg: "0.5rem",
+                        xl: "0.75rem",
+                        full: "9999px",
+                    },
+                },
+            },
+        };
+    </script>
 </head>
-<body>
+
+<body class="bg-background text-on-surface">
     <!-- Global Loader -->
     <div class="loader-overlay" id="globalLoader">
         <div class="loader-container">
@@ -22,193 +235,317 @@
 
     <div id="sidebar-placeholder"></div>
 
-    <div class="main-content">
-        <!-- Page Header -->
-        <div class="page-header">
-            <div>
-                <h1 class="page-title" id="clientName"><i class="fas fa-user-circle"></i> تفاصيل العميل</h1>
-                <p class="page-subtitle">عرض شامل لجميع المعاملات والحسابات</p>
-            </div>
-            <button class="btn-modern btn-secondary-modern" id="editClientBtn">
-                <i class="fas fa-edit"></i> تعديل البيانات
-            </button>
-        </div>
+    <main class="mr-64 min-h-screen pb-12">
+        <!-- Page Content -->
+        <div class="p-8 space-y-8">
 
-        <div class="page-content">
-
-            <!-- Financial Summary Card -->
-            <div class="modern-card" style="background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; margin-bottom: 2rem;">
-                <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
-                    <i class="fas fa-chart-pie"></i> الملخص المالي
-                </h2>
-                <div class="stats-grid-modern" id="summaryGrid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
-                    <div class="inline-loader" style="color: white;">جاري التحميل...</div>
+            <!-- Title & Actions -->
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-primary font-headline" id="clientName">
+                        <i class="fas fa-user-circle"></i> تفاصيل العميل
+                    </h2>
+                    <p class="text-on-surface-variant text-sm mt-1">
+                        عرض شامل لجميع المعاملات والحسابات
+                    </p>
                 </div>
+                <button id="editClientBtn"
+                    class="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-primary-dim transition-colors shadow-sm active:scale-95">
+                    <span class="material-symbols-outlined" data-icon="edit">edit</span>
+                    تعديل البيانات
+                </button>
             </div>
 
-            <!-- Materials Summary -->
-            <div class="modern-card">
-                <div class="card-header-modern">
-                    <h3 class="card-title-modern"><i class="fas fa-boxes"></i> ملخص المواد</h3>
-                </div>
-                <div id="materialsContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;">
+            <!-- Financial Summary -->
+            <section>
+                <h3 class="text-lg font-bold mb-4 text-primary font-headline flex items-center gap-2">
+                    <span class="w-2 h-6 bg-tertiary rounded-full"></span>
+                    الملخص المالي
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6" id="summaryGrid">
                     <div class="inline-loader">جاري التحميل...</div>
                 </div>
-            </div>
+            </section>
+
+            <!-- Materials Summary -->
+            <section>
+                <h3 class="text-lg font-bold mb-4 text-primary font-headline flex items-center gap-2">
+                    <span class="w-2 h-6 bg-secondary rounded-full"></span>
+                    ملخص المواد
+                </h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4" id="materialsContainer">
+                    <div class="inline-loader">جاري التحميل...</div>
+                </div>
+            </section>
 
             <!-- Deliveries Section -->
-            <div class="modern-card">
-                <div class="card-header-modern">
-                    <h3 class="card-title-modern"><i class="fas fa-truck-loading"></i> التسليمات</h3>
-                </div>
-                <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
-                    <input type="text" class="form-input-modern" id="deliveriesSearch" placeholder="ابحث في التسليمات..." style="flex: 1; min-width: 200px;">
-                    <input type="date" class="form-input-modern" id="deliveriesDateFrom" style="flex: 0 0 150px;">
-                    <input type="date" class="form-input-modern" id="deliveriesDateTo" style="flex: 0 0 150px;">
-                    <select class="form-select-modern" id="deliveriesSort" style="flex: 0 0 150px;">
-                        <option value="date-desc">الأحدث أولاً</option>
-                        <option value="date-asc">الأقدم أولاً</option>
-                        <option value="value-desc">الأعلى قيمة</option>
-                        <option value="value-asc">الأقل قيمة</option>
-                    </select>
-                    <button class="btn-modern btn-secondary-modern" onclick="clearDeliveriesFilters()">
-                        <i class="fas fa-times"></i> مسح
-                    </button>
+            <section class="bg-surface-container-lowest rounded-2xl p-6 shadow-sm">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-bold text-primary font-headline">
+                        <i class="fas fa-truck-loading"></i> جدول التسليمات
+                    </h3>
+                    <div class="flex gap-2 flex-wrap">
+                        <input type="text"
+                            class="bg-background border-outline-variant/20 rounded-lg pr-3 pl-3 py-1.5 text-xs focus:ring-1 focus:ring-primary"
+                            id="deliveriesSearch" placeholder="ابحث في التسليمات...">
+                        <div class="flex flex-col">
+                            <label for="deliveriesDateFrom"
+                                class="text-xs font-semibold text-on-surface-variant mb-1">من تاريخ</label>
+                            <input type="date"
+                                class="bg-background border-outline-variant/20 rounded-lg pr-3 pl-3 py-1.5 text-xs focus:ring-1 focus:ring-primary"
+                                id="deliveriesDateFrom">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="deliveriesDateTo" class="text-xs font-semibold text-on-surface-variant mb-1">إلى
+                                تاريخ</label>
+                            <input type="date"
+                                class="bg-background border-outline-variant/20 rounded-lg pr-3 pl-3 py-1.5 text-xs focus:ring-1 focus:ring-primary"
+                                id="deliveriesDateTo">
+                        </div>
+                        <select
+                            class="bg-background border-outline-variant/20 rounded-lg pr-8 pl-3 py-1.5 text-xs focus:ring-1 focus:ring-primary"
+                            id="deliveriesSort">
+                            <option value="date-desc">الأحدث أولاً</option>
+                            <option value="date-asc">الأقدم أولاً</option>
+                            <option value="value-desc">الأعلى قيمة</option>
+                            <option value="value-asc">الأقل قيمة</option>
+                        </select>
+                        <button
+                            class="bg-secondary text-white px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-secondary-dim transition-colors"
+                            onclick="clearDeliveriesFilters()">
+                            <i class="fas fa-times"></i> مسح
+                        </button>
+                    </div>
                 </div>
                 <div id="deliveriesContainer">
                     <div class="inline-loader">جاري التحميل...</div>
                 </div>
-            </div>
+            </section>
 
-            <!-- Payments Section -->
-            <div class="modern-card">
-                <div class="card-header-modern">
-                    <h3 class="card-title-modern"><i class="fas fa-money-bill-wave"></i> المدفوعات</h3>
-                    <button class="btn-modern btn-primary-modern" id="addPaymentBtn">
-                        <i class="fas fa-plus"></i> إضافة دفعة
-                    </button>
-                </div>
-                <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
-                    <input type="text" class="form-input-modern" id="paymentsSearch" placeholder="ابحث في المدفوعات..." style="flex: 1; min-width: 200px;">
-                    <input type="date" class="form-input-modern" id="paymentsDateFrom" style="flex: 0 0 150px;">
-                    <input type="date" class="form-input-modern" id="paymentsDateTo" style="flex: 0 0 150px;">
-                    <select class="form-select-modern" id="paymentsSort" style="flex: 0 0 150px;">
-                        <option value="date-desc">الأحدث أولاً</option>
-                        <option value="date-asc">الأقدم أولاً</option>
-                        <option value="amount-desc">الأعلى مبلغ</option>
-                        <option value="amount-asc">الأقل مبلغ</option>
-                    </select>
-                    <button class="btn-modern btn-secondary-modern" onclick="clearPaymentsFilters()">
-                        <i class="fas fa-times"></i> مسح
-                    </button>
-                </div>
-                <div id="paymentsContainer">
-                    <div class="inline-loader">جاري التحميل...</div>
-                </div>
-            </div>
+            <!-- Bottom Sections Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Payments Section -->
+                <section class="bg-surface-container-lowest rounded-2xl p-6 shadow-sm">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold text-primary font-headline">
+                            <i class="fas fa-money-bill-wave"></i> المدفوعات
+                        </h3>
+                        <button
+                            class="bg-tertiary text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-tertiary-dim transition-colors"
+                            id="addPaymentBtn">
+                            <span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                            إضافة دفعة
+                        </button>
+                    </div>
+                    <div class="flex gap-2 mb-4 flex-wrap">
+                        <input type="text"
+                            class="bg-background border-outline-variant/20 rounded-lg pr-3 pl-3 py-1.5 text-xs focus:ring-1 focus:ring-primary flex-1 min-w-[150px]"
+                            id="paymentsSearch" placeholder="ابحث في المدفوعات...">
+                        <div class="flex flex-col">
+                            <label for="paymentsDateFrom" class="text-xs font-semibold text-on-surface-variant mb-1">من
+                                تاريخ</label>
+                            <input type="date"
+                                class="bg-background border-outline-variant/20 rounded-lg pr-3 pl-3 py-1.5 text-xs focus:ring-1 focus:ring-primary"
+                                id="paymentsDateFrom">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="paymentsDateTo" class="text-xs font-semibold text-on-surface-variant mb-1">إلى
+                                تاريخ</label>
+                            <input type="date"
+                                class="bg-background border-outline-variant/20 rounded-lg pr-3 pl-3 py-1.5 text-xs focus:ring-1 focus:ring-primary"
+                                id="paymentsDateTo">
+                        </div>
+                        <select
+                            class="bg-background border-outline-variant/20 rounded-lg pr-8 pl-3 py-1.5 text-xs focus:ring-1 focus:ring-primary"
+                            id="paymentsSort">
+                            <option value="date-desc">الأحدث أولاً</option>
+                            <option value="date-asc">الأقدم أولاً</option>
+                            <option value="amount-desc">الأعلى مبلغ</option>
+                            <option value="amount-asc">الأقل مبلغ</option>
+                        </select>
+                        <button
+                            class="bg-secondary text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-secondary-dim transition-colors"
+                            onclick="clearPaymentsFilters()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div id="paymentsContainer">
+                        <div class="inline-loader">جاري التحميل...</div>
+                    </div>
+                </section>
 
-            <!-- Adjustments Section -->
-            <div class="modern-card">
-                <div class="card-header-modern">
-                    <h3 class="card-title-modern"><i class="fas fa-balance-scale"></i> التسويات والتعديلات</h3>
-                    <button class="btn-modern btn-primary-modern" id="addAdjustmentBtn">
-                        <i class="fas fa-plus"></i> إضافة تسوية
-                    </button>
-                </div>
-                <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
-                    <input type="text" class="form-input-modern" id="adjustmentsSearch" placeholder="ابحث في التسويات..." style="flex: 1; min-width: 200px;">
-                    <input type="date" class="form-input-modern" id="adjustmentsDateFrom" style="flex: 0 0 150px;">
-                    <input type="date" class="form-input-modern" id="adjustmentsDateTo" style="flex: 0 0 150px;">
-                    <select class="form-select-modern" id="adjustmentsSort" style="flex: 0 0 150px;">
-                        <option value="date-desc">الأحدث أولاً</option>
-                        <option value="date-asc">الأقدم أولاً</option>
-                        <option value="amount-desc">الأعلى مبلغ</option>
-                        <option value="amount-asc">الأقل مبلغ</option>
-                    </select>
-                    <button class="btn-modern btn-secondary-modern" onclick="clearAdjustmentsFilters()">
-                        <i class="fas fa-times"></i> مسح
-                    </button>
-                </div>
-                <div id="adjustmentsContainer">
-                    <div class="inline-loader">جاري التحميل...</div>
-                </div>
+                <!-- Adjustments Section -->
+                <section class="bg-surface-container-lowest rounded-2xl p-6 shadow-sm">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold text-primary font-headline">
+                            <i class="fas fa-balance-scale"></i> التسويات والتعديلات
+                        </h3>
+                        <button
+                            class="bg-secondary text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-secondary-dim transition-colors"
+                            id="addAdjustmentBtn">
+                            <span class="material-symbols-outlined text-sm" data-icon="tune">tune</span>
+                            إضافة تسوية
+                        </button>
+                    </div>
+                    <div class="flex gap-2 mb-4 flex-wrap">
+                        <input type="text"
+                            class="bg-background border-outline-variant/20 rounded-lg pr-3 pl-3 py-1.5 text-xs focus:ring-1 focus:ring-primary flex-1 min-w-[150px]"
+                            id="adjustmentsSearch" placeholder="ابحث في التسويات...">
+                        <div class="flex flex-col">
+                            <label for="adjustmentsDateFrom"
+                                class="text-xs font-semibold text-on-surface-variant mb-1">من تاريخ</label>
+                            <input type="date"
+                                class="bg-background border-outline-variant/20 rounded-lg pr-3 pl-3 py-1.5 text-xs focus:ring-1 focus:ring-primary"
+                                id="adjustmentsDateFrom">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="adjustmentsDateTo"
+                                class="text-xs font-semibold text-on-surface-variant mb-1">إلى تاريخ</label>
+                            <input type="date"
+                                class="bg-background border-outline-variant/20 rounded-lg pr-3 pl-3 py-1.5 text-xs focus:ring-1 focus:ring-primary"
+                                id="adjustmentsDateTo">
+                        </div>
+                        <select
+                            class="bg-background border-outline-variant/20 rounded-lg pr-8 pl-3 py-1.5 text-xs focus:ring-1 focus:ring-primary"
+                            id="adjustmentsSort">
+                            <option value="date-desc">الأحدث أولاً</option>
+                            <option value="date-asc">الأقدم أولاً</option>
+                            <option value="amount-desc">الأعلى مبلغ</option>
+                            <option value="amount-asc">الأقل مبلغ</option>
+                        </select>
+                        <button
+                            class="bg-secondary text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-secondary-dim transition-colors"
+                            onclick="clearAdjustmentsFilters()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div id="adjustmentsContainer">
+                        <div class="inline-loader">جاري التحميل...</div>
+                    </div>
+                </section>
             </div>
 
             <!-- Reports Section -->
-            <div class="modern-card">
-                <div class="card-header-modern">
-                    <h3 class="card-title-modern"><i class="fas fa-file-pdf"></i> التقارير</h3>
-                </div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
-                    <!-- Deliveries Report -->
-                    <div style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 2rem; border-radius: 1rem; box-shadow: var(--shadow-soft);">
-                        <h4 style="margin: 0 0 1rem 0; font-size: 1.125rem; display: flex; align-items: center; gap: 0.5rem;">
+            <section class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Deliveries Report -->
+                <div class="relative overflow-hidden bg-primary-container p-8 rounded-3xl group shadow-md">
+                    <div class="relative z-10">
+                        <h4 class="text-xl font-extrabold text-on-primary-container mb-2 font-headline">
                             <i class="fas fa-file-invoice"></i> تقرير التوريدات
                         </h4>
-                        <p style="margin: 0 0 1.5rem 0; opacity: 0.9; font-size: 0.875rem;">تقرير مفصل بالكميات المورده حسب نوع المادة</p>
-                        <div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem;">
-                            <input type="date" id="deliveriesFromDate" class="form-input-modern" style="flex: 1; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white;" placeholder="من تاريخ">
-                            <input type="date" id="deliveriesToDate" class="form-input-modern" style="flex: 1; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white;" placeholder="إلى تاريخ">
+                        <p class="text-on-primary-container/70 text-sm mb-6">
+                            تقرير مفصل بالكميات المورده حسب نوع المادة
+                        </p>
+                        <div class="flex flex-wrap gap-4 items-center">
+                            <div class="bg-white/50 p-2 rounded-xl backdrop-blur-sm border border-white/20">
+                                <label class="block text-[10px] font-bold text-primary mb-1">من تاريخ</label>
+                                <input class="bg-transparent border-none p-0 text-sm focus:ring-0" type="date"
+                                    id="deliveriesFromDate">
+                            </div>
+                            <div class="bg-white/50 p-2 rounded-xl backdrop-blur-sm border border-white/20">
+                                <label class="block text-[10px] font-bold text-primary mb-1">إلى تاريخ</label>
+                                <input class="bg-transparent border-none p-0 text-sm focus:ring-0" type="date"
+                                    id="deliveriesToDate">
+                            </div>
+                            <button id="generateDeliveriesReportBtn"
+                                class="bg-primary text-on-primary px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-primary-dim shadow-lg transition-transform active:scale-95">
+                                <span class="material-symbols-outlined" data-icon="file_download">file_download</span>
+                                إنشاء تقرير
+                            </button>
                         </div>
-                        <button id="generateDeliveriesReportBtn" class="btn-modern" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); width: 100%; transition: all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
-                            <i class="fas fa-download"></i> إنشاء تقرير التوريدات
-                        </button>
                     </div>
+                    <span
+                        class="material-symbols-outlined absolute -bottom-10 -left-10 text-[200px] text-primary/5 select-none pointer-events-none"
+                        data-icon="receipt_long">receipt_long</span>
+                </div>
 
-                    <!-- Account Statement -->
-                    <div style="background: linear-gradient(135deg, var(--tertiary) 0%, var(--tertiary-dim) 100%); color: white; padding: 2rem; border-radius: 1rem; box-shadow: var(--shadow-soft);">
-                        <h4 style="margin: 0 0 1rem 0; font-size: 1.125rem; display: flex; align-items: center; gap: 0.5rem;">
+                <!-- Account Statement -->
+                <div class="relative overflow-hidden bg-tertiary-container p-8 rounded-3xl group shadow-md">
+                    <div class="relative z-10">
+                        <h4 class="text-xl font-extrabold text-on-tertiary-container mb-2 font-headline">
                             <i class="fas fa-file-alt"></i> كشف حساب العميل
                         </h4>
-                        <p style="margin: 0 0 1.5rem 0; opacity: 0.9; font-size: 0.875rem;">كشف حساب شامل بالتوريدات والمدفوعات والرصيد</p>
-                        <div style="margin-bottom: 1.5rem;">
-                            <label style="display: flex; align-items: center; margin-bottom: 1rem; font-size: 0.875rem; cursor: pointer;">
-                                <input type="checkbox" id="useCustomDateRange" style="margin-left: 0.5rem;" onchange="toggleDateRange()">
+                        <p class="text-on-tertiary-container/70 text-sm mb-6">
+                            كشف حساب شامل بالتوريدات والمدفوعات والرصيد
+                        </p>
+                        <div class="mb-4">
+                            <label class="flex items-center text-sm cursor-pointer">
+                                <input type="checkbox" id="useCustomDateRange" class="ml-2"
+                                    onchange="toggleDateRange()">
                                 تحديد فترة زمنية محددة
                             </label>
                         </div>
-                        <div id="dateRangeInputs" style="display: none; margin-bottom: 1.5rem;">
-                            <div style="display: flex; gap: 0.75rem;">
-                                <input type="date" id="statementFromDate" class="form-input-modern" style="flex: 1; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white;" placeholder="من تاريخ">
-                                <input type="date" id="statementToDate" class="form-input-modern" style="flex: 1; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white;" placeholder="إلى تاريخ">
+                        <div id="dateRangeInputs" style="display: none;" class="flex flex-wrap gap-4 items-center mb-4">
+                            <div class="bg-white/50 p-2 rounded-xl backdrop-blur-sm border border-white/20">
+                                <label class="block text-[10px] font-bold text-tertiary mb-1">من تاريخ</label>
+                                <input class="bg-transparent border-none p-0 text-sm focus:ring-0" type="date"
+                                    id="statementFromDate">
+                            </div>
+                            <div class="bg-white/50 p-2 rounded-xl backdrop-blur-sm border border-white/20">
+                                <label class="block text-[10px] font-bold text-tertiary mb-1">إلى تاريخ</label>
+                                <input class="bg-transparent border-none p-0 text-sm focus:ring-0" type="date"
+                                    id="statementToDate">
                             </div>
                         </div>
-                        <button id="generateAccountStatementBtn" class="btn-modern" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); width: 100%; transition: all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
-                            <i class="fas fa-download"></i> إنشاء كشف الحساب
+                        <button id="generateAccountStatementBtn"
+                            class="bg-tertiary text-on-tertiary px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-tertiary-dim shadow-lg transition-transform active:scale-95">
+                            <span class="material-symbols-outlined" data-icon="picture_as_pdf">picture_as_pdf</span>
+                            إنشاء كشف PDF
                         </button>
                     </div>
+                    <span
+                        class="material-symbols-outlined absolute -bottom-10 -left-10 text-[200px] text-tertiary/5 select-none pointer-events-none"
+                        data-icon="account_balance_wallet">account_balance_wallet</span>
                 </div>
-            </div>
+            </section>
         </div>
-    </div>
+    </main>
 
-    <!-- Edit Client Modal -->
-    <div id="editClientModal" class="modal">
+
+    <!-- Modals -->
+    <!-- Delivery Edit Modal -->
+    <div class="modal" id="deliveryEditModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>تعديل بيانات العميل</h2>
-                <button class="modal-close">&times;</button>
+                <h2>تعديل التسليم</h2>
+                <button class="modal-close" onclick="closeModal('deliveryEditModal')">&times;</button>
             </div>
-            <form id="editClientForm">
+            <form id="deliveryEditForm">
                 <div class="form-group-modern">
-                    <label class="form-label-modern" for="editClientName">اسم العميل *</label>
-                    <input type="text" class="form-input-modern" id="editClientName" name="name" required autocomplete="name">
+                    <label class="form-label-modern">المادة *</label>
+                    <input type="text" id="editDeliveryMaterial" class="form-input-modern" required>
                 </div>
                 <div class="form-group-modern">
-                    <label class="form-label-modern" for="editClientPhone">رقم الهاتف</label>
-                    <input type="tel" class="form-input-modern" id="editClientPhone" name="phone" placeholder="اختياري" autocomplete="tel">
+                    <label class="form-label-modern">رقم البون *</label>
+                    <input type="text" id="editDeliveryVoucher" class="form-input-modern" required>
                 </div>
                 <div class="form-group-modern">
-                    <label class="form-label-modern" for="editOpeningBalance">الرصيد الافتتاحي (جنيه)</label>
-                    <input type="text" class="form-input-modern" id="editOpeningBalance" name="opening_balance" placeholder="0.00" autocomplete="off">
-                    <small style="display: block; margin-top: 0.5rem; font-size: 0.75rem; color: var(--on-surface-variant);">
-                        موجب = العميل يدين لنا، سالب = نحن ندين للعميل
-                    </small>
+                    <label class="form-label-modern">الكمية (م³) *</label>
+                    <input type="number" id="editDeliveryQuantity" class="form-input-modern" required step="0.1"
+                        min="0">
                 </div>
-                <div id="editClientMessage"></div>
-                <div class="modal-actions" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
-                    <button type="button" class="btn-modern btn-secondary-modern modal-close">إلغاء</button>
-                    <button type="submit" class="btn-modern btn-primary-modern">حفظ التعديلات</button>
+                <div class="form-group-modern">
+                    <label class="form-label-modern">سعر المتر *</label>
+                    <input type="number" id="editDeliveryPricePerMeter" class="form-input-modern" required step="0.01"
+                        min="0">
+                </div>
+                <div class="form-group-modern">
+                    <label class="form-label-modern">اسم السائق</label>
+                    <input type="text" id="editDeliveryDriverName" class="form-input-modern">
+                </div>
+                <div class="form-group-modern">
+                    <label class="form-label-modern">رقم رأس السيارة</label>
+                    <input type="text" id="editDeliveryCarHead" class="form-input-modern">
+                </div>
+                <div class="form-group-modern">
+                    <label class="form-label-modern">رقم ذيل السيارة</label>
+                    <input type="text" id="editDeliveryCarTail" class="form-input-modern">
+                </div>
+                <div id="deliveryEditMessage"></div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn-modern btn-primary-modern">حفظ التعديل</button>
+                    <button type="button" class="btn-modern btn-secondary-modern"
+                        onclick="closeModal('deliveryEditModal')">إلغاء</button>
                 </div>
             </form>
         </div>
@@ -219,17 +556,20 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>إضافة دفعة جديدة</h2>
-                <button class="modal-close">&times;</button>
+                <button class="modal-close" onclick="closeModal('paymentModal')">&times;</button>
             </div>
-            <div id="paymentMessage"></div>
             <form id="paymentForm">
                 <div class="form-group-modern">
-                    <label class="form-label-modern" for="paymentAmount">المبلغ *</label>
-                    <input type="number" class="form-input-modern" id="paymentAmount" required min="0" step="0.01" autocomplete="off">
+                    <label class="form-label-modern">المبلغ *</label>
+                    <input type="number" id="paymentAmount" class="form-input-modern" required step="0.01" min="0">
                 </div>
                 <div class="form-group-modern">
-                    <label class="form-label-modern" for="paymentMethod">طريقة الدفع *</label>
-                    <select class="form-select-modern" id="paymentMethod" required autocomplete="off">
+                    <label class="form-label-modern">التاريخ *</label>
+                    <input type="date" id="paymentDate" class="form-input-modern" required>
+                </div>
+                <div class="form-group-modern">
+                    <label class="form-label-modern">طريقة الدفع *</label>
+                    <select id="paymentMethod" class="form-select-modern" required>
                         <option value="">اختر طريقة الدفع</option>
                         <option value="نقدي">نقدي</option>
                         <option value="بنكي">بنكي</option>
@@ -239,28 +579,22 @@
                     </select>
                 </div>
                 <div class="form-group-modern" id="paymentDetailsGroup" style="display: none;">
-                    <label class="form-label-modern" for="paymentDetails">رقم المعاملة / رقم الشيك</label>
-                    <input type="text" class="form-input-modern" id="paymentDetails" placeholder="أدخل رقم المعاملة أو رقم الشيك" autocomplete="off">
+                    <label class="form-label-modern">التفاصيل *</label>
+                    <input type="text" id="paymentDetails" class="form-input-modern" placeholder="رقم المعاملة">
                 </div>
                 <div class="form-group-modern" id="paymentImageGroup" style="display: none;">
-                    <label class="form-label-modern" for="paymentImage">صورة الدفع</label>
-                    <input type="file" class="form-input-modern" id="paymentImage" accept="image/*" autocomplete="off">
-                    <small style="display: block; margin-top: 0.5rem; font-size: 0.75rem; color: var(--on-surface-variant);">
-                        ارفع صورة الإيصال أو الشيك أو المعاملة البنكية
-                    </small>
-                    <div id="paymentImagePreview" style="margin-top: 10px;"></div>
+                    <label class="form-label-modern">صورة الإيصال</label>
+                    <input type="file" id="paymentImage" class="form-input-modern" accept="image/*">
                 </div>
                 <div class="form-group-modern">
-                    <label class="form-label-modern" for="paymentDate">التاريخ</label>
-                    <input type="date" class="form-input-modern" id="paymentDate" autocomplete="off">
+                    <label class="form-label-modern">ملاحظات</label>
+                    <textarea id="paymentNote" class="form-textarea-modern"></textarea>
                 </div>
-                <div class="form-group-modern">
-                    <label class="form-label-modern" for="paymentNote">ملاحظات</label>
-                    <textarea class="form-textarea-modern" id="paymentNote" autocomplete="off"></textarea>
-                </div>
-                <div class="modal-actions" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
-                    <button type="button" class="btn-modern btn-secondary-modern modal-close">إلغاء</button>
-                    <button type="submit" class="btn-modern btn-primary-modern">إضافة</button>
+                <div id="paymentMessage"></div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn-modern btn-primary-modern">حفظ الدفعة</button>
+                    <button type="button" class="btn-modern btn-secondary-modern"
+                        onclick="closeModal('paymentModal')">إلغاء</button>
                 </div>
             </form>
         </div>
@@ -271,80 +605,22 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>إضافة تسوية جديدة</h2>
-                <button class="modal-close">&times;</button>
+                <button class="modal-close" onclick="closeModal('adjustmentModal')">&times;</button>
             </div>
-            <div id="adjustmentMessage"></div>
             <form id="adjustmentForm">
                 <div class="form-group-modern">
-                    <label class="form-label-modern" for="adjustmentAmount">المبلغ * (موجب للإضافة، سالب للخصم)</label>
-                    <input type="number" class="form-input-modern" id="adjustmentAmount" required step="0.01">
+                    <label class="form-label-modern">المبلغ * (موجب = مستحق لنا، سالب = مستحق للعميل)</label>
+                    <input type="number" id="adjustmentAmount" class="form-input-modern" required step="0.01">
                 </div>
                 <div class="form-group-modern">
-                    <label class="form-label-modern" for="adjustmentReason">السبب *</label>
-                    <textarea class="form-textarea-modern" id="adjustmentReason" required placeholder="اكتب سبب التسوية..."></textarea>
+                    <label class="form-label-modern">السبب *</label>
+                    <textarea id="adjustmentReason" class="form-textarea-modern" required></textarea>
                 </div>
-                <div class="modal-actions" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
-                    <button type="button" class="btn-modern btn-secondary-modern modal-close">إلغاء</button>
-                    <button type="submit" class="btn-modern btn-primary-modern">إضافة</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Delivery Edit Modal -->
-    <div class="modal" id="deliveryEditModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>تعديل التسليم</h2>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div id="deliveryEditMessage"></div>
-            <form id="deliveryEditForm">
-                <div class="form-group-modern">
-                    <label class="form-label-modern" for="editDeliveryMaterial">المادة *</label>
-                    <select class="form-select-modern" id="editDeliveryMaterial" required>
-                        <option value="">اختر المادة</option>
-                        <option value="رمل">رمل</option>
-                        <option value="سن 1">سن 1</option>
-                        <option value="سن 2">سن 2</option>
-                        <option value="سن 3">سن 3</option>
-                        <option value="سن 6 بودرة">سن 6 بودرة</option>
-                    </select>
-                </div>
-                <div class="form-group-modern">
-                    <label class="form-label-modern" for="editDeliveryVoucher">رقم البون</label>
-                    <input type="text" class="form-input-modern" id="editDeliveryVoucher" placeholder="رقم البون">
-                </div>
-                <div class="form-group-modern">
-                    <label class="form-label-modern" for="editDeliveryQuantity">الكمية (م³) *</label>
-                    <input type="number" class="form-input-modern" id="editDeliveryQuantity" required min="0" step="0.01">
-                </div>
-                <div class="form-group-modern">
-                    <label class="form-label-modern" for="editDeliveryPricePerMeter">سعر المتر *</label>
-                    <input type="number" class="form-input-modern" id="editDeliveryPricePerMeter" required min="0" step="0.01">
-                </div>
-                <div class="form-group-modern">
-                    <label class="form-label-modern" for="editDeliveryDriverName">اسم السائق</label>
-                    <input type="text" class="form-input-modern" id="editDeliveryDriverName" placeholder="اسم السائق">
-                </div>
-                <div class="form-group-modern">
-                    <label class="form-label-modern" for="editDeliveryCarHead">رقم الرأس</label>
-                    <input type="text" class="form-input-modern" id="editDeliveryCarHead" placeholder="رقم رأس السيارة">
-                </div>
-                <div class="form-group-modern">
-                    <label class="form-label-modern" for="editDeliveryCarTail">رقم المقطورة</label>
-                    <input type="text" class="form-input-modern" id="editDeliveryCarTail" placeholder="رقم المقطورة">
-                </div>
-                <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 0.75rem; padding: 1rem; margin: 1rem 0; display: flex; gap: 0.75rem;">
-                    <i class="fas fa-exclamation-triangle" style="color: var(--warning); font-size: 1.25rem;"></i>
-                    <div>
-                        <strong style="color: var(--warning);">تنبيه:</strong>
-                        <span style="color: var(--on-surface-variant); font-size: 0.875rem;">لن يتم تعديل السعر التاريخي للمادة للحفاظ على دقة الحسابات المحاسبية.</span>
-                    </div>
-                </div>
-                <div class="modal-actions" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
-                    <button type="button" class="btn-modern btn-secondary-modern modal-close">إلغاء</button>
-                    <button type="submit" class="btn-modern btn-primary-modern">حفظ التعديل</button>
+                <div id="adjustmentMessage"></div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn-modern btn-primary-modern">حفظ التسوية</button>
+                    <button type="button" class="btn-modern btn-secondary-modern"
+                        onclick="closeModal('adjustmentModal')">إلغاء</button>
                 </div>
             </form>
         </div>
@@ -352,32 +628,30 @@
 
     <!-- Payment Details Modal -->
     <div class="modal" id="paymentDetailsModal">
-        <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-content">
             <div class="modal-header">
                 <h2>تفاصيل الدفعة</h2>
-                <button class="modal-close">&times;</button>
+                <button class="modal-close" onclick="closeModal('paymentDetailsModal')">&times;</button>
             </div>
-            <div style="padding: 1.5rem;">
-                <div id="paymentDetailsContent"></div>
-            </div>
-            <div class="modal-actions" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
-                <button type="button" class="btn-modern btn-secondary-modern modal-close">إغلاق</button>
+            <div style="padding: 1.5rem;" id="paymentDetailsContent"></div>
+            <div class="modal-actions">
+                <button type="button" class="btn-modern btn-secondary-modern"
+                    onclick="closeModal('paymentDetailsModal')">إغلاق</button>
             </div>
         </div>
     </div>
 
     <!-- Adjustment Details Modal -->
     <div class="modal" id="adjustmentDetailsModal">
-        <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-content">
             <div class="modal-header">
                 <h2>تفاصيل التسوية</h2>
-                <button class="modal-close">&times;</button>
+                <button class="modal-close" onclick="closeModal('adjustmentDetailsModal')">&times;</button>
             </div>
-            <div style="padding: 1.5rem;">
-                <div id="adjustmentDetailsContent"></div>
-            </div>
-            <div class="modal-actions" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
-                <button type="button" class="btn-modern btn-secondary-modern modal-close">إغلاق</button>
+            <div style="padding: 1.5rem;" id="adjustmentDetailsContent"></div>
+            <div class="modal-actions">
+                <button type="button" class="btn-modern btn-secondary-modern"
+                    onclick="closeModal('adjustmentDetailsModal')">إغلاق</button>
             </div>
         </div>
     </div>
@@ -387,11 +661,43 @@
         <div class="modal-content" style="max-width: 800px;">
             <div class="modal-header">
                 <h2>عرض الصورة</h2>
-                <button class="modal-close">&times;</button>
+                <button class="modal-close" onclick="closeModal('imageModal')">&times;</button>
             </div>
-            <div style="text-align: center; padding: 1.5rem;">
-                <img id="modalImage" style="max-width: 100%; max-height: 70vh; border-radius: 0.75rem; box-shadow: var(--shadow-lg);" alt="صورة الدفع">
+            <div style="padding: 1.5rem;">
+                <img id="modalImage" src="" alt="صورة" style="width: 100%; height: auto; border-radius: 0.5rem;">
             </div>
+        </div>
+    </div>
+
+    <!-- Edit Client Modal -->
+    <div class="modal" id="editClientModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>تعديل بيانات العميل</h2>
+                <button class="modal-close" onclick="closeModal('editClientModal')">&times;</button>
+            </div>
+            <form id="editClientForm">
+                <div class="form-group-modern">
+                    <label class="form-label-modern">اسم العميل *</label>
+                    <input type="text" name="name" id="editClientName" class="form-input-modern" required>
+                </div>
+                <div class="form-group-modern">
+                    <label class="form-label-modern">رقم الهاتف</label>
+                    <input type="tel" name="phone" id="editClientPhone" class="form-input-modern">
+                </div>
+                <div class="form-group-modern">
+                    <label class="form-label-modern">الرصيد الافتتاحي</label>
+                    <input type="number" name="opening_balance" id="editOpeningBalance" class="form-input-modern"
+                        step="0.01">
+                    <small class="text-muted">موجب = مستحق لنا، سالب = مستحق للعميل</small>
+                </div>
+                <div id="editClientMessage"></div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn-modern btn-primary-modern">حفظ التعديلات</button>
+                    <button type="button" class="btn-modern btn-secondary-modern"
+                        onclick="closeModal('editClientModal')">إلغاء</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -411,5 +717,7 @@
     <script src="js/sidebar.js"></script>
     <script src="js/clients-details.js"></script>
     <script src="js/utils/loader.js"></script>
+
 </body>
+
 </html>

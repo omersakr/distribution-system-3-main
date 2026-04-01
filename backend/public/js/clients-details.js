@@ -176,10 +176,10 @@ function renderPayments(payments) {
     const table = document.createElement('table');
     table.className = 'table-modern';
 
-    // Header
+    // Header - Reduced columns
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
-    const headers = ['التاريخ', 'المبلغ', 'طريقة الدفع', 'التفاصيل', 'ملاحظات', 'الصورة', 'إجراءات'];
+    const headers = ['التاريخ', 'المبلغ', 'الطريقة', 'التفاصيل', 'إجراءات'];
 
     headers.forEach(header => {
         const th = document.createElement('th');
@@ -194,39 +194,35 @@ function renderPayments(payments) {
     payments.forEach(payment => {
         const row = document.createElement('tr');
 
-        const cells = [
-            formatDate(payment.paid_at),
-            formatCurrency(payment.amount),
-            payment.method || '-',
-            payment.details || '-',
-            payment.note || '-'
-        ];
+        // Date
+        const dateCell = document.createElement('td');
+        dateCell.textContent = formatDate(payment.paid_at);
+        row.appendChild(dateCell);
 
-        cells.forEach(cellText => {
-            const td = document.createElement('td');
-            td.textContent = cellText;
-            row.appendChild(td);
-        });
+        // Amount
+        const amountCell = document.createElement('td');
+        amountCell.textContent = formatCurrency(payment.amount);
+        amountCell.style.fontWeight = '600';
+        amountCell.style.color = 'var(--tertiary)';
+        row.appendChild(amountCell);
 
-        // Image cell
-        const imageCell = document.createElement('td');
-        if (payment.payment_image_url) {
-            imageCell.innerHTML = `
-                <button class="action-btn-modern view" data-image="${payment.payment_image_url}" onclick="showImageModal(this.getAttribute('data-image'))" title="عرض الصورة">
-                    <i class="fas fa-image"></i>
-                </button>
-            `;
-        } else {
-            imageCell.textContent = '-';
-        }
-        row.appendChild(imageCell);
+        // Method
+        const methodCell = document.createElement('td');
+        methodCell.textContent = payment.method || '-';
+        row.appendChild(methodCell);
+
+        // Details (combined details and note)
+        const detailsCell = document.createElement('td');
+        detailsCell.textContent = payment.details || payment.note || '-';
+        detailsCell.title = payment.details || payment.note || '-'; // Show full text on hover
+        row.appendChild(detailsCell);
 
         // Actions cell
         const actionsCell = document.createElement('td');
         actionsCell.innerHTML = `
             <div class="action-btn-group">
-                <button class="action-btn-modern view crud-btn" data-action="view" data-type="payment" data-id="${payment.id}" title="عرض التفاصيل">
-                    <i class="fas fa-eye"></i>
+                <button class="action-btn-modern view crud-btn" data-action="view" data-type="payment" data-id="${payment.id}" title="عرض">
+                    <i class="fas fa-regular fa-image"></i>
                 </button>
                 <button class="action-btn-modern edit crud-btn" data-action="edit" data-type="payment" data-id="${payment.id}" title="تعديل">
                     <i class="fas fa-edit"></i>
@@ -263,10 +259,10 @@ function renderAdjustments(adjustments) {
     const table = document.createElement('table');
     table.className = 'table-modern';
 
-    // Header
+    // Header - Reduced columns
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
-    const headers = ['التاريخ', 'المبلغ', 'طريقة التسوية', 'التفاصيل', 'السبب', 'الصورة', 'إجراءات'];
+    const headers = ['التاريخ', 'المبلغ', 'السبب', 'إجراءات'];
 
     headers.forEach(header => {
         const th = document.createElement('th');
@@ -281,51 +277,32 @@ function renderAdjustments(adjustments) {
     adjustments.forEach(adjustment => {
         const row = document.createElement('tr');
 
+        // Date
+        const dateCell = document.createElement('td');
+        dateCell.textContent = formatDate(adjustment.created_at);
+        row.appendChild(dateCell);
+
+        // Amount
         const amountCell = document.createElement('td');
         const amount = adjustment.amount || 0;
-
-        // Positive adjustment = they owe us more (مستحق لنا), Negative adjustment = we owe them (مستحق للعميل)
         amountCell.className = amount > 0 ? 'text-success' : amount < 0 ? 'text-danger' : '';
-        const label = amount > 0 ? '(مستحق لنا)' : amount < 0 ? '(مستحق للعميل)' : '';
-        amountCell.innerHTML = `${formatCurrency(Math.abs(amount))} <small style="font-size: 0.75rem;">${label}</small>`;
+        const label = amount > 0 ? '(لنا)' : amount < 0 ? '(للعميل)' : '';
+        amountCell.innerHTML = `${formatCurrency(Math.abs(amount))} <small style="font-size: 0.7rem;">${label}</small>`;
+        amountCell.style.fontWeight = '600';
+        row.appendChild(amountCell);
 
-        const cells = [
-            formatDate(adjustment.created_at),
-            amountCell,
-            adjustment.method || '-',
-            adjustment.details || '-',
-            adjustment.reason || '-'
-        ];
-
-        cells.forEach((cell, index) => {
-            if (index === 1) {
-                row.appendChild(cell);
-            } else {
-                const td = document.createElement('td');
-                td.textContent = cell;
-                row.appendChild(td);
-            }
-        });
-
-        // Image cell
-        const imageCell = document.createElement('td');
-        if (adjustment.payment_image_url) {
-            imageCell.innerHTML = `
-                <button class="action-btn-modern view" data-image="${adjustment.payment_image_url}" onclick="showImageModal(this.getAttribute('data-image'))" title="عرض الصورة">
-                    <i class="fas fa-image"></i>
-                </button>
-            `;
-        } else {
-            imageCell.textContent = '-';
-        }
-        row.appendChild(imageCell);
+        // Reason
+        const reasonCell = document.createElement('td');
+        reasonCell.textContent = adjustment.reason || '-';
+        reasonCell.title = adjustment.reason || '-'; // Show full text on hover
+        row.appendChild(reasonCell);
 
         // Actions cell
         const actionsCell = document.createElement('td');
         actionsCell.innerHTML = `
             <div class="action-btn-group">
-                <button class="action-btn-modern view crud-btn" data-action="view" data-type="adjustment" data-id="${adjustment.id}" title="عرض التفاصيل">
-                    <i class="fas fa-eye"></i>
+                <button class="action-btn-modern view crud-btn" data-action="view" data-type="adjustment" data-id="${adjustment.id}" title="عرض">
+                    <i class="fas fa-regular fa-image"></i>
                 </button>
                 <button class="action-btn-modern edit crud-btn" data-action="edit" data-type="adjustment" data-id="${adjustment.id}" title="تعديل">
                     <i class="fas fa-edit"></i>
@@ -346,6 +323,57 @@ function renderAdjustments(adjustments) {
 }
 
 // CRUD Functions
+async function editDelivery(deliveryId) {
+    try {
+        // Find delivery in current data
+        const delivery = allDeliveries.find(d => d.id === deliveryId);
+        if (!delivery) {
+            showAlert('لم يتم العثور على التسليم');
+            return;
+        }
+
+        // Populate form with existing data
+        document.getElementById('editDeliveryMaterial').value = delivery.material || '';
+        document.getElementById('editDeliveryVoucher').value = delivery.voucher || '';
+        document.getElementById('editDeliveryQuantity').value = delivery.quantity || '';
+        document.getElementById('editDeliveryPricePerMeter').value = delivery.price_per_meter || '';
+        document.getElementById('editDeliveryDriverName').value = delivery.driver_name || '';
+        document.getElementById('editDeliveryCarHead').value = delivery.car_head || '';
+        document.getElementById('editDeliveryCarTail').value = delivery.car_tail || '';
+
+        // Change form to edit mode
+        const form = document.getElementById('deliveryEditForm');
+        form.dataset.editId = deliveryId;
+
+        showModal('deliveryEditModal');
+    } catch (error) {
+        console.error('Error editing delivery:', error);
+        showAlert('حدث خطأ في تحميل بيانات التسليم');
+    }
+}
+
+async function deleteDelivery(deliveryId) {
+    const confirmed = await showConfirmDialog(
+        'تأكيد الحذف',
+        'هل أنت متأكد من حذف هذا التسليم؟',
+        'نعم، احذف',
+        'إلغاء'
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+        await apiDelete(`/deliveries/${deliveryId}`);
+        showAlert('تم حذف التسليم بنجاح');
+        loadClientDetails(); // Reload data
+    } catch (error) {
+        console.error('Error deleting delivery:', error);
+        showAlert('حدث خطأ في حذف التسليم');
+    }
+}
+
 async function editPayment(paymentId) {
     try {
         // Find payment in current data
@@ -390,7 +418,7 @@ async function deletePayment(paymentId) {
         'نعم، احذف',
         'إلغاء'
     );
-    
+
     if (!confirmed) {
         return;
     }
@@ -580,7 +608,7 @@ async function deleteAdjustment(adjustmentId) {
         'نعم، احذف',
         'إلغاء'
     );
-    
+
     if (!confirmed) {
         return;
     }
@@ -616,15 +644,15 @@ async function addPayment(clientId, paymentData) {
         has_image: !!paymentData.payment_image,
         image_length: paymentData.payment_image ? paymentData.payment_image.length : 0
     });
-    
+
     const response = await apiPost(`/clients/${clientId}/payments`, paymentData);
-    
+
     console.log('Payment response:', {
         success: !!response,
         has_image_url: !!response?.payment_image_url,
         image_url: response?.payment_image_url
     });
-    
+
     return response;
 }
 

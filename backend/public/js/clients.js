@@ -23,13 +23,15 @@ function createClientCard(client) {
     actions.className = 'client-actions';
 
     const detailsBtn = document.createElement('button');
-    detailsBtn.className = 'btn btn-sm btn-primary';
-    detailsBtn.innerHTML = '<i class="fas fa-chart-line"></i> التفاصيل';
+    detailsBtn.className = 'action-btn-modern view';
+    detailsBtn.innerHTML = '<i class="fas fa-chart-line"></i>';
+    detailsBtn.title = 'عرض التفاصيل';
     detailsBtn.onclick = () => window.location.href = `clients-details.html?id=${client.id}`;
 
     const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'btn btn-sm btn-danger';
-    deleteBtn.innerHTML = '<i class="fas fa-trash"></i> حذف';
+    deleteBtn.className = 'action-btn-modern danger';
+    deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+    deleteBtn.title = 'حذف';
     deleteBtn.onclick = () => deleteClient(client.id, client.name);
 
     actions.appendChild(detailsBtn);
@@ -45,7 +47,7 @@ function createClientCard(client) {
 
         const phoneItem = document.createElement('div');
         phoneItem.className = 'contact-item';
-        phoneItem.innerHTML = `<span class="contact-icon">📱</span> ${client.phone}`;
+        phoneItem.innerHTML = `<i class="fas fa-solid fa-mobile"></i> ${client.phone}`;
 
         contactSection.appendChild(phoneItem);
         card.appendChild(contactSection);
@@ -188,7 +190,7 @@ function renderPagination(pagination) {
 async function loadClients(page = 1) {
     const container = document.getElementById('clientsContainer');
     showInlineLoader('clientsContainer', 'جاري تحميل العملاء...');
-    
+
     try {
         const params = new URLSearchParams();
         params.set('page', page);
@@ -233,7 +235,7 @@ function setupEventHandlers() {
     // Add client form
     let isSubmittingClient = false;
     const addClientForm = document.getElementById('addClientForm');
-    
+
     addClientForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -253,7 +255,7 @@ function setupEventHandlers() {
         isSubmittingClient = true;
         const submitButton = e.target.querySelector('button[type="submit"]');
         const originalButtonText = submitButton ? submitButton.textContent : 'حفظ';
-        
+
         if (submitButton) {
             submitButton.disabled = true;
             submitButton.textContent = 'جاري الإضافة...';
@@ -261,7 +263,7 @@ function setupEventHandlers() {
 
         try {
             await createClient(clientData);
-            
+
             // Show success message
             await Swal.fire({
                 title: 'تم بنجاح',
@@ -274,10 +276,10 @@ function setupEventHandlers() {
             closeModal('addClientModal');
             loadClients(currentPage);
             e.target.reset();
-            
+
         } catch (error) {
             console.error('Error creating client:', error);
-            
+
             // Show error message
             await Swal.fire({
                 title: 'خطأ',
