@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <meta charset="UTF-8">
+    <title>تفاصيل المشروع المالية</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/modern-theme.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <style>
+        .main-content {
+            margin-right: 225px;
+            padding: var(--space-6);
+            transition: margin-right 0.25s;
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                margin-right: 190px;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .main-content {
+                margin-right: 0;
+                padding: var(--space-4);
+            }
+        }
+
+        .page-header {
+            margin-bottom: var(--space-6);
+            background: white;
+            padding: var(--space-6);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--space-4);
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+
+        .page-title i {
+            color: var(--primary-600);
+        }
+
+        /* Financial Cards Grid */
+        .financial-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: var(--space-5);
+            margin-bottom: var(--space-6);
+        }
+
+        .financial-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .financial-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }
+
+        .financial-card .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: var(--space-4) var(--space-5);
+            font-size: 1.0625rem;
+            font-weight: 600;
+            color: white;
+            text-align: center;
+            border-bottom: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+            min-height: 56px;
+        }
+
+        .financial-card .card-body {
+            padding: var(--space-5);
+            background: white;
+        }
+
+        .card-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-3) 0;
+            border-bottom: 1px solid #f3f4f6;
+            gap: var(--space-4);
+            min-height: 40px;
+        }
+
+        .card-line:last-child {
+            border-bottom: none;
+        }
+
+        .card-line-label {
+            flex: 1;
+            font-size: 0.9375rem;
+            color: #4b5563;
+            line-height: 1.4;
+            text-align: right;
+            font-weight: 500;
+        }
+
+        .card-line-value {
+            font-size: 1.0625rem;
+            font-weight: 700;
+            white-space: nowrap;
+            font-family: 'Cairo', sans-serif;
+            direction: ltr;
+            text-align: left;
+        }
+
+        /* Color coding for values */
+        .card-line-value.positive,
+        .card-line.revenue .card-line-value {
+            color: #059669 !important;
+        }
+
+        .card-line-value.negative,
+        .card-line.expense .card-line-value {
+            color: #dc2626 !important;
+        }
+
+        .card-line-value.neutral {
+            color: #1f2937;
+        }
+
+        .card-line.total {
+            margin-top: var(--space-4);
+            padding: var(--space-4);
+            border-top: 2px solid #e5e7eb;
+            border-bottom: none;
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            border-radius: var(--radius);
+        }
+
+        .card-line.total .card-line-label {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #111827;
+        }
+
+        .card-line.total .card-line-value {
+            font-size: 1.25rem;
+            font-weight: 800;
+        }
+
+        .card-line.highlight {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            padding: var(--space-4);
+            margin: var(--space-4) calc(-1 * var(--space-5));
+            padding-right: var(--space-5);
+            padding-left: var(--space-5);
+            border-bottom: none;
+            border-radius: 0;
+            border-top: 2px solid #86efac;
+            border-bottom: 2px solid #86efac;
+        }
+
+        .card-line.highlight.revenue {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border-top-color: #86efac;
+            border-bottom-color: #86efac;
+        }
+
+        .card-line.highlight.expense {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border-top-color: #fca5a5;
+            border-bottom-color: #fca5a5;
+        }
+
+        .card-line.highlight .card-line-label {
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .card-line.highlight .card-line-value {
+            font-weight: 800;
+            font-size: 1.25rem;
+        }
+
+        .section {
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            margin-bottom: var(--space-5);
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: var(--space-5) var(--space-6);
+            border-bottom: 2px solid #f3f4f6;
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--space-3);
+        }
+
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #111827;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .section-title i {
+            color: var(--primary-600);
+        }
+
+        .section-content {
+            padding: var(--space-6);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-4);
+        }
+
+        .info-item {
+            padding: var(--space-3);
+            background: #f9fafb;
+            border-radius: var(--radius);
+            border: 1px solid #e5e7eb;
+        }
+
+        .info-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 500;
+            display: block;
+            margin-bottom: var(--space-1);
+        }
+
+        .info-value {
+            font-size: 1rem;
+            color: #111827;
+            font-weight: 600;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: var(--radius);
+            border: 1px solid #e5e7eb;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9375rem;
+        }
+
+        .data-table thead {
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+        }
+
+        .data-table th {
+            padding: var(--space-4);
+            text-align: right;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .data-table td {
+            padding: var(--space-4);
+            border-bottom: 1px solid #f3f4f6;
+            color: #1f2937;
+        }
+
+        .data-table tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: var(--space-8);
+            color: #6b7280;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: #d1d5db;
+            margin-bottom: var(--space-4);
+        }
+
+        .btn {
+            padding: var(--space-3) var(--space-5);
+            border-radius: var(--radius);
+            font-weight: 600;
+            font-size: 0.9375rem;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        @media (max-width: 768px) {
+            .financial-cards-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/loaders.css">
+</head>
+
+<body>
+    <!-- Global Loader -->
+    <div class="loader-overlay" id="globalLoader">
+        <div class="loader-container">
+            <div class="loader"></div>
+            <div class="loader-text">جاري التحميل...</div>
+        </div>
+    </div>
+
+
+    <div id="sidebar-placeholder"></div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title" id="projectName">
+                <i class="fas fa-chart-line"></i>
+                تفاصيل المشروع المالية
+            </h1>
+            <button class="btn btn-secondary" onclick="history.back()">
+                <i class="fas fa-arrow-right"></i> العودة
+            </button>
+        </div>
+
+        <!-- Financial Cards Grid -->
+        <div class="financial-cards-grid">
+            <!-- Card 1: Capital Position -->
+            <div class="financial-card">
+                <div class="card-header">
+                    <i class="fas fa-wallet"></i>
+                    موقف رأس المال
+                </div>
+                <div id="capitalCard" class="card-body">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+
+            <!-- Card 2: Operating Result -->
+            <div class="financial-card">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar"></i>
+                    نتيجة التشغيل
+                </div>
+                <div id="operatingResultCard" class="card-body">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+
+            <!-- Card 3: General Expenses -->
+            <div class="financial-card">
+                <div class="card-header">
+                    <i class="fas fa-receipt"></i>
+                    المصروفات العامة
+                </div>
+                <div id="generalExpensesCard" class="card-body">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+
+            <!-- Card 4: Net Operating Profit -->
+            <div class="financial-card">
+                <div class="card-header">
+                    <i class="fas fa-coins"></i>
+                    صافي الربح التشغيلي
+                </div>
+                <div id="netOperatingProfitCard" class="card-body">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+
+            <!-- Card 5: Net Opening Balance -->
+            <div class="financial-card">
+                <div class="card-header">
+                    <i class="fas fa-balance-scale"></i>
+                    صافي الرصيد الافتتاحي
+                </div>
+                <div id="netOpeningBalanceCard" class="card-body">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+
+            <!-- Card 6: Final Financial Position -->
+            <div class="financial-card">
+                <div class="card-header">
+                    <i class="fas fa-trophy"></i>
+                    الموقف المالي النهائي
+                </div>
+                <div id="finalFinancialPositionCard" class="card-body">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Client Info Section -->
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <i class="fas fa-user"></i>
+                    معلومات العميل
+                </h3>
+                <button class="btn btn-primary"
+                    onclick="window.location.href='clients-details.html?id=' + currentClientId">
+                    <i class="fas fa-external-link-alt"></i> إدارة العميل
+                </button>
+            </div>
+            <div class="section-content">
+                <div class="info-grid" id="clientInfo">
+                    <!-- Client info will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Expenses Section -->
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <i class="fas fa-money-bill-wave"></i>
+                    المصروفات المرتبطة بالمشروع
+                </h3>
+                <button class="btn btn-primary"
+                    onclick="window.location.href='expenses.html?project_filter=' + currentClientId">
+                    <i class="fas fa-plus"></i> إدارة المصروفات
+                </button>
+            </div>
+            <div class="section-content">
+                <div class="table-container">
+                    <table class="data-table" id="expensesTable">
+                        <thead>
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>الوصف</th>
+                                <th>المبلغ</th>
+                                <th>ملاحظات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expensesTableBody">
+                            <!-- Expenses will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Capital Injections Section -->
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <i class="fas fa-hand-holding-usd"></i>
+                    الحقن الرأسمالية
+                </h3>
+                <button class="btn btn-primary" onclick="window.location.href='administration.html'">
+                    <i class="fas fa-external-link-alt"></i> إدارة رؤوس الأموال
+                </button>
+            </div>
+            <div class="section-content">
+                <div class="table-container">
+                    <table class="data-table" id="capitalInjectionsTable">
+                        <thead>
+                            <tr>
+                                <th>المبلغ</th>
+                                <th>المصدر</th>
+                                <th>التاريخ</th>
+                                <th>ملاحظات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="capitalInjectionsTableBody">
+                            <!-- Capital injections will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Withdrawals Section -->
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <i class="fas fa-arrow-circle-down"></i>
+                    السحوبات
+                </h3>
+                <button class="btn btn-primary" onclick="window.location.href='administration.html'">
+                    <i class="fas fa-external-link-alt"></i> إدارة السحوبات
+                </button>
+            </div>
+            <div class="section-content">
+                <div class="table-container">
+                    <table class="data-table" id="withdrawalsTable">
+                        <thead>
+                            <tr>
+                                <th>المبلغ</th>
+                                <th>الغرض</th>
+                                <th>التاريخ</th>
+                                <th>ملاحظات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="withdrawalsTableBody">
+                            <!-- Withdrawals will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assigned Employees Section -->
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <i class="fas fa-users"></i>
+                    الموظفين المخصصين للمشروع
+                </h3>
+                <button class="btn btn-primary" onclick="window.location.href='employees.html'">
+                    <i class="fas fa-external-link-alt"></i> إدارة الموظفين
+                </button>
+            </div>
+            <div class="section-content">
+                <div class="table-container">
+                    <table class="data-table" id="employeesTable">
+                        <thead>
+                            <tr>
+                                <th>اسم الموظف</th>
+                                <th>المسمى الوظيفي</th>
+                                <th>نوع التخصيص</th>
+                                <th>الراتب الأساسي</th>
+                                <th>الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="assignedEmployeesTableBody">
+                            <!-- Employees will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/utils/modals.js"></script>
+    <script src="js/utils/crud-buttons.js"></script>
+
+    <!-- Load utilities first -->
+    <script src="js/utils/formatters.js"></script>
+    <script src="js/utils/validation.js"></script>
+    <script src="js/utils/dom.js"></script>
+
+    <!-- Load auth before API utilities -->
+    <script src="js/auth.js"></script>
+
+    <!-- Load API and modal utilities -->
+    <script src="js/utils/api.js"></script>
+    <script src="js/utils/modals.js"></script>
+
+    <!-- Load page-specific scripts -->
+    <script src="js/csp-fix.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/project-details.js"></script>
+    <script src="js/utils/loader.js"></script>
+</body>
+
+</html>

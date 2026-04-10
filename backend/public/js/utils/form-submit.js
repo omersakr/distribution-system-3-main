@@ -119,18 +119,24 @@ async function handleAdjustmentSubmit(e, form, options = {}) {
         messageElementId = 'adjustmentMessage'
     } = options;
 
-    const amount = document.getElementById('adjustmentAmount').value;
+    const type = document.getElementById('adjustmentType')?.value;
+    const amountValue = parseFloat(document.getElementById('adjustmentAmount').value);
     const reason = document.getElementById('adjustmentReason')?.value;
-    const method = document.getElementById('adjustmentMethod')?.value;
-    const details = document.getElementById('adjustmentDetails')?.value;
+
+    // Convert type to positive/negative amount
+    // If type field doesn't exist, use the amount as-is (for backward compatibility)
+    let amount;
+    if (type) {
+        amount = type === 'addition' ? amountValue : -amountValue;
+    } else {
+        amount = amountValue;
+    }
 
     const adjustmentData = {
-        amount: parseFloat(amount)
+        amount: amount
     };
 
     if (reason) adjustmentData.reason = reason;
-    if (method) adjustmentData.method = method;
-    if (details && details.trim()) adjustmentData.details = details.trim();
 
     const editId = form.dataset.editId;
 
@@ -152,10 +158,6 @@ async function handleAdjustmentSubmit(e, form, options = {}) {
     // Reset form
     form.reset();
     delete form.dataset.editId;
-
-    // Hide conditional fields
-    const detailsGroup = document.getElementById('adjustmentDetailsGroup');
-    if (detailsGroup) detailsGroup.style.display = 'none';
 
     // Close modal and reload after delay
     setTimeout(() => {

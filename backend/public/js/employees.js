@@ -1,7 +1,7 @@
 // Utilities are loaded via utils/index.js - no need to redefine common functions
 
 /**
- * Creates a single employee card DOM node using unified CSS classes
+ * Creates a single employee card DOM node
  * @param {object} employee - employee object (id, name, balance, ...future fields)
  * @returns {HTMLElement}
  */
@@ -21,14 +21,19 @@ function createEmployeeCard(employee) {
     actions.className = 'employee-actions';
 
     const detailsBtn = document.createElement('button');
-    detailsBtn.className = 'btn btn-sm btn-primary';
+    detailsBtn.className = 'action-btn-modern view';
     detailsBtn.innerHTML = '<i class="fas fa-chart-line"></i> التفاصيل';
+    detailsBtn.title = 'عرض التفاصيل';
     detailsBtn.onclick = () => window.location.href = `employee-details.html?id=${employee.id}`;
 
     const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'btn btn-sm btn-danger';
-    deleteBtn.innerHTML = '<i class="fas fa-trash"></i> حذف';
-    deleteBtn.onclick = () => deleteEmployee(employee.id, employee.name);
+    deleteBtn.className = 'action-btn-modern danger';
+    deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+    deleteBtn.title = 'حذف';
+    deleteBtn.onclick = (e) => {
+        e.stopPropagation();
+        deleteEmployee(employee.id, employee.name);
+    };
 
     actions.appendChild(detailsBtn);
     actions.appendChild(deleteBtn);
@@ -36,120 +41,53 @@ function createEmployeeCard(employee) {
     header.appendChild(actions);
     card.appendChild(header);
 
-    // Employee info section
+    // Job title and status
     const infoSection = document.createElement('div');
     infoSection.className = 'employee-info';
 
     if (employee.job_title) {
-        const jobTitleItem = document.createElement('div');
-        jobTitleItem.className = 'info-item';
-        jobTitleItem.innerHTML = `<span class="info-label">المسمى الوظيفي:</span> <span class="info-value">${employee.job_title}</span>`;
-        infoSection.appendChild(jobTitleItem);
+        const jobTitle = document.createElement('div');
+        jobTitle.className = 'info-item';
+        jobTitle.innerHTML = `<span class="info-label">المسمى الوظيفي:</span> <span class="info-value">${employee.job_title}</span>`;
+        infoSection.appendChild(jobTitle);
     }
 
     if (employee.phone_number) {
-        const phoneItem = document.createElement('div');
-        phoneItem.className = 'info-item';
-        phoneItem.innerHTML = `<span class="info-label">الهاتف:</span> <span class="info-value">${employee.phone_number}</span>`;
-        infoSection.appendChild(phoneItem);
+        const phone = document.createElement('div');
+        phone.className = 'info-item';
+        phone.innerHTML = `<span class="info-label">الهاتف:</span> <span class="info-value">${employee.phone_number}</span>`;
+        infoSection.appendChild(phone);
     }
 
-    const statusItem = document.createElement('div');
-    statusItem.className = 'info-item';
-    const statusClass = employee.status === 'Active' ? 'status-active' : 'status-inactive';
-    const statusText = employee.status === 'Active' ? 'نشط' : 'غير نشط';
-    statusItem.innerHTML = `<span class="info-label">الحالة:</span> <span class="info-value ${statusClass}">${statusText}</span>`;
-    infoSection.appendChild(statusItem);
-
-    const startDateItem = document.createElement('div');
-    startDateItem.className = 'info-item';
-    startDateItem.innerHTML = `<span class="info-label">تاريخ بداية العمل:</span> <span class="info-value">${formatDate(employee.start_working_date)}</span>`;
-    infoSection.appendChild(startDateItem);
-
-    // Project assignment info
-    const projectsItem = document.createElement('div');
-    projectsItem.className = 'info-item';
-
-    console.log('Employee projects data:', {
-        all_projects: employee.all_projects,
-        assigned_projects: employee.assigned_projects,
-        assigned_projects_length: employee.assigned_projects?.length
-    });
-
-    if (employee.all_projects) {
-        projectsItem.innerHTML = `<span class="info-label">المشاريع:</span> <span class="info-value" style="color: var(--blue-600); font-weight: 500;">جميع المشاريع</span>`;
-    } else if (employee.assigned_projects && Array.isArray(employee.assigned_projects) && employee.assigned_projects.length > 0) {
-        projectsItem.innerHTML = `<span class="info-label">المشاريع:</span> <span class="info-value">${employee.assigned_projects.length} مشروع مخصص</span>`;
-    } else {
-        projectsItem.innerHTML = `<span class="info-label">المشاريع:</span> <span class="info-value text-muted">غير مخصص لمشاريع</span>`;
-    }
-    infoSection.appendChild(projectsItem);
+    const status = document.createElement('div');
+    status.className = 'info-item';
+    const isActive = employee.status === 'Active';
+    status.innerHTML = `<span class="info-label">الحالة:</span> <span class="info-value ${isActive ? 'text-success' : 'text-danger'}">${isActive ? 'نشط' : 'غير نشط'}</span>`;
+    infoSection.appendChild(status);
 
     card.appendChild(infoSection);
 
-    // Financial summary section
-    const financialSection = document.createElement('div');
-    financialSection.className = 'employee-financial';
+    // Summary section
+    const summary = document.createElement('div');
+    summary.className = 'employee-summary';
 
-    const balanceItem = document.createElement('div');
-    balanceItem.className = 'financial-item';
-
-    const balanceLabel = document.createElement('span');
-    balanceLabel.className = 'financial-label';
-    balanceLabel.textContent = 'الرصيد الحالي:';
-
-    const balanceValue = document.createElement('span');
-    balanceValue.className = 'financial-value employee-balance';
     const balance = employee.balance || 0;
     const earnedSalary = employee.total_earned_salary || 0;
 
-    // SAFETY GUARD: If no earned salary, show neutral balance
-    if (earnedSalary === 0) {
-        balanceValue.classList.add('text-muted');
-        balanceValue.textContent = formatCurrency(0);
-        balanceItem.appendChild(balanceLabel);
-        balanceItem.appendChild(document.createTextNode(' '));
-        balanceItem.appendChild(balanceValue);
-        balanceItem.appendChild(document.createTextNode(' (متوازن)'));
-    } else {
-        balanceValue.textContent = formatCurrency(Math.abs(balance));
-
-        if (balance > 0) {
-            balanceValue.classList.add('positive');
-            balanceItem.appendChild(balanceLabel);
-            balanceItem.appendChild(document.createTextNode(' '));
-            balanceItem.appendChild(balanceValue);
-            balanceItem.appendChild(document.createTextNode(' (مدفوع زائد)'));
-        } else if (balance < 0) {
-            balanceValue.classList.add('negative');
-            balanceItem.appendChild(balanceLabel);
-            balanceItem.appendChild(document.createTextNode(' '));
-            balanceItem.appendChild(balanceValue);
-            balanceItem.appendChild(document.createTextNode(' (مستحق للموظف)'));
-        } else {
-            balanceValue.classList.add('text-muted');
-            balanceItem.appendChild(balanceLabel);
-            balanceItem.appendChild(document.createTextNode(' '));
-            balanceItem.appendChild(balanceValue);
-            balanceItem.appendChild(document.createTextNode(' (متوازن)'));
-        }
-    }
-
-    financialSection.appendChild(balanceItem);
-    card.appendChild(financialSection);
-
-    // Stats section - إضافة إجمالي الراتب المستحق وأيام العمل
-    const stats = document.createElement('div');
-    stats.className = 'employee-stats';
-
-    const statsItems = [
+    const stats = [
         { label: 'أيام العمل', value: employee.total_worked_days || 0 },
-        { label: 'إجمالي الراتب المستحق', value: formatCurrency(employee.total_earned_salary || 0) }
+        { label: 'الراتب المستحق', value: formatCurrency(earnedSalary) },
+        {
+            label: 'الرصيد',
+            value: formatCurrency(Math.abs(balance)),
+            class: balance < 0 ? 'text-danger' : balance > 0 ? 'text-warning' : ''
+        }
     ];
 
-    statsItems.forEach(stat => {
+    stats.forEach(stat => {
         const statItem = document.createElement('div');
         statItem.className = 'stat-item';
+        if (stat.class) statItem.classList.add(stat.class);
 
         const statLabel = document.createElement('span');
         statLabel.className = 'stat-label';
@@ -157,14 +95,18 @@ function createEmployeeCard(employee) {
 
         const statValue = document.createElement('span');
         statValue.className = 'stat-value';
-        statValue.textContent = typeof stat.value === 'number' ? stat.value : stat.value;
+        statValue.textContent = stat.value;
 
         statItem.appendChild(statLabel);
         statItem.appendChild(statValue);
-        stats.appendChild(statItem);
+        summary.appendChild(statItem);
     });
 
-    card.appendChild(stats);
+    card.appendChild(summary);
+
+    // Click to view details
+    card.onclick = () => window.location.href = `employee-details.html?id=${employee.id}`;
+
     return card;
 }
 
@@ -176,11 +118,11 @@ function renderEmployees(employees) {
     if (!employees || employees.length === 0) {
         container.innerHTML = `
         <div class="empty-state">
-        <div class="empty-icon">👷</div>
-        <div class="empty-text">لا توجد موظفين مسجلين</div>
-        <button class="btn btn-primary" onclick="document.getElementById('addEmployeeBtn').click()">
-        إضافة موظف جديد
-        </button>
+            <div class="empty-icon"><i class="fas fa-user-tie"></i></div>
+            <div class="empty-text">لا توجد موظفين مسجلين</div>
+            <button class="btn-modern btn-primary-modern" onclick="document.getElementById('addEmployeeBtn').click()">
+                <i class="fas fa-plus"></i> إضافة موظف جديد
+            </button>
         </div>
         `;
         return;
@@ -270,3 +212,59 @@ window.loadEmployees = async function () {
 
 // Make functions available globally
 window.deleteEmployee = deleteEmployee;
+
+
+// Search functionality
+let currentEmployeeSearch = '';
+
+function filterEmployees() {
+    const searchTerm = currentEmployeeSearch.toLowerCase().trim();
+    
+    if (!searchTerm) {
+        renderEmployees(employeesData);
+        return;
+    }
+    
+    const filtered = employeesData.filter(employee => {
+        return employee.name && employee.name.toLowerCase().includes(searchTerm);
+    });
+    
+    renderEmployees(filtered);
+}
+
+// Setup search event listeners
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('employeeSearch');
+    const searchBtn = document.getElementById('searchBtn');
+    const clearBtn = document.getElementById('clearSearchBtn');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            currentEmployeeSearch = e.target.value;
+            filterEmployees();
+        });
+        
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                currentEmployeeSearch = e.target.value;
+                filterEmployees();
+            }
+        });
+    }
+    
+    if (searchBtn) {
+        searchBtn.addEventListener('click', () => {
+            currentEmployeeSearch = searchInput.value;
+            filterEmployees();
+        });
+    }
+    
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            currentEmployeeSearch = '';
+            if (searchInput) searchInput.value = '';
+            filterEmployees();
+        });
+    }
+});

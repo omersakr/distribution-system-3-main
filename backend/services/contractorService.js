@@ -302,12 +302,17 @@ class ContractorService {
         const totalPayments = payments.reduce((sum, p) => sum + toNumber(p.amount), 0);
         const totalAdjustments = adjustments.reduce((sum, a) => sum + toNumber(a.amount), 0);
 
+        // Balance calculation:
+        // Positive balance = we owe the contractor (مستحق للمقاول)
+        // Negative balance = contractor owes us (مستحق لنا)
+        const balance = opening + totalEarnings + totalAdjustments - totalPayments;
+        
         return {
             openingBalance: opening,
             totalEarnings,
             totalPayments,
             totalAdjustments,
-            balance: opening + totalEarnings + totalAdjustments - totalPayments,
+            balance: balance,
             // إضافة إجمالي المشاوير
             totalTrips: totalEarnings,
             deliveriesCount: deliveries.length

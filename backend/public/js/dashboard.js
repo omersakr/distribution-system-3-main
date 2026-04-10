@@ -272,8 +272,10 @@ function renderFinalFinancialResult(metrics) {
 
     const netProfitLoss = calculateNetProfitLoss(netOperatingResult, totalExpenses);
 
-    const totalClientPayments = metrics.totalClientPayments || 0;
-    const totalDue = calculateTotalDue(totalRevenue, totalClientPayments);
+    // Use actual client balances instead of just payments
+    const totalDue = metrics.totalClientBalancesPositive || 0;
+    console.log('Dashboard - totalClientBalancesPositive:', metrics.totalClientBalancesPositive);
+    console.log('Dashboard - totalDue:', totalDue);
 
     const profitBeforePayment = calculateProfitBeforePayment(netProfitLoss, totalDue);
 

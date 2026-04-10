@@ -355,9 +355,9 @@ class AdministrationController {
                 return res.status(400).json({ message: 'المشروع مطلوب' });
             }
 
-            // Verify project exists
-            const project = await Project.findById(project_id);
-            if (!project) {
+            // Verify client exists (clients are projects in this system)
+            const client = await Client.findById(project_id);
+            if (!client) {
                 return res.status(400).json({ message: 'المشروع غير موجود' });
             }
 
@@ -387,9 +387,9 @@ class AdministrationController {
                 return res.status(400).json({ message: 'المشروع مطلوب' });
             }
 
-            // Verify project exists
-            const project = await Project.findById(project_id);
-            if (!project) {
+            // Verify client exists (clients are projects in this system)
+            const client = await Client.findById(project_id);
+            if (!client) {
                 return res.status(400).json({ message: 'المشروع غير موجود' });
             }
 
@@ -449,9 +449,9 @@ class AdministrationController {
                 return res.status(400).json({ message: 'المشروع مطلوب' });
             }
 
-            // Verify project exists
-            const project = await Project.findById(project_id);
-            if (!project) {
+            // Verify client exists (clients are projects in this system)
+            const client = await Client.findById(project_id);
+            if (!client) {
                 return res.status(400).json({ message: 'المشروع غير موجود' });
             }
 
@@ -481,9 +481,9 @@ class AdministrationController {
                 return res.status(400).json({ message: 'المشروع مطلوب' });
             }
 
-            // Verify project exists
-            const project = await Project.findById(project_id);
-            if (!project) {
+            // Verify client exists (clients are projects in this system)
+            const client = await Client.findById(project_id);
+            if (!client) {
                 return res.status(400).json({ message: 'المشروع غير موجود' });
             }
 

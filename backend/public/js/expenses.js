@@ -118,7 +118,12 @@ async function deleteExpense(id) {
 function renderStats(stats) {
     console.log('Rendering stats:', stats);
 
-    document.getElementById('totalExpensesValue').textContent = formatCurrency(stats.totalExpenses);
+    // Format numbers without currency symbol for display
+    const totalExpenses = Number(stats.totalExpenses || 0).toLocaleString('ar-EG', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    });
+    document.getElementById('totalExpensesValue').textContent = totalExpenses;
 
     // Ensure monthlyTrend is an array
     const monthlyTrend = Array.isArray(stats.monthlyTrend) ? stats.monthlyTrend : [];
@@ -127,118 +132,149 @@ function renderStats(stats) {
     // Calculate current month expenses
     const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
     const currentMonthExpenses = monthlyTrend.find(m => m.month === currentMonth);
-    document.getElementById('monthlyExpensesValue').textContent =
-        formatCurrency(currentMonthExpenses ? currentMonthExpenses.total : 0);
+    const monthlyExpensesValue = Number(currentMonthExpenses ? currentMonthExpenses.total : 0).toLocaleString('ar-EG', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    });
+    document.getElementById('monthlyExpensesValue').textContent = monthlyExpensesValue;
 
     // Calculate total count
     const totalCount = monthlyTrend.reduce((sum, m) => sum + (m.count || 0), 0);
     document.getElementById('expensesCountValue').textContent = totalCount;
 }
 
+// Create expense row with new table design
+function createExpenseRow(expense) {
+    const row = document.createElement('div');
+    row.className = 'group bg-surface-container-lowest p-6 rounded-2xl editorial-shadow border border-slate-50 grid grid-cols-12 gap-4 items-center hover:border-primary/20 transition-all duration-300';
+
+    // Date column
+    const dateCol = document.createElement('div');
+    dateCol.className = 'col-span-1';
+    const dateText = document.createElement('p');
+    dateText.className = 'text-xs font-bold text-slate-800';
+    dateText.textContent = formatDateShort(expense.expense_date);
+    dateCol.appendChild(dateText);
+
+    // Amount column
+    const amountCol = document.createElement('div');
+    amountCol.className = 'col-span-2';
+    const amountText = document.createElement('span');
+    amountText.className = 'text-lg font-black font-headline text-slate-800';
+    amountText.textContent = Number(expense.amount || 0).toLocaleString('ar-EG', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    });
+    amountCol.appendChild(amountText);
+
+    // Project column
+    const projectCol = document.createElement('div');
+    projectCol.className = 'col-span-2';
+    if (expense.project_id) {
+        const expenseProjectId = String(expense.project_id);
+        const project = projectsData.find(p => {
+            const projectId = String(p.id || p._id);
+            return projectId === expenseProjectId;
+        });
+
+        if (project) {
+            const projectName = document.createElement('span');
+            projectName.className = 'text-sm font-medium text-slate-700';
+            projectName.textContent = project.name || project.client_name || 'مشروع';
+            projectCol.appendChild(projectName);
+        } else {
+            const noProject = document.createElement('span');
+            noProject.className = 'text-sm text-slate-400';
+            noProject.textContent = '—';
+            projectCol.appendChild(noProject);
+        }
+    } else {
+        const noProject = document.createElement('span');
+        noProject.className = 'text-sm text-slate-400';
+        noProject.textContent = '—';
+        projectCol.appendChild(noProject);
+    }
+
+    // Description column
+    const descCol = document.createElement('div');
+    descCol.className = 'col-span-4';
+    const descText = document.createElement('p');
+    descText.className = 'text-sm font-medium text-slate-800 mb-1';
+    descText.textContent = expense.description;
+    descCol.appendChild(descText);
+    
+    if (expense.notes) {
+        const notesText = document.createElement('p');
+        notesText.className = 'text-xs text-slate-500 line-clamp-1';
+        notesText.textContent = expense.notes;
+        descCol.appendChild(notesText);
+    }
+
+    // Actions column
+    const actionsCol = document.createElement('div');
+    actionsCol.className = 'col-span-3 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity';
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'w-9 h-9 flex items-center justify-center rounded-lg bg-surface-container-high text-primary hover:bg-primary-container transition-colors';
+    editBtn.innerHTML = '<span class="material-symbols-outlined text-lg" data-icon="edit">edit</span>';
+    editBtn.onclick = (e) => {
+        e.stopPropagation();
+        editExpense(expense);
+    };
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'w-9 h-9 flex items-center justify-center rounded-lg bg-surface-container-high text-error hover:bg-error-container hover:text-white transition-colors';
+    deleteBtn.innerHTML = '<span class="material-symbols-outlined text-lg" data-icon="delete">delete</span>';
+    deleteBtn.onclick = (e) => {
+        e.stopPropagation();
+        confirmDeleteExpense(expense.id);
+    };
+
+    actionsCol.appendChild(editBtn);
+    actionsCol.appendChild(deleteBtn);
+
+    // Append all columns
+    row.appendChild(dateCol);
+    row.appendChild(amountCol);
+    row.appendChild(projectCol);
+    row.appendChild(descCol);
+    row.appendChild(actionsCol);
+
+    return row;
+}
+
 function renderExpenses(expenses) {
     const container = document.getElementById('expensesContainer');
 
+    // Keep the header row
+    const headerRow = container.querySelector('.px-6.py-3.bg-surface-container-high\\/40');
+    
     if (!expenses || expenses.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">💰</div>
-                <div>لا توجد مصروفات مسجلة</div>
-                <button class="btn btn-primary" onclick="document.getElementById('addExpenseBtn').click()">إضافة أول مصروف</button>
+        container.innerHTML = '';
+        if (headerRow) container.appendChild(headerRow);
+        
+        const emptyState = document.createElement('div');
+        emptyState.className = 'bg-surface-container-lowest p-16 rounded-xl shadow-sm border border-dashed border-outline-variant/50 flex flex-col items-center justify-center text-center';
+        emptyState.innerHTML = `
+            <div class="w-20 h-20 bg-surface-container-low rounded-full flex items-center justify-center mb-4 text-outline-variant">
+                <span class="material-symbols-outlined text-4xl">folder_off</span>
             </div>
+            <p class="text-on-surface-variant font-medium">لا توجد مصروفات مسجلة</p>
+            <p class="text-xs text-outline mt-1">ابدأ بإضافة أول مصروف</p>
         `;
+        container.appendChild(emptyState);
         return;
     }
 
     console.log('Rendering expenses:', expenses);
     console.log('Available projects:', projectsData);
 
-    const table = document.createElement('table');
-    table.className = 'table';
-
-    // Header
-    const thead = document.createElement('thead');
-    const headerRow = document.createElement('tr');
-    const headers = ['التاريخ', 'المشروع', 'الوصف', 'المبلغ', 'ملاحظات', 'الإجراءات'];
-
-    headers.forEach(header => {
-        const th = document.createElement('th');
-        th.textContent = header;
-        headerRow.appendChild(th);
-    });
-    thead.appendChild(headerRow);
-    table.appendChild(thead);
-
-    // Body
-    const tbody = document.createElement('tbody');
-    expenses.forEach(expense => {
-        const row = document.createElement('tr');
-
-        // Date
-        const dateCell = document.createElement('td');
-        dateCell.textContent = formatDateShort(expense.expense_date);
-        row.appendChild(dateCell);
-
-        // Project
-        const projectCell = document.createElement('td');
-        if (expense.project_id) {
-            // Convert both IDs to strings for comparison
-            const expenseProjectId = String(expense.project_id);
-            const project = projectsData.find(p => {
-                const projectId = String(p.id || p._id);
-                return projectId === expenseProjectId;
-            });
-
-            if (project) {
-                projectCell.textContent = project.name || project.client_name || 'مشروع بدون اسم';
-            } else {
-                projectCell.textContent = 'مشروع محذوف';
-                console.warn('Project not found for expense:', expense.id, 'project_id:', expense.project_id);
-            }
-        } else {
-            projectCell.textContent = 'غير محدد';
-            projectCell.className = 'text-muted';
-        }
-        row.appendChild(projectCell);
-
-        // Description
-        const descCell = document.createElement('td');
-        descCell.textContent = expense.description;
-        row.appendChild(descCell);
-
-        // Amount
-        const amountCell = document.createElement('td');
-        amountCell.textContent = formatCurrency(expense.amount);
-        amountCell.className = 'text-danger';
-        row.appendChild(amountCell);
-
-        // Notes
-        const notesCell = document.createElement('td');
-        notesCell.textContent = expense.notes || '-';
-        row.appendChild(notesCell);
-
-        // Actions
-        const actionsCell = document.createElement('td');
-        const editBtn = document.createElement('button');
-        editBtn.className = 'btn btn-sm btn-secondary';
-        editBtn.textContent = 'تعديل';
-        editBtn.onclick = () => editExpense(expense);
-
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'btn btn-sm btn-danger';
-        deleteBtn.textContent = 'حذف';
-        deleteBtn.onclick = () => confirmDeleteExpense(expense.id);
-        deleteBtn.style.marginRight = '8px';
-
-        actionsCell.appendChild(editBtn);
-        actionsCell.appendChild(deleteBtn);
-        row.appendChild(actionsCell);
-
-        tbody.appendChild(row);
-    });
-    table.appendChild(tbody);
-
     container.innerHTML = '';
-    container.appendChild(table);
+    if (headerRow) container.appendChild(headerRow);
+    
+    expenses.forEach(expense => {
+        container.appendChild(createExpenseRow(expense));
+    });
 }
 
 function renderPagination(pagination) {
@@ -249,36 +285,54 @@ function renderPagination(pagination) {
         return;
     }
 
-    container.innerHTML = '';
+    container.innerHTML = `
+        <div class="flex justify-between items-center bg-surface-container-lowest p-4 rounded-xl editorial-shadow">
+            <p class="text-xs text-on-surface-variant font-medium">عرض ${pagination.limit} من أصل ${pagination.total} مصروف</p>
+            <div class="flex gap-2" id="paginationButtons"></div>
+        </div>
+    `;
+
+    const buttonsContainer = container.querySelector('#paginationButtons');
 
     // Previous button
     if (pagination.page > 1) {
         const prevBtn = document.createElement('button');
-        prevBtn.className = 'pagination-btn';
-        prevBtn.textContent = 'السابق';
+        prevBtn.className = 'w-8 h-8 flex items-center justify-center rounded-lg bg-surface-container-low text-slate-400 hover:bg-slate-200 transition-colors';
+        prevBtn.innerHTML = '<span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>';
         prevBtn.onclick = () => {
             currentPage = pagination.page - 1;
             loadExpenses(currentPage, currentFilters);
         };
-        container.appendChild(prevBtn);
+        buttonsContainer.appendChild(prevBtn);
     }
 
-    // Page info
-    const pageInfo = document.createElement('span');
-    pageInfo.className = 'pagination-info';
-    pageInfo.textContent = `صفحة ${pagination.page} من ${pagination.pages}`;
-    container.appendChild(pageInfo);
+    // Page numbers
+    const maxPages = Math.min(pagination.pages, 3);
+    for (let i = 1; i <= maxPages; i++) {
+        const pageBtn = document.createElement('button');
+        if (i === pagination.page) {
+            pageBtn.className = 'w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-white text-xs font-bold';
+        } else {
+            pageBtn.className = 'w-8 h-8 flex items-center justify-center rounded-lg bg-surface-container-low text-slate-600 text-xs font-bold hover:bg-slate-200';
+        }
+        pageBtn.textContent = i;
+        pageBtn.onclick = () => {
+            currentPage = i;
+            loadExpenses(currentPage, currentFilters);
+        };
+        buttonsContainer.appendChild(pageBtn);
+    }
 
     // Next button
     if (pagination.page < pagination.pages) {
         const nextBtn = document.createElement('button');
-        nextBtn.className = 'pagination-btn';
-        nextBtn.textContent = 'التالي';
+        nextBtn.className = 'w-8 h-8 flex items-center justify-center rounded-lg bg-surface-container-low text-slate-400 hover:bg-slate-200 transition-colors';
+        nextBtn.innerHTML = '<span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span>';
         nextBtn.onclick = () => {
             currentPage = pagination.page + 1;
             loadExpenses(currentPage, currentFilters);
         };
-        container.appendChild(nextBtn);
+        buttonsContainer.appendChild(nextBtn);
     }
 }
 

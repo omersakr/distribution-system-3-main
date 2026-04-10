@@ -1,24 +1,235 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
 <head>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <meta charset="UTF-8">
     <title>الموردين</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css?family=Cairo:400,700,900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/modern-theme.css">
-    <link rel="stylesheet" href="css/sidebar.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/modern-pages.css">
+    <link rel="stylesheet" href="css/loaders.css">
     <style>
-        /* Fix modal centering in RTL */
-        .modal-content {
-            margin: 0 auto;
+        /* Suppliers Grid */
+        .suppliers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .crusher-card {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-soft);
+            border: 1px solid #f1f5f9;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .crusher-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--primary) 0%, var(--secondary) 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .crusher-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .crusher-card:hover::before {
+            opacity: 1;
+        }
+
+        .crusher-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #f8fafc;
+        }
+
+        .crusher-name {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--on-surface);
+            margin: 0;
+            flex: 1;
+        }
+
+        .crusher-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .material-prices {
+            margin-bottom: 1rem;
+        }
+
+        .material-prices h4 {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--on-surface);
+            margin: 0 0 0.75rem 0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .prices-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+        }
+
+        .price-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+            font-size: 0.8125rem;
+        }
+
+        .price-label {
+            color: var(--on-surface-variant);
+            font-weight: 600;
+        }
+
+        .price-value {
+            color: var(--on-surface);
+            font-weight: 700;
+        }
+
+        .price-value.not-set {
+            color: var(--on-surface-variant);
+            opacity: 0.5;
+        }
+
+        .no-materials {
+            color: var(--on-surface-variant);
+            font-size: 0.875rem;
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .crusher-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid #f1f5f9;
+            text-align: center;
+        }
+
+        .stat-label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--on-surface-variant);
+            margin-bottom: 0.25rem;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 0.9375rem;
+            font-weight: 700;
+            color: var(--on-surface);
+        }
+
+        .stat-item.text-success .stat-value {
+            color: var(--tertiary);
+        }
+
+        .stat-item.text-danger .stat-value {
+            color: var(--error);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 1.5rem;
+            border: 2px dashed #e2e8f0;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            color: var(--on-surface-variant);
+            opacity: 0.3;
+            margin-bottom: 1rem;
+        }
+
+        .empty-text {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--on-surface);
+            margin-bottom: 1.5rem;
+        }
+
+        .empty-state .btn-modern {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.875rem 2rem;
+            border-radius: 1rem;
+            font-size: 0.9375rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.3);
+        }
+
+        .empty-state .btn-modern:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.4);
+        }
+
+        .empty-state .btn-modern:active {
+            transform: translateY(0);
+        }
+
+        /* Materials grid */
+        .material-item {
+            display: grid;
+            grid-template-columns: 2fr 1fr auto;
+            gap: 0.75rem;
+            align-items: end;
+            padding: 0.75rem;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 0.75rem;
+        }
+
+        @media (max-width: 768px) {
+            .material-item {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="css/loaders.css">
 </head>
-
 <body>
     <!-- Global Loader -->
     <div class="loader-overlay" id="globalLoader">
@@ -28,82 +239,116 @@
         </div>
     </div>
 
-
     <div id="sidebar-placeholder"></div>
+
     <div class="main-content">
+        <!-- Page Header -->
         <div class="page-header">
-            <h1 class="page-title">إدارة الموردين</h1>
-            <button class="btn btn-primary" id="addSupplierBtn">
+            <div>
+                <h1 class="page-title"><i class="fas fa-warehouse"></i> إدارة الموردين</h1>
+                <p class="page-subtitle">إدارة الموردين والمواد والمستحقات</p>
+            </div>
+            <button class="btn-modern btn-primary-modern" id="addSupplierBtn">
                 <i class="fas fa-plus"></i> إضافة مورد جديد
             </button>
         </div>
 
-        <div class="content-section">
-            <div id="suppliersContainer" class="crushers-grid"></div>
+        <div class="page-content">
+            <!-- Search Section -->
+            <div class="search-controls" style="margin-bottom: 2rem;">
+                <div class="search-box" style="display: flex; align-items: center; gap: 1rem; max-width: 600px;">
+                    <input type="text" id="supplierSearch" class="form-input-modern" style="flex: 1;"
+                        placeholder="ابحث عن مورد بالاسم...">
+                    <button id="searchBtn" class="btn-modern btn-secondary-modern">
+                        <i class="fas fa-search"></i> بحث
+                    </button>
+                    <button id="clearSearchBtn" class="btn-modern btn-secondary-modern">
+                        <i class="fas fa-times"></i> مسح
+                    </button>
+                </div>
+            </div>
+
+            <!-- Suppliers Grid -->
+            <div id="suppliersContainer" class="suppliers-grid">
+                <div class="inline-loader">جاري التحميل...</div>
+            </div>
         </div>
     </div>
 
     <!-- Add Supplier Modal -->
     <div id="addSupplierModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">إضافة مورد جديد</div>
-            <div id="addSupplierMessage"></div>
+            <div class="modal-header">
+                <h2>إضافة مورد جديد</h2>
+                <button class="modal-close">&times;</button>
+            </div>
             <form id="addSupplierForm">
-                <div class="form-group">
-                    <label class="form-label" for="supplierName">اسم المورد *</label>
-                    <input type="text" class="form-input" id="supplierName" name="name" autocomplete="organization" required>
+                <div class="form-group-modern">
+                    <label class="form-label-modern" for="supplierName">اسم المورد *</label>
+                    <input type="text" class="form-input-modern" id="supplierName" name="name" autocomplete="organization" required>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="supplierPhone">رقم الهاتف</label>
-                    <input type="tel" class="form-input" id="supplierPhone" name="phone" placeholder="اختياري" autocomplete="tel">
+                <div class="form-group-modern">
+                    <label class="form-label-modern" for="supplierPhone">رقم الهاتف</label>
+                    <input type="tel" class="form-input-modern" id="supplierPhone" name="phone" placeholder="اختياري" autocomplete="tel">
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">الأرصدة الافتتاحية (حسب المشروع/العميل)</label>
-                    <div id="supplierOpeningBalancesContainer">
+                <div class="form-group-modern">
+                    <label class="form-label-modern">الأرصدة الافتتاحية (حسب العميل)</label>
+                    <div id="supplierOpeningBalancesContainer" style="display: flex; flex-direction: column; gap: 1rem;">
                         <!-- Opening balance rows will be added here dynamically -->
                     </div>
-                    <button type="button" class="btn btn-secondary" id="addSupplierOpeningBalanceBtn" style="margin-top: 10px;">
+                    <button type="button" class="btn-modern btn-secondary-modern" id="addSupplierOpeningBalanceBtn" style="margin-top: 1rem;">
                         <i class="fas fa-plus"></i> إضافة رصيد افتتاحي
                     </button>
-                    <small class="form-help">الرصيد الافتتاحي لكل مشروع/عميل (موجب = نحن مدينون لهم)</small>
+                    <small style="display: block; margin-top: 0.5rem; font-size: 0.75rem; color: var(--on-surface-variant);">
+                        الرصيد الافتتاحي لكل عميل (موجب = نحن مدينون لهم)
+                    </small>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">المواد</label>
+                <div class="form-group-modern">
+                    <label class="form-label-modern">المواد</label>
                     <div id="materialsContainer">
                         <div class="material-item">
-                            <div class="form-group">
-                                <label class="form-label">اسم المادة</label>
-                                <input type="text" class="form-input" name="material_name" placeholder="اسم المادة" required>
+                            <div class="form-group-modern" style="margin-bottom: 0;">
+                                <label class="form-label-modern" style="font-size: 0.75rem;">اسم المادة</label>
+                                <input type="text" class="form-input-modern" name="material_name" placeholder="اسم المادة" style="padding: 0.5rem 0.75rem; font-size: 0.8125rem;" required>
                             </div>
-                            <div class="form-group">
-                                <label class="form-label">السعر (جنيه/وحدة)</label>
-                                <input type="number" class="form-input" name="material_price" step="0.01" min="0" placeholder="0.00"
+                            <div class="form-group-modern" style="margin-bottom: 0;">
+                                <label class="form-label-modern" style="font-size: 0.75rem;">السعر (جنيه/وحدة)</label>
+                                <input type="number" class="form-input-modern" name="material_price" step="0.01" min="0" placeholder="0.00" style="padding: 0.5rem 0.75rem; font-size: 0.8125rem;"
                                     required>
                             </div>
-                            <button type="button" class="btn btn-sm btn-danger"
-                                onclick="removeMaterial(this)">حذف</button>
+                            <div>
+                                <button type="button" class="btn-modern btn-danger-modern" style="padding: 0.5rem 0.75rem; font-size: 0.875rem;"
+                                    onclick="removeMaterial(this)"><i class="fas fa-trash"></i></button>
+                            </div>
                         </div>
                     </div>
-                    <button type="button" class="btn btn-sm btn-secondary" onclick="addMaterial()">+ إضافة مادة</button>
+                    <button type="button" class="btn-modern btn-secondary-modern" onclick="addMaterial()"><i class="fas fa-plus"></i> إضافة مادة</button>
                 </div>
 
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" data-action="close-modal"
-                        data-target="addSupplierModal">إلغاء</button>
-                    <button type="submit" class="btn btn-primary">إضافة المورد</button>
+                <div id="addSupplierMessage"></div>
+                <div class="modal-actions" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <button type="button" class="btn-modern btn-secondary-modern modal-close">إلغاء</button>
+                    <button type="submit" class="btn-modern btn-primary-modern">إضافة المورد</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/utils/formatters.js"></script>
+    <script src="js/utils/validation.js"></script>
+    <script src="js/utils/dom.js"></script>
+    <script src="js/utils/api.js"></script>
     <script src="js/utils/modals.js"></script>
     <script src="js/utils/crud-buttons.js"></script>
-    <script src="js/auth.js"></script>
+    <script src="js/utils/form-protection.js"></script>
+    <script src="js/utils/form-submit.js"></script>
+    <script src="js/utils/auto-protect-forms.js"></script>
     <script src="js/csp-fix.js"></script>
+    <script src="js/auth.js"></script>
     <script src="js/sidebar.js"></script>
     <script src="js/suppliers.js"></script>
     <script src="js/utils/loader.js"></script>

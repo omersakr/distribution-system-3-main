@@ -1,13 +1,15 @@
-const API_BASE = (function () {
-    if (window.__API_BASE__) return window.__API_BASE__;
-    try {
-        const origin = window.location.origin;
-        if (!origin || origin === 'null') return 'http://localhost:5000/api';
-        return origin.replace(/\/$/, '') + '/api';
-    } catch (e) {
-        return 'http://localhost:5000/api';
-    }
-})();
+// Use shared API_BASE or create it
+if (!window.API_BASE) {
+    window.API_BASE = (() => {
+        try {
+            const origin = window.location.origin;
+            if (!origin || origin === 'null') return 'http://localhost:5000/api';
+            return origin.replace(/\/$/, '') + '/api';
+        } catch (e) {
+            return 'http://localhost:5000/api';
+        }
+    })();
+}
 
 // State
 let suppliersData = [];
@@ -15,11 +17,9 @@ let suppliersData = [];
 // Helpers
 function formatCurrency(amount) {
     return Number(amount || 0).toLocaleString('ar-EG', {
-        style: 'currency',
-        currency: 'EGP',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
-    });
+    }) + ' ج.م';
 }
 
 function formatQuantity(qty) {
@@ -46,13 +46,15 @@ function createSupplierCard(supplier) {
     actions.className = 'crusher-actions';
 
     const detailsBtn = document.createElement('button');
-    detailsBtn.className = 'btn btn-sm btn-primary';
+    detailsBtn.className = 'action-btn-modern view';
     detailsBtn.innerHTML = '<i class="fas fa-chart-line"></i> التفاصيل';
+    detailsBtn.title = 'عرض التفاصيل';
     detailsBtn.onclick = () => window.location.href = `supplier-details.html?id=${supplier.id}`;
 
     const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'btn btn-sm btn-danger';
-    deleteBtn.innerHTML = '<i class="fas fa-trash"></i> حذف';
+    deleteBtn.className = 'action-btn-modern danger';
+    deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+    deleteBtn.title = 'حذف';
     deleteBtn.onclick = () => deleteSupplier(supplier.id, supplier.name);
 
     actions.appendChild(detailsBtn);
@@ -144,11 +146,11 @@ function renderSuppliers(suppliers) {
 
     if (!suppliers || suppliers.length === 0) {
         container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon"><i class="fas fa-industry"></i></div>
+             <div class="empty-state">
+                <div class="empty-icon"><i class="fas fa-warehouse"></i></div>
                 <div class="empty-text">لا توجد موردين مسجلين</div>
-                <button class="btn btn-primary" onclick="showModal('addSupplierModal')">
-                    إضافة مورد جديد
+                <button class="btn-modern btn-primary-modern" onclick="showAddSupplierModal()">
+                    <i class="fas fa-plus"></i> إضافة مورد جديد
                 </button>
             </div>
         `;
@@ -161,18 +163,37 @@ function renderSuppliers(suppliers) {
 }
 
 // Modal functions
-function showModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.classList.add('active');
-    }
+// Show add supplier modal
+function showAddSupplierModal() {
+    document.getElementById('addSupplierModal').style.display = 'flex';
+    document.getElementById('supplierName').focus();
 }
 
-function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.classList.remove('active');
-    }
+// Close add supplier modal
+function closeAddSupplierModal() {
+    document.getElementById('addSupplierModal').style.display = 'none';
+    document.getElementById('addSupplierForm').reset();
+    document.getElementById('supplierOpeningBalancesContainer').innerHTML = '';
+    document.getElementById('addSupplierMessage').innerHTML = '';
+    supplierOpeningBalanceCounter = 0;
+    
+    // Reset materials container
+    const container = document.getElementById('materialsContainer');
+    container.innerHTML = `
+        <div class="material-item">
+            <div class="form-group-modern" style="margin-bottom: 0;">
+                <label class="form-label-modern" style="font-size: 0.75rem;">اسم المادة</label>
+                <input type="text" class="form-input-modern" name="material_name" placeholder="اسم المادة" style="padding: 0.5rem 0.75rem; font-size: 0.8125rem;" required>
+            </div>
+            <div class="form-group-modern" style="margin-bottom: 0;">
+                <label class="form-label-modern" style="font-size: 0.75rem;">السعر (جنيه/وحدة)</label>
+                <input type="number" class="form-input-modern" name="material_price" step="0.01" min="0" placeholder="0.00" style="padding: 0.5rem 0.75rem; font-size: 0.8125rem;" required>
+            </div>
+            <div>
+                <button type="button" class="btn-modern btn-danger-modern" style="padding: 0.5rem 0.75rem; font-size: 0.875rem;" onclick="removeMaterial(this)"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>
+    `;
 }
 
 function showMessage(elementId, message, type) {
@@ -189,15 +210,17 @@ function addMaterial() {
     const materialItem = document.createElement('div');
     materialItem.className = 'material-item';
     materialItem.innerHTML = `
-        <div class="form-group">
-            <label>اسم المادة</label>
-            <input type="text" name="material_name" placeholder="اسم المادة" required>
+        <div class="form-group-modern" style="margin-bottom: 0;">
+            <label class="form-label-modern" style="font-size: 0.75rem;">اسم المادة</label>
+            <input type="text" class="form-input-modern" name="material_name" placeholder="اسم المادة" style="padding: 0.5rem 0.75rem; font-size: 0.8125rem;" required>
         </div>
-        <div class="form-group">
-            <label>السعر (جنيه/وحدة)</label>
-            <input type="number" name="material_price" step="0.01" min="0" placeholder="0.00" required>
+        <div class="form-group-modern" style="margin-bottom: 0;">
+            <label class="form-label-modern" style="font-size: 0.75rem;">السعر (جنيه/وحدة)</label>
+            <input type="number" class="form-input-modern" name="material_price" step="0.01" min="0" placeholder="0.00" style="padding: 0.5rem 0.75rem; font-size: 0.8125rem;" required>
         </div>
-        <button type="button" class="btn btn-sm btn-danger" onclick="removeMaterial(this)">حذف</button>
+        <div>
+            <button type="button" class="btn-modern btn-danger-modern" style="padding: 0.5rem 0.75rem; font-size: 0.875rem;" onclick="removeMaterial(this)"><i class="fas fa-trash"></i></button>
+        </div>
     `;
     container.appendChild(materialItem);
 }
@@ -211,7 +234,7 @@ function removeMaterial(button) {
 
 // API functions
 async function fetchSuppliers() {
-    const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/suppliers`);
+    const response = await authManager.makeAuthenticatedRequest(`${window.API_BASE}/suppliers`);
     if (!response.ok) {
         throw new Error('فشل في تحميل بيانات الموردين');
     }
@@ -222,7 +245,7 @@ async function fetchSuppliers() {
 }
 
 async function createSupplier(supplierData) {
-    const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/suppliers`, {
+    const response = await authManager.makeAuthenticatedRequest(`${window.API_BASE}/suppliers`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(supplierData)
@@ -238,11 +261,6 @@ async function createSupplier(supplierData) {
 
 // Event handlers
 function setupEventHandlers() {
-    // Add supplier button
-    document.getElementById('addSupplierBtn').addEventListener('click', () => {
-        showModal('addSupplierModal');
-    });
-
     // Add supplier form
     let isSubmittingSupplier = false;
     const addSupplierForm = document.getElementById('addSupplierForm');
@@ -299,29 +317,8 @@ function setupEventHandlers() {
                 timer: 2000
             });
 
-            closeModal('addSupplierModal');
+            closeAddSupplierModal();
             loadSuppliers();
-            e.target.reset();
-            
-            // Reset materials container
-            const container = document.getElementById('materialsContainer');
-            container.innerHTML = `
-                <div class="material-item">
-                    <div class="form-group">
-                        <label>اسم المادة</label>
-                        <input type="text" name="material_name" placeholder="اسم المادة" required>
-                    </div>
-                    <div class="form-group">
-                        <label>السعر (جنيه/وحدة)</label>
-                        <input type="number" name="material_price" step="0.01" min="0" placeholder="0.00" required>
-                    </div>
-                    <button type="button" class="btn btn-sm btn-danger" onclick="removeMaterial(this)">حذف</button>
-                </div>
-            `;
-            
-            // Reset opening balances
-            document.getElementById('supplierOpeningBalancesContainer').innerHTML = '';
-            supplierOpeningBalanceCounter = 0;
             
         } catch (error) {
             console.error('Error creating supplier:', error);
@@ -347,7 +344,9 @@ function setupEventHandlers() {
     document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
-                closeModal(modal.id);
+                if (modal.id === 'addSupplierModal') {
+                    closeAddSupplierModal();
+                }
             }
         });
     });
@@ -400,7 +399,7 @@ async function deleteSupplier(supplierId, supplierName) {
             }
         });
 
-        const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/suppliers/${supplierId}`, {
+        const response = await authManager.makeAuthenticatedRequest(`${window.API_BASE}/suppliers/${supplierId}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'
@@ -435,17 +434,31 @@ async function deleteSupplier(supplierId, supplierName) {
 }
 
 // Initialize
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // Check authentication first
     if (authManager.checkAuth()) {
+        // Load projects first
+        await loadSupplierProjects();
+        
+        // Add supplier button
+        document.getElementById('addSupplierBtn').addEventListener('click', () => {
+            showAddSupplierModal();
+        });
+
+        // Add opening balance button
+        document.getElementById('addSupplierOpeningBalanceBtn').addEventListener('click', addSupplierOpeningBalanceRow);
+        
+        // Setup other event handlers
         setupEventHandlers();
+        
+        // Load suppliers
         loadSuppliers();
     }
 });
 
 // Make functions available globally
-window.showModal = showModal;
-window.closeModal = closeModal;
+window.showAddSupplierModal = showAddSupplierModal;
+window.closeAddSupplierModal = closeAddSupplierModal;
 window.deleteSupplier = deleteSupplier;
 window.addMaterial = addMaterial;
 window.removeMaterial = removeMaterial;
@@ -458,35 +471,52 @@ let supplierProjectsList = [];
 // Load projects for dropdown
 async function loadSupplierProjects() {
     try {
-        const resp = await authManager.makeAuthenticatedRequest(`${API_BASE}/projects`);
-        if (!resp.ok) throw new Error('Failed to load projects');
+        const resp = await authManager.makeAuthenticatedRequest(`${window.API_BASE}/clients`);
+        if (!resp.ok) throw new Error('Failed to load clients');
         const data = await resp.json();
-        supplierProjectsList = data.projects || data;
+        console.log('Supplier clients API response:', data);
+        supplierProjectsList = data.clients || data;
+        console.log('Supplier clients loaded:', supplierProjectsList.length, 'clients');
     } catch (error) {
-        console.error('Error loading projects:', error);
+        console.error('Error loading clients:', error);
         supplierProjectsList = [];
     }
 }
 
 // Add opening balance row for supplier
 function addSupplierOpeningBalanceRow() {
+    console.log('Adding supplier opening balance row, projects available:', supplierProjectsList.length);
+    
+    if (supplierProjectsList.length === 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'تنبيه',
+            text: 'لا توجد عملاء متاحين. يرجى إضافة عميل أولاً من صفحة العملاء.',
+            confirmButtonText: 'حسناً'
+        });
+        return;
+    }
+    
     const container = document.getElementById('supplierOpeningBalancesContainer');
     const rowId = `supplierOpeningBalance_${supplierOpeningBalanceCounter++}`;
 
     const row = document.createElement('div');
     row.className = 'opening-balance-row';
     row.id = rowId;
-    row.style.cssText = 'display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: 10px; margin-bottom: 10px; align-items: start; padding: 15px; background: var(--gray-50); border-radius: var(--radius); border: 1px solid var(--gray-200);';
+    row.style.cssText = 'display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: 0.75rem; align-items: end; padding: 0.75rem; background: #f8fafc; border-radius: 0.5rem; border: 1px solid #e2e8f0;';
 
     // Project dropdown
     const projectCol = document.createElement('div');
     const projectLabel = document.createElement('label');
-    projectLabel.textContent = 'المشروع';
-    projectLabel.style.cssText = 'display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 500;';
+    projectLabel.className = 'form-label-modern';
+    projectLabel.style.fontSize = '0.75rem';
+    projectLabel.textContent = 'العميل';
     const projectSelect = document.createElement('select');
-    projectSelect.className = 'form-input supplier-opening-balance-project';
+    projectSelect.className = 'form-input-modern supplier-opening-balance-project';
+    projectSelect.style.padding = '0.5rem 0.75rem';
+    projectSelect.style.fontSize = '0.8125rem';
     projectSelect.required = true;
-    projectSelect.innerHTML = '<option value="">اختر المشروع</option>';
+    projectSelect.innerHTML = '<option value="">اختر العميل</option>';
     supplierProjectsList.forEach(project => {
         const option = document.createElement('option');
         option.value = project.id;
@@ -499,11 +529,14 @@ function addSupplierOpeningBalanceRow() {
     // Amount input
     const amountCol = document.createElement('div');
     const amountLabel = document.createElement('label');
+    amountLabel.className = 'form-label-modern';
+    amountLabel.style.fontSize = '0.75rem';
     amountLabel.textContent = 'المبلغ';
-    amountLabel.style.cssText = 'display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 500;';
     const amountInput = document.createElement('input');
     amountInput.type = 'number';
-    amountInput.className = 'form-input supplier-opening-balance-amount';
+    amountInput.className = 'form-input-modern supplier-opening-balance-amount';
+    amountInput.style.padding = '0.5rem 0.75rem';
+    amountInput.style.fontSize = '0.8125rem';
     amountInput.step = '0.01';
     amountInput.required = true;
     amountInput.placeholder = '0.00';
@@ -513,11 +546,14 @@ function addSupplierOpeningBalanceRow() {
     // Description input
     const descCol = document.createElement('div');
     const descLabel = document.createElement('label');
+    descLabel.className = 'form-label-modern';
+    descLabel.style.fontSize = '0.75rem';
     descLabel.textContent = 'الوصف';
-    descLabel.style.cssText = 'display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 500;';
     const descInput = document.createElement('input');
     descInput.type = 'text';
-    descInput.className = 'form-input supplier-opening-balance-description';
+    descInput.className = 'form-input-modern supplier-opening-balance-description';
+    descInput.style.padding = '0.5rem 0.75rem';
+    descInput.style.fontSize = '0.8125rem';
     descInput.placeholder = 'وصف اختياري';
     descInput.maxLength = 500;
     descCol.appendChild(descLabel);
@@ -525,10 +561,10 @@ function addSupplierOpeningBalanceRow() {
 
     // Remove button
     const removeCol = document.createElement('div');
-    removeCol.style.cssText = 'padding-top: 28px;';
     const removeBtn = document.createElement('button');
     removeBtn.type = 'button';
-    removeBtn.className = 'btn btn-sm btn-danger';
+    removeBtn.className = 'btn-modern btn-danger-modern';
+    removeBtn.style.cssText = 'padding: 0.5rem 0.75rem; font-size: 0.875rem;';
     removeBtn.innerHTML = '<i class="fas fa-trash"></i>';
     removeBtn.onclick = () => document.getElementById(rowId).remove();
     removeCol.appendChild(removeBtn);
@@ -565,15 +601,62 @@ function getSupplierOpeningBalances() {
 }
 
 // Initialize opening balance button for suppliers
-document.addEventListener('DOMContentLoaded', async function () {
-    // Load projects first
-    await loadSupplierProjects();
+// (Removed - now handled in main DOMContentLoaded)
 
-    // Add opening balance button
-    const addBtn = document.getElementById('addSupplierOpeningBalanceBtn');
-    if (addBtn) {
-        addBtn.addEventListener('click', addSupplierOpeningBalanceRow);
+
+
+
+// Search functionality
+let currentSupplierSearch = '';
+
+function filterSuppliers() {
+    const searchTerm = currentSupplierSearch.toLowerCase().trim();
+    
+    if (!searchTerm) {
+        renderSuppliers(suppliersData);
+        return;
+    }
+    
+    const filtered = suppliersData.filter(supplier => {
+        return supplier.name && supplier.name.toLowerCase().includes(searchTerm);
+    });
+    
+    renderSuppliers(filtered);
+}
+
+// Setup search event listeners
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('supplierSearch');
+    const searchBtn = document.getElementById('searchBtn');
+    const clearBtn = document.getElementById('clearSearchBtn');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            currentSupplierSearch = e.target.value;
+            filterSuppliers();
+        });
+        
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                currentSupplierSearch = e.target.value;
+                filterSuppliers();
+            }
+        });
+    }
+    
+    if (searchBtn) {
+        searchBtn.addEventListener('click', () => {
+            currentSupplierSearch = searchInput.value;
+            filterSuppliers();
+        });
+    }
+    
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            currentSupplierSearch = '';
+            if (searchInput) searchInput.value = '';
+            filterSuppliers();
+        });
     }
 });
-
-

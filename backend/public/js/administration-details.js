@@ -1,4 +1,4 @@
-const API_BASE = (function () {
+ const API_BASE = (function () {
     if (window.__API_BASE__) return window.__API_BASE__;
     try {
         const origin = window.location.origin;
@@ -18,11 +18,9 @@ let projectsList = [];
 
 function formatCurrency(amount) {
     return Number(amount || 0).toLocaleString('ar-EG', {
-        style: 'currency',
-        currency: 'EGP',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
-    });
+    }) + ' ج.م';
 }
 
 function formatDate(dateString) {
@@ -92,11 +90,11 @@ async function loadAdministrationDetails() {
 
 async function loadProjects() {
     try {
-        const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/projects`);
+        const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/clients`);
         if (!response.ok) throw new Error('فشل في تحميل المشاريع');
 
         const data = await response.json();
-        projectsList = data.projects || [];
+        projectsList = data.clients || [];
 
         // Populate project dropdowns
         const projectSelects = ['injectionProject', 'withdrawalProject'];
@@ -126,61 +124,72 @@ async function loadProjects() {
 }
 
 function displayAdministrationInfo(administration) {
-    document.getElementById('administrationName').textContent = `تفاصيل الإدارة: ${administration.name}`;
+    // Update page title only (no administrationName element in new design)
+    const pageTitle = document.getElementById('pageTitle');
+    if (pageTitle) {
+        pageTitle.textContent = `تفاصيل الإدارة: ${administration.name}`;
+    }
 
     const infoContainer = document.getElementById('administrationInfo');
+    if (!infoContainer) return;
+
+    const statusClass = administration.status === 'Active' ? 'bg-tertiary/10 text-tertiary' : 'bg-error/10 text-error';
+    const statusText = administration.status === 'Active' ? 'نشط' : 'غير نشط';
+    const typeText = administration.type === 'Partner' ? 'شريك' : 'ممول';
+
     infoContainer.innerHTML = `
-        <div class="info-item">
-            <span class="info-label">الاسم:</span>
-            <span class="info-value">${administration.name}</span>
+        <div class="flex flex-col gap-1">
+            <span class="text-xs text-on-surface-variant font-medium">الاسم</span>
+            <span class="text-base font-bold text-on-surface">${administration.name}</span>
         </div>
-        <div class="info-item">
-            <span class="info-label">النوع:</span>
-            <span class="info-value">${administration.type === 'Partner' ? 'شريك' : 'ممول'}</span>
+        <div class="flex flex-col gap-1">
+            <span class="text-xs text-on-surface-variant font-medium">النوع</span>
+            <span class="text-base font-bold text-on-surface">${typeText}</span>
         </div>
-        ${administration.phone_number ? `
-        <div class="info-item">
-            <span class="info-label">رقم الهاتف:</span>
-            <span class="info-value">${administration.phone_number}</span>
+        <div class="flex flex-col gap-1">
+            <span class="text-xs text-on-surface-variant font-medium">الحالة</span>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClass}">${statusText}</span>
         </div>
-        ` : ''}
-        <div class="info-item">
-            <span class="info-label">الحالة:</span>
-            <span class="info-value status-${administration.status.toLowerCase()}">${administration.status === 'Active' ? 'نشط' : 'غير نشط'}</span>
-        </div>
-        ${administration.notes ? `
-        <div class="info-item full-width">
-            <span class="info-label">ملاحظات:</span>
-            <span class="info-value">${administration.notes}</span>
-        </div>
-        ` : ''}
     `;
 }
 
 function displayFinancialSummary(totals) {
     const summaryContainer = document.getElementById('financialSummary');
     const balance = totals.balance || 0;
-
-    // Balance logic: Positive = We owe them, Negative = They owe us
-    const balanceClass = balance > 0 ? 'text-danger' : balance < 0 ? 'text-success' : '';
-    const balanceLabel = balance > 0 ? '(مستحق للإدارة)' : balance < 0 ? '(مستحق من الإدارة)' : '(متوازن)';
+    const netCapital = (totals.total_capital_injected || 0) - (totals.total_withdrawals || 0);
 
     summaryContainer.innerHTML = `
-        <div class="summary-item">
-            <div class="summary-value text-success">${formatCurrency(totals.total_capital_injected)}</div>
-            <div class="summary-label">إجمالي ضخ رأس المال</div>
+        <!-- Card 1 -->
+        <div class="bg-surface-container-lowest p-5 rounded-xl border-r-4 border-primary shadow-sm hover:translate-y-[-2px] transition-transform">
+            <p class="text-on-surface-variant text-xs font-medium mb-1">إجمالي ضخ رأس المال</p>
+            <div class="flex items-baseline gap-2">
+                <span class="text-2xl font-extrabold text-primary font-headline">${Number(totals.total_capital_injected || 0).toLocaleString('ar-EG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                <span class="text-xs text-on-surface-variant">ج.م</span>
+            </div>
         </div>
-        <div class="summary-item">
-            <div class="summary-value text-danger">${formatCurrency(totals.total_withdrawals)}</div>
-            <div class="summary-label">إجمالي المسحوبات</div>
+        <!-- Card 2 -->
+        <div class="bg-surface-container-lowest p-5 rounded-xl border-r-4 border-error shadow-sm hover:translate-y-[-2px] transition-transform">
+            <p class="text-on-surface-variant text-xs font-medium mb-1">إجمالي المسحوبات</p>
+            <div class="flex items-baseline gap-2">
+                <span class="text-2xl font-extrabold text-error font-headline">${Number(totals.total_withdrawals || 0).toLocaleString('ar-EG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                <span class="text-xs text-on-surface-variant">ج.م</span>
+            </div>
         </div>
-        <div class="summary-item">
-            <div class="summary-value text-danger">${formatCurrency(totals.total_payments)}</div>
-            <div class="summary-label">إجمالي المدفوعات</div>
+        <!-- Card 3 -->
+        <div class="bg-surface-container-lowest p-5 rounded-xl border-r-4 border-tertiary shadow-sm hover:translate-y-[-2px] transition-transform">
+            <p class="text-on-surface-variant text-xs font-medium mb-1">إجمالي ضخ رأس المال - متوازن</p>
+            <div class="flex items-baseline gap-2">
+                <span class="text-2xl font-extrabold text-tertiary font-headline">${Number(netCapital).toLocaleString('ar-EG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                <span class="text-xs text-on-surface-variant">ج.م</span>
+            </div>
         </div>
-        <div class="summary-item">
-            <div class="summary-value ${balanceClass}">${formatCurrency(Math.abs(balance))} <small style="font-size: 0.75rem;">${balanceLabel}</small></div>
-            <div class="summary-label">الرصيد الصافي</div>
+        <!-- Card 4 -->
+        <div class="bg-surface-container-lowest p-5 rounded-xl border-r-4 border-secondary shadow-sm hover:translate-y-[-2px] transition-transform">
+            <p class="text-on-surface-variant text-xs font-medium mb-1">الرصيد الصافي</p>
+            <div class="flex items-baseline gap-2">
+                <span class="text-2xl font-extrabold text-secondary font-headline">${Number(Math.abs(balance)).toLocaleString('ar-EG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                <span class="text-xs text-on-surface-variant">ج.م</span>
+            </div>
         </div>
     `;
 }
@@ -191,21 +200,35 @@ function displayCapitalInjections(injections) {
     if (!injections || injections.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="5" class="empty-state">لا توجد سجلات ضخ رأس مال</td>
+                <td colspan="5" class="px-6 py-16 text-center">
+                    <div class="flex flex-col items-center justify-center text-center">
+                        <div class="w-20 h-20 bg-surface-container-low rounded-full flex items-center justify-center mb-4 text-outline-variant">
+                            <span class="material-symbols-outlined text-4xl">folder_off</span>
+                        </div>
+                        <p class="text-on-surface-variant font-medium">لا توجد سجلات ضخ رأس مال</p>
+                        <p class="text-xs text-outline mt-1">ابدأ بإضافة بيانات ضخ رأس المال لعرضها هنا</p>
+                    </div>
+                </td>
             </tr>
         `;
         return;
     }
 
     tbody.innerHTML = injections.map(injection => `
-        <tr>
-            <td>${formatDate(injection.date)}</td>
-            <td class="amount-positive">${formatCurrency(injection.amount)}</td>
-            <td>${injection.project_name}</td>
-            <td>${injection.notes || '—'}</td>
-            <td>
-                <button class="btn btn-sm btn-secondary" onclick="editCapitalInjection('${injection.id}')">تعديل</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteCapitalInjection('${injection.id}')">حذف</button>
+        <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="px-6 py-4 text-sm font-manrope">${formatDate(injection.date)}</td>
+            <td class="px-6 py-4 text-sm font-bold text-tertiary font-manrope">${Number(injection.amount || 0).toLocaleString('ar-EG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ج.م</td>
+            <td class="px-6 py-4 text-sm">${injection.project_name || 'مشروع محذوف'}</td>
+            <td class="px-6 py-4 text-sm text-on-surface-variant">${injection.notes || '—'}</td>
+            <td class="px-6 py-4">
+                <div class="flex justify-center gap-2">
+                    <button onclick="editCapitalInjection('${injection.id}')" class="p-1.5 hover:bg-surface-container-low rounded-lg text-primary transition-colors">
+                        <span class="material-symbols-outlined text-lg">edit</span>
+                    </button>
+                    <button onclick="deleteCapitalInjection('${injection.id}')" class="p-1.5 hover:bg-error/5 rounded-lg text-error transition-colors">
+                        <span class="material-symbols-outlined text-lg">delete</span>
+                    </button>
+                </div>
             </td>
         </tr>
     `).join('');
@@ -217,21 +240,35 @@ function displayWithdrawals(withdrawals) {
     if (!withdrawals || withdrawals.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="5" class="empty-state">لا توجد مسحوبات</td>
+                <td colspan="5" class="px-6 py-16 text-center">
+                    <div class="flex flex-col items-center justify-center text-center">
+                        <div class="w-20 h-20 bg-surface-container-low rounded-full flex items-center justify-center mb-4 text-outline-variant">
+                            <span class="material-symbols-outlined text-4xl">folder_off</span>
+                        </div>
+                        <p class="text-on-surface-variant font-medium">لا توجد مسحوبات</p>
+                        <p class="text-xs text-outline mt-1">ابدأ بإضافة بيانات المسحوبات لعرضها هنا</p>
+                    </div>
+                </td>
             </tr>
         `;
         return;
     }
 
     tbody.innerHTML = withdrawals.map(withdrawal => `
-        <tr>
-            <td>${formatDate(withdrawal.date)}</td>
-            <td class="amount-negative">${formatCurrency(withdrawal.amount)}</td>
-            <td>${withdrawal.project_name}</td>
-            <td>${withdrawal.notes || '—'}</td>
-            <td>
-                <button class="btn btn-sm btn-secondary" onclick="editWithdrawal('${withdrawal.id}')">تعديل</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteWithdrawal('${withdrawal.id}')">حذف</button>
+        <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="px-6 py-4 text-sm font-manrope">${formatDate(withdrawal.date)}</td>
+            <td class="px-6 py-4 text-sm font-bold text-error font-manrope">${Number(withdrawal.amount || 0).toLocaleString('ar-EG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ج.م</td>
+            <td class="px-6 py-4 text-sm">${withdrawal.project_name || 'مشروع محذوف'}</td>
+            <td class="px-6 py-4 text-sm text-on-surface-variant">${withdrawal.notes || '—'}</td>
+            <td class="px-6 py-4">
+                <div class="flex justify-center gap-2">
+                    <button onclick="editWithdrawal('${withdrawal.id}')" class="p-1.5 hover:bg-surface-container-low rounded-lg text-primary transition-colors">
+                        <span class="material-symbols-outlined text-lg">edit</span>
+                    </button>
+                    <button onclick="deleteWithdrawal('${withdrawal.id}')" class="p-1.5 hover:bg-error/5 rounded-lg text-error transition-colors">
+                        <span class="material-symbols-outlined text-lg">delete</span>
+                    </button>
+                </div>
             </td>
         </tr>
     `).join('');
@@ -247,7 +284,7 @@ function displayProjectBreakdown(capitalInjections, withdrawals) {
     if (capitalInjections && capitalInjections.length > 0) {
         capitalInjections.forEach(injection => {
             const projectId = injection.project_id;
-            const projectName = injection.project_name;
+            const projectName = injection.project_name || 'مشروع محذوف';
 
             if (!projectData[projectId]) {
                 projectData[projectId] = {
@@ -265,7 +302,7 @@ function displayProjectBreakdown(capitalInjections, withdrawals) {
     if (withdrawals && withdrawals.length > 0) {
         withdrawals.forEach(withdrawal => {
             const projectId = withdrawal.project_id;
-            const projectName = withdrawal.project_name;
+            const projectName = withdrawal.project_name || 'مشروع محذوف';
 
             if (!projectData[projectId]) {
                 projectData[projectId] = {
@@ -282,40 +319,46 @@ function displayProjectBreakdown(capitalInjections, withdrawals) {
     // Check if there's any data
     if (Object.keys(projectData).length === 0) {
         container.innerHTML = `
-            <div class="empty-state" style="text-align: center; padding: var(--space-8); color: var(--gray-500);">
-                لا توجد بيانات لعرضها
+            <div class="bg-surface-container-lowest p-16 rounded-xl shadow-sm border border-dashed border-outline-variant/50 flex flex-col items-center justify-center text-center">
+                <div class="w-20 h-20 bg-surface-container-low rounded-full flex items-center justify-center mb-4 text-outline-variant">
+                    <span class="material-symbols-outlined text-4xl">folder_off</span>
+                </div>
+                <p class="text-on-surface-variant font-medium">لا توجد بيانات لعرضها</p>
+                <p class="text-xs text-outline mt-1">ابدأ بإضافة بيانات المشاريع لعرض التحليل هنا</p>>
             </div>
         `;
         return;
     }
 
     // Generate cards for each project
-    container.innerHTML = Object.entries(projectData).map(([projectId, data]) => {
-        const netBalance = data.totalCapital - data.totalWithdrawals;
-        const balanceClass = netBalance >= 0 ? 'positive' : 'negative';
+    container.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            ${Object.entries(projectData).map(([projectId, data]) => {
+                const netBalance = data.totalCapital - data.totalWithdrawals;
+                const balanceClass = netBalance >= 0 ? 'text-tertiary' : 'text-error';
 
-        return `
-            <div class="project-breakdown-card">
-                <div class="project-breakdown-header">
-                    ${data.name}
-                </div>
-                <div class="project-breakdown-stats">
-                    <div class="project-stat-box">
-                        <div class="project-stat-label">إجمالي ضخ رأس المال</div>
-                        <div class="project-stat-value capital">${formatCurrency(data.totalCapital)}</div>
+                return `
+                    <div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-surface-container-high">
+                        <h4 class="text-lg font-semibold text-on-surface mb-4 pb-3 border-b-2 border-primary">${data.name}</h4>
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div class="bg-surface-container-low rounded-lg p-4 text-center">
+                                <p class="text-xs text-on-surface-variant mb-2">إجمالي ضخ رأس المال</p>
+                                <p class="text-xl font-bold text-tertiary">${Number(data.totalCapital).toLocaleString('ar-EG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ج.م</p>
+                            </div>
+                            <div class="bg-surface-container-low rounded-lg p-4 text-center">
+                                <p class="text-xs text-on-surface-variant mb-2">إجمالي المسحوبات</p>
+                                <p class="text-xl font-bold text-error">${Number(data.totalWithdrawals).toLocaleString('ar-EG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ج.م</p>
+                            </div>
+                        </div>
+                        <div class="pt-4 border-t border-surface-container-high text-center">
+                            <p class="text-xs text-on-surface-variant mb-2">الصافي</p>
+                            <p class="text-2xl font-bold ${balanceClass}">${Number(Math.abs(netBalance)).toLocaleString('ar-EG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ج.م</p>
+                        </div>
                     </div>
-                    <div class="project-stat-box">
-                        <div class="project-stat-label">إجمالي المسحوبات</div>
-                        <div class="project-stat-value withdrawal">${formatCurrency(data.totalWithdrawals)}</div>
-                    </div>
-                </div>
-                <div class="project-net-balance">
-                    <div class="project-net-label">الصافي</div>
-                    <div class="project-net-value ${balanceClass}">${formatCurrency(Math.abs(netBalance))}</div>
-                </div>
-            </div>
-        `;
-    }).join('');
+                `;
+            }).join('')}
+        </div>
+    `;
 }
 
 // --- Modal Management ---
@@ -411,7 +454,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Edit administration button
     document.getElementById('editAdministrationBtn').addEventListener('click', function () {
-        window.location.href = `administration.html?edit=${currentAdministrationId}`;
+        openEditAdministrationModal();
     });
 
     // Close modals when clicking outside
@@ -578,3 +621,60 @@ async function deleteWithdrawal(id) {
         });
     }
 }
+
+
+// Edit Administration Modal Functions
+function openEditAdministrationModal() {
+    const modal = document.getElementById('editAdministrationModal');
+    
+    // Fill form with current data
+    document.getElementById('editAdminName').value = currentAdministration.name || '';
+    document.getElementById('editAdminType').value = currentAdministration.type || 'Partner';
+    document.getElementById('editAdminStatus').value = currentAdministration.status || 'نشط';
+    
+    modal.style.display = 'block';
+}
+
+function closeEditAdministrationModal() {
+    document.getElementById('editAdministrationModal').style.display = 'none';
+    document.getElementById('editAdministrationForm').reset();
+}
+
+// Handle edit administration form submission
+document.getElementById('editAdministrationForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = {
+        name: formData.get('name'),
+        type: formData.get('type'),
+        status: formData.get('status')
+    };
+    
+    try {
+        const response = await fetch(`/api/administration/${currentAdministrationId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        if (!response.ok) throw new Error('فشل في تحديث البيانات');
+        
+        await Swal.fire({
+            icon: 'success',
+            title: 'تم التحديث بنجاح',
+            showConfirmButton: false,
+            timer: 1500
+        });
+        
+        closeEditAdministrationModal();
+        loadAdministrationDetails();
+    } catch (error) {
+        console.error('Error updating administration:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'خطأ',
+            text: error.message
+        });
+    }
+});

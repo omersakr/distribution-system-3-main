@@ -231,7 +231,7 @@ async function bootstrap() {
       const totalEmployeePayments = employeeDashboardTotals.totalPayments;
       const totalEmployeeAdjustments = employeeDashboardTotals.totalAdjustments;
       const totalEarnedSalary = employeeDashboardTotals.totalEarnedSalary;
-      const totalEmployeeCosts = employeeDashboardTotals.netEmployeeCosts;
+      const totalEmployeeCosts = employeeDashboardTotals.totalPayments; // Use actual payments only
 
       // 6. Administration costs (withdrawals and payments) - excluding soft-deleted
       const [administrationWithdrawalsAgg, administrationPaymentsAgg] = await Promise.all([

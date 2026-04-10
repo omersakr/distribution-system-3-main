@@ -259,10 +259,10 @@ function renderAdjustments(adjustments) {
     const table = document.createElement('table');
     table.className = 'table-modern';
 
-    // Header - Reduced columns
+    // Header
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
-    const headers = ['التاريخ', 'المبلغ', 'السبب', 'إجراءات'];
+    const headers = ['التاريخ', 'المبلغ', 'النوع', 'السبب', 'إجراءات'];
 
     headers.forEach(header => {
         const th = document.createElement('th');
@@ -285,16 +285,22 @@ function renderAdjustments(adjustments) {
         // Amount
         const amountCell = document.createElement('td');
         const amount = adjustment.amount || 0;
-        amountCell.className = amount > 0 ? 'text-success' : amount < 0 ? 'text-danger' : '';
-        const label = amount > 0 ? '(لنا)' : amount < 0 ? '(للعميل)' : '';
-        amountCell.innerHTML = `${formatCurrency(Math.abs(amount))} <small style="font-size: 0.7rem;">${label}</small>`;
+        amountCell.textContent = formatCurrency(Math.abs(amount));
         amountCell.style.fontWeight = '600';
         row.appendChild(amountCell);
+
+        // Type
+        const typeCell = document.createElement('td');
+        const isAddition = amount > 0;
+        typeCell.className = isAddition ? 'text-success' : 'text-danger';
+        typeCell.textContent = isAddition ? 'إضافة (لنا)' : 'خصم (للعميل)';
+        typeCell.style.fontWeight = '600';
+        row.appendChild(typeCell);
 
         // Reason
         const reasonCell = document.createElement('td');
         reasonCell.textContent = adjustment.reason || '-';
-        reasonCell.title = adjustment.reason || '-'; // Show full text on hover
+        reasonCell.title = adjustment.reason || '-';
         row.appendChild(reasonCell);
 
         // Actions cell
@@ -789,8 +795,12 @@ function setupEventHandlers() {
         e.preventDefault();
 
         const clientId = getClientIdFromURL();
-        const amount = document.getElementById('adjustmentAmount').value;
+        const type = document.getElementById('adjustmentType').value;
+        const amountValue = parseFloat(document.getElementById('adjustmentAmount').value);
         const reason = document.getElementById('adjustmentReason').value;
+
+        // Convert type to positive/negative amount
+        const amount = type === 'addition' ? amountValue : -amountValue;
 
         const adjustmentData = { amount, reason };
 
@@ -1527,15 +1537,19 @@ function toggleDateRange() {
     const checkbox = document.getElementById('useCustomDateRange');
     const dateInputs = document.getElementById('dateRangeInputs');
 
-    if (checkbox.checked) {
-        dateInputs.style.display = 'block';
-        // Set default dates
-        const today = new Date().toISOString().split('T')[0];
-        const firstOfYear = new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0];
-        document.getElementById('statementFromDate').value = firstOfYear;
-        document.getElementById('statementToDate').value = today;
-    } else {
-        dateInputs.style.display = 'none';
+    if (checkbox && dateInputs) {
+        if (checkbox.checked) {
+            dateInputs.style.display = 'flex';
+            // Set default dates
+            const today = new Date().toISOString().split('T')[0];
+            const firstOfYear = new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0];
+            const fromDate = document.getElementById('statementFromDate');
+            const toDate = document.getElementById('statementToDate');
+            if (fromDate) fromDate.value = firstOfYear;
+            if (toDate) toDate.value = today;
+        } else {
+            dateInputs.style.display = 'none';
+        }
     }
 }
 // Form reset functions

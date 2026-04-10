@@ -1,232 +1,235 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html dir="rtl" lang="ar">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المصروفات - نظام التوزيع</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/modern-theme.css">
-    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>إدارة المصاريف - الأفق التحريري</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-container": "#69f6b8",
+                        "on-primary-fixed": "#354053",
+                        "primary-container": "#d8e3fb",
+                        "on-primary-fixed-variant": "#515c70",
+                        "secondary-dim": "#44546a",
+                        "tertiary": "#006d4a",
+                        "on-tertiary": "#e6ffee",
+                        "on-error-container": "#752121",
+                        "surface-container-low": "#f0f4f7",
+                        "error-container": "#fe8983",
+                        "on-primary-container": "#475266",
+                        "tertiary-fixed": "#69f6b8",
+                        "surface-dim": "#cfdce3",
+                        "primary-dim": "#485367",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-container": "#d3e4fe",
+                        "surface-container-highest": "#d9e4ea",
+                        "on-surface": "#2a3439",
+                        "surface-variant": "#d9e4ea",
+                        "on-primary": "#f6f7ff",
+                        "surface-container-high": "#e1e9ee",
+                        "error-dim": "#4e0309",
+                        "outline": "#717c82",
+                        "on-secondary": "#f7f9ff",
+                        "secondary": "#506076",
+                        "on-secondary-container": "#435368",
+                        "error": "#9f403d",
+                        "primary-fixed-dim": "#cad5ed",
+                        "on-secondary-fixed-variant": "#4d5d73",
+                        "outline-variant": "#a9b4b9",
+                        "inverse-surface": "#0b0f10",
+                        "inverse-primary": "#dae6fe",
+                        "on-tertiary-fixed-variant": "#006544",
+                        "on-tertiary-fixed": "#00452d",
+                        "surface-container": "#e8eff3",
+                        "surface": "#f7f9fb",
+                        "primary-fixed": "#d8e3fb",
+                        "on-error": "#fff7f6",
+                        "inverse-on-surface": "#9a9d9f",
+                        "tertiary-fixed-dim": "#58e7ab",
+                        "tertiary-dim": "#005f40",
+                        "secondary-fixed": "#d3e4fe",
+                        "background": "#f7f9fb",
+                        "surface-tint": "#545f73",
+                        "surface-bright": "#f7f9fb",
+                        "secondary-fixed-dim": "#c5d6f0",
+                        "on-tertiary-container": "#005a3c",
+                        "on-secondary-fixed": "#314055",
+                        "on-background": "#2a3439",
+                        "on-surface-variant": "#566166",
+                        "primary": "#545f73"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"],
+                        "arabic": ["IBM Plex Sans Arabic"]
+                    }
+                },
+            },
+        }
+    </script>
     <style>
-        .main-content {
-            margin-right: 225px;
-            padding: var(--space-8);
-            transition: margin-right 0.25s;
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            background-color: #f7f9fb;
         }
 
-        @media (max-width: 900px) {
-            .main-content {
-                margin-right: 190px;
-            }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
         }
 
-        @media (max-width: 700px) {
-            .main-content {
-                margin-right: 0;
-                padding: var(--space-4);
-            }
+        .editorial-shadow {
+            box-shadow: 0 4px 20px -2px rgba(84, 95, 115, 0.04);
         }
 
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--space-8);
-            flex-wrap: wrap;
-            gap: var(--space-4);
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
         }
 
-        .page-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--gray-900);
-            margin: 0;
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 0;
+            border: 1px solid #888;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
         }
 
-        .filters-section {
-            background: white;
-            border-radius: var(--radius-lg);
-            padding: var(--space-6);
-            margin-bottom: var(--space-6);
-            box-shadow: var(--shadow);
-            border: 1px solid var(--gray-200);
-        }
-
-        .filters-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: var(--space-4);
-            margin-bottom: var(--space-4);
-        }
-
-        .filter-actions {
-            display: flex;
-            gap: var(--space-3);
-            justify-content: flex-end;
-        }
-
-        .expenses-section {
-            background: white;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow);
-            border: 1px solid var(--gray-200);
-            overflow: hidden;
-        }
-
-        .section-header {
-            padding: var(--space-6);
-            border-bottom: 1px solid var(--gray-200);
-            background: var(--gray-50);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .section-title {
+        .modal-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #545f73 0%, #485367 100%);
+            color: white;
+            border-radius: 12px 12px 0 0;
             font-size: 1.25rem;
             font-weight: 600;
-            color: var(--gray-900);
-            margin: 0;
-        }
-
-        .section-content {
-            padding: var(--space-6);
-        }
-
-        .table-container {
-            overflow-x: auto;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: var(--space-12);
-            color: var(--gray-500);
-        }
-
-        .empty-icon {
-            font-size: 3rem;
-            margin-bottom: var(--space-4);
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: var(--space-4);
-            margin-bottom: var(--space-6);
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-800) 100%);
-            color: white;
-            border-radius: var(--radius-lg);
-            padding: var(--space-6);
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: var(--space-2);
-        }
-
-        .stat-label {
-            font-size: 0.875rem;
-            opacity: 0.9;
-        }
-
-        .pagination {
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            gap: var(--space-3);
-            margin-top: var(--space-6);
         }
 
-        .pagination-btn {
-            padding: var(--space-2) var(--space-4);
-            border: 1px solid var(--gray-300);
-            background: white;
-            border-radius: var(--radius);
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
             cursor: pointer;
-            transition: all 0.2s ease;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .pagination-btn:hover:not(:disabled) {
-            background: var(--primary-50);
-            border-color: var(--primary-300);
+        .modal form {
+            padding: 20px;
         }
 
-        .pagination-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        .form-group-modern {
+            margin-bottom: 16px;
         }
 
-        .pagination-info {
-            font-size: 0.875rem;
-            color: var(--gray-600);
+        .form-label-modern {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #2a3439;
         }
 
-        .error {
-            text-align: center;
-            padding: var(--space-8);
-            color: var(--red-600);
-            background: var(--red-50);
-            border: 1px solid var(--red-200);
-            border-radius: var(--radius-lg);
-            margin: var(--space-4);
+        .form-input-modern,
+        .form-select-modern,
+        .form-textarea-modern {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d9e4ea;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
         }
 
-        .error h3 {
-            margin-bottom: var(--space-4);
-            color: var(--red-700);
+        .form-input-modern:focus,
+        .form-select-modern:focus,
+        .form-textarea-modern:focus {
+            outline: none;
+            border-color: #545f73;
+            box-shadow: 0 0 0 3px rgba(84, 95, 115, 0.1);
         }
 
-        .error p {
-            margin-bottom: var(--space-4);
-            color: var(--red-600);
+        .form-textarea-modern {
+            min-height: 80px;
+            resize: vertical;
         }
 
-        .text-muted {
-            color: var(--gray-500);
-            font-style: italic;
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            padding: 20px;
+            border-top: 1px solid #e8eff3;
         }
 
-        .loading {
-            text-align: center;
-            padding: var(--space-8);
-            color: var(--gray-500);
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
-        .alert {
-            padding: var(--space-4);
-            border-radius: var(--radius);
-            margin-bottom: var(--space-4);
+        .btn-primary {
+            background: #545f73;
+            color: white;
         }
 
-        .alert-success {
-            background: var(--green-50);
-            color: var(--green-700);
-            border: 1px solid var(--green-200);
+        .btn-primary:hover {
+            background: #485367;
         }
 
-        .alert-error {
-            background: var(--red-50);
-            color: var(--red-700);
-            border: 1px solid var(--red-200);
+        .btn-secondary {
+            background: #e8eff3;
+            color: #2a3439;
         }
 
-        /* Fix modal centering in RTL */
-        .modal-content {
-            margin: 0 auto;
+        .btn-secondary:hover {
+            background: #d9e4ea;
         }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/modern-pages.css">
     <link rel="stylesheet" href="css/loaders.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 
-<body>
+<body class="bg-background text-on-surface overflow-x-hidden">
     <!-- Global Loader -->
     <div class="loader-overlay" id="globalLoader">
         <div class="loader-container">
@@ -235,97 +238,137 @@
         </div>
     </div>
 
-
     <div id="sidebar-placeholder"></div>
 
+    <!-- Main Content Canvas -->
     <div class="main-content">
-        <div class="page-header">
-            <h1 class="page-title">المصروفات</h1>
-            <button class="btn btn-primary" id="addExpenseBtn">+ إضافة مصروف</button>
-        </div>
-
-        <div class="stats-grid" id="statsGrid">
-            <div class="stat-card">
-                <div class="stat-value" id="totalExpensesValue">جاري التحميل...</div>
-                <div class="stat-label">إجمالي المصروفات</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="monthlyExpensesValue">جاري التحميل...</div>
-                <div class="stat-label">مصروفات هذا الشهر</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="expensesCountValue">جاري التحميل...</div>
-                <div class="stat-label">عدد المصروفات</div>
-            </div>
-        </div>
-
-        <div class="filters-section">
-            <div class="filters-grid">
-                <div class="form-group">
-                    <label class="form-label" for="startDateFilter">من تاريخ</label>
-                    <input type="date" class="form-input" id="startDateFilter">
+        <!-- Canvas Area -->
+        <div class="page-content">
+            <!-- Page Heading & Actions -->
+            <div class="flex justify-between items-end mb-8 mt-4">
+                <div>
+                    <h2 class="text-3xl font-bold font-headline text-primary mb-2">إدارة المصاريف</h2>
+                    <p class="text-on-surface-variant">متابعة وتحليل النفقات التشغيلية للأفق التحريري</p>
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="endDateFilter">إلى تاريخ</label>
-                    <input type="date" class="form-input" id="endDateFilter">
+                <div class="flex gap-3">
+                    <button class="bg-primary text-white px-6 py-2.5 rounded-xl shadow-lg shadow-primary/20 font-bold flex items-center gap-2 hover:bg-primary-dim transition-all active:scale-95" id="addExpenseBtn">
+                        <span class="material-symbols-outlined text-xl" data-icon="add">add</span>
+                        مصروف جديد
+                    </button>
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="sortFilter">ترتيب</label>
-                    <select class="form-select" id="sortFilter">
+            </div>
+
+            <!-- Top Metrics Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div class="bg-surface-container-lowest p-6 rounded-2xl editorial-shadow border border-slate-50 relative overflow-hidden group">
+                    <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors"></div>
+                    <p class="text-on-surface-variant text-xs font-semibold mb-3 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-sm" data-icon="wallet">wallet</span>
+                        إجمالي المصاريف
+                    </p>
+                    <div class="flex items-baseline gap-2">
+                        <h3 class="text-2xl font-black font-headline text-slate-800" id="totalExpensesValue">جاري التحميل...</h3>
+                        <span class="text-xs font-bold text-slate-400">ج.م</span>
+                    </div>
+                </div>
+                <div class="bg-surface-container-lowest p-6 rounded-2xl editorial-shadow border border-slate-50 relative overflow-hidden group">
+                    <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-tertiary/5 rounded-full blur-2xl group-hover:bg-tertiary/10 transition-colors"></div>
+                    <p class="text-on-surface-variant text-xs font-semibold mb-3 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-tertiary text-sm" data-icon="calendar_month">calendar_month</span>
+                        مصاريف هذا الشهر
+                    </p>
+                    <div class="flex items-baseline gap-2">
+                        <h3 class="text-2xl font-black font-headline text-slate-800" id="monthlyExpensesValue">جاري التحميل...</h3>
+                        <span class="text-xs font-bold text-slate-400">ج.م</span>
+                    </div>
+                </div>
+                <div class="bg-surface-container-lowest p-6 rounded-2xl editorial-shadow border border-slate-50 relative overflow-hidden group">
+                    <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-secondary/5 rounded-full blur-2xl group-hover:bg-secondary/10 transition-colors"></div>
+                    <p class="text-on-surface-variant text-xs font-semibold mb-3 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-secondary text-sm" data-icon="receipt_long">receipt_long</span>
+                        عدد المصاريف
+                    </p>
+                    <div class="flex items-baseline gap-2">
+                        <h3 class="text-2xl font-black font-headline text-slate-800" id="expensesCountValue">جاري التحميل...</h3>
+                        <span class="text-xs font-bold text-slate-400">عملية</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters Section -->
+            <div class="bg-surface-container-lowest p-5 rounded-2xl editorial-shadow border border-slate-50 mb-8 flex flex-wrap items-center gap-6">
+                <div class="flex items-center gap-3">
+                    <label class="text-xs font-bold text-on-surface-variant">من:</label>
+                    <input class="bg-surface-container-low border-none rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary text-slate-600" type="date" id="startDateFilter" />
+                </div>
+                <div class="flex items-center gap-3">
+                    <label class="text-xs font-bold text-on-surface-variant">إلى:</label>
+                    <input class="bg-surface-container-low border-none rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary text-slate-600" type="date" id="endDateFilter" />
+                </div>
+                <div class="h-6 w-[1px] bg-slate-200"></div>
+                <div class="flex items-center gap-3">
+                    <label class="text-xs font-bold text-on-surface-variant">الترتيب:</label>
+                    <select class="bg-surface-container-low border-none rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary text-slate-600 appearance-none min-w-[120px]" id="sortFilter">
                         <option value="date-desc">الأحدث أولاً</option>
                         <option value="date-asc">الأقدم أولاً</option>
-                        <option value="amount-desc">الأعلى مبلغ</option>
-                        <option value="amount-asc">الأقل مبلغ</option>
+                        <option value="amount-desc">الأعلى قيمة</option>
+                        <option value="amount-asc">الأقل قيمة</option>
                     </select>
                 </div>
-            </div>
-            <div class="filter-actions">
-                <button class="btn btn-secondary" id="clearFiltersBtn">مسح الفلاتر</button>
-                <button class="btn btn-primary" id="applyFiltersBtn">تطبيق الفلاتر</button>
-            </div>
-        </div>
-
-        <div class="expenses-section">
-            <div class="section-header">
-                <h3 class="section-title">قائمة المصروفات</h3>
-            </div>
-            <div class="section-content">
-                <div class="table-container" id="expensesContainer">
-                    <div class="loading">جاري تحميل المصروفات...</div>
+                <div class="flex gap-2 mr-auto">
+                    <button class="px-4 py-2 bg-tertiary-container text-on-tertiary-container rounded-lg text-xs font-bold transition-all hover:brightness-95" id="applyFiltersBtn">فلترة</button>
+                    <button class="px-4 py-2 bg-surface-container-high text-on-surface-variant rounded-lg text-xs font-bold transition-all hover:bg-slate-200" id="clearFiltersBtn">إعادة تعيين</button>
                 </div>
-                <div class="pagination" id="paginationContainer"></div>
             </div>
+
+            <!-- Expenses List -->
+            <div class="space-y-4" id="expensesContainer">
+                <!-- Header Row -->
+                <div class="px-6 py-3 bg-surface-container-high/40 rounded-xl grid grid-cols-12 gap-4 text-xs font-bold text-on-surface-variant mb-2">
+                    <div class="col-span-1">التاريخ</div>
+                    <div class="col-span-2">المبلغ (ج.م)</div>
+                    <div class="col-span-2">المشروع</div>
+                    <div class="col-span-4">الوصف / ملاحظات</div>
+                    <div class="col-span-3 text-left">الإجراءات</div>
+                </div>
+                <!-- Expenses will be populated here -->
+            </div>
+
+            <!-- Pagination -->
+            <div class="mt-10" id="paginationContainer"></div>
         </div>
     </div>
 
     <!-- Add Expense Modal -->
     <div class="modal" id="expenseModal">
         <div class="modal-content">
-            <div class="modal-header">إضافة مصروف جديد</div>
+            <div class="modal-header">
+                <span>إضافة مصروف جديد</span>
+                <button class="modal-close" onclick="closeModal('expenseModal')">&times;</button>
+            </div>
             <div id="expenseMessage"></div>
             <form id="expenseForm">
-                <div class="form-group">
-                    <label class="form-label" for="expenseProject">المشروع</label>
-                    <select class="form-select" id="expenseProject">
+                <div class="form-group-modern">
+                    <label class="form-label-modern" for="expenseProject">المشروع</label>
+                    <select class="form-input-modern" id="expenseProject">
                         <option value="">اختر المشروع (اختياري)</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="expenseDate">التاريخ *</label>
-                    <input type="date" class="form-input" id="expenseDate" required>
+                <div class="form-group-modern">
+                    <label class="form-label-modern" for="expenseDate">التاريخ *</label>
+                    <input type="date" class="form-input-modern" id="expenseDate" required>
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="expenseDescription">الوصف *</label>
-                    <input type="text" class="form-input" id="expenseDescription" required placeholder="وصف المصروف">
+                <div class="form-group-modern">
+                    <label class="form-label-modern" for="expenseDescription">الوصف *</label>
+                    <input type="text" class="form-input-modern" id="expenseDescription" required placeholder="وصف المصروف">
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="expenseAmount">المبلغ *</label>
-                    <input type="number" class="form-input" id="expenseAmount" required min="0" step="0.01"
-                        placeholder="0.00">
+                <div class="form-group-modern">
+                    <label class="form-label-modern" for="expenseAmount">المبلغ *</label>
+                    <input type="number" class="form-input-modern" id="expenseAmount" required min="0" step="0.01" placeholder="0.00">
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="expenseNotes">ملاحظات</label>
-                    <textarea class="form-textarea" id="expenseNotes" placeholder="ملاحظات إضافية (اختياري)"></textarea>
+                <div class="form-group-modern">
+                    <label class="form-label-modern" for="expenseNotes">ملاحظات</label>
+                    <textarea class="form-textarea-modern" id="expenseNotes" placeholder="ملاحظات إضافية (اختياري)" rows="3"></textarea>
                 </div>
                 <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('expenseModal')">إلغاء</button>
@@ -338,63 +381,58 @@
     <!-- Edit Expense Modal -->
     <div class="modal" id="editExpenseModal">
         <div class="modal-content">
-            <div class="modal-header">تعديل المصروف</div>
+            <div class="modal-header">
+                <span>تعديل المصروف</span>
+                <button class="modal-close" onclick="closeModal('editExpenseModal')">&times;</button>
+            </div>
             <div id="editExpenseMessage"></div>
             <form id="editExpenseForm">
                 <input type="hidden" id="editExpenseId">
-                <div class="form-group">
-                    <label class="form-label" for="editExpenseProject">المشروع</label>
-                    <select class="form-select" id="editExpenseProject">
+                <div class="form-group-modern">
+                    <label class="form-label-modern" for="editExpenseProject">المشروع</label>
+                    <select class="form-input-modern" id="editExpenseProject">
                         <option value="">اختر المشروع (اختياري)</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="editExpenseDate">التاريخ *</label>
-                    <input type="date" class="form-input" id="editExpenseDate" required>
+                <div class="form-group-modern">
+                    <label class="form-label-modern" for="editExpenseDate">التاريخ *</label>
+                    <input type="date" class="form-input-modern" id="editExpenseDate" required>
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="editExpenseDescription">الوصف *</label>
-                    <input type="text" class="form-input" id="editExpenseDescription" required>
+                <div class="form-group-modern">
+                    <label class="form-label-modern" for="editExpenseDescription">الوصف *</label>
+                    <input type="text" class="form-input-modern" id="editExpenseDescription" required>
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="editExpenseAmount">المبلغ *</label>
-                    <input type="number" class="form-input" id="editExpenseAmount" required min="0" step="0.01">
+                <div class="form-group-modern">
+                    <label class="form-label-modern" for="editExpenseAmount">المبلغ *</label>
+                    <input type="number" class="form-input-modern" id="editExpenseAmount" required min="0" step="0.01">
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="editExpenseNotes">ملاحظات</label>
-                    <textarea class="form-textarea" id="editExpenseNotes"></textarea>
+                <div class="form-group-modern">
+                    <label class="form-label-modern" for="editExpenseNotes">ملاحظات</label>
+                    <textarea class="form-textarea-modern" id="editExpenseNotes" rows="3"></textarea>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary"
-                        onclick="closeModal('editExpenseModal')">إلغاء</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editExpenseModal')">إلغاء</button>
                     <button type="submit" class="btn btn-primary">حفظ التغييرات</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Load utilities first -->
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="js/utils/formatters.js"></script>
     <script src="js/utils/validation.js"></script>
     <script src="js/utils/dom.js"></script>
-
-    <!-- Load auth before API utilities -->
-    <script src="js/auth.js"></script>
-
-    <!-- Load API and modal utilities -->
     <script src="js/utils/api.js"></script>
-    <script src="js/utils/modals.js"></script>
-
-    <!-- Load page-specific scripts -->
-    <script src="js/sidebar.js"></script>
-    <script src="js/expenses.js"></script>
-    <script src="js/utils/loader.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="js/utils/modals.js"></script>
     <script src="js/utils/crud-buttons.js"></script>
     <script src="js/utils/form-protection.js"></script>
     <script src="js/utils/form-submit.js"></script>
+    <script src="js/csp-fix.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/expenses.js"></script>
+    <script src="js/utils/loader.js"></script>
 </body>
 
 </html>

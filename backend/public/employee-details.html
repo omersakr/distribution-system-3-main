@@ -3,227 +3,32 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>تفاصيل الموظف</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/modern-theme.css">
-    <link rel="stylesheet" href="css/sidebar.css">
+    <title>تفاصيل الموظف - نظام التوزيع</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/modern-pages.css">
+    <link rel="stylesheet" href="css/loaders.css">
     <style>
-        .main-content {
-            margin-right: 225px;
-            padding: var(--space-8);
-            transition: margin-right 0.25s;
+        .material-symbols-outlined {
+            font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+            vertical-align: middle;
         }
 
-        @media (max-width: 900px) {
-            .main-content {
-                margin-right: 190px;
-            }
+        body {
+            font-family: "Inter", "IBM Plex Sans Arabic", sans-serif;
         }
 
-        @media (max-width: 700px) {
-            .main-content {
-                margin-right: 0;
-                padding: var(--space-4);
-            }
+        .font-headline {
+            font-family: "Manrope", "IBM Plex Sans Arabic", sans-serif;
         }
 
-        .page-header {
-            margin-bottom: var(--space-8);
-        }
-
-        .page-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--gray-900);
-            margin-bottom: var(--space-2);
-        }
-
-        .summary-card {
-            background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-800) 100%);
-            color: white;
-            border-radius: var(--radius-xl);
-            padding: var(--space-8);
-            margin-bottom: var(--space-8);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: var(--space-6);
-            margin-top: var(--space-6);
-        }
-
-        .summary-item {
-            text-align: center;
-        }
-
-        .summary-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: var(--space-2);
-        }
-
-        .summary-label {
-            font-size: 0.875rem;
-            opacity: 0.9;
-        }
-
-        .section {
-            background: white;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow);
-            border: 1px solid var(--gray-200);
-            margin-bottom: var(--space-6);
-            overflow: hidden;
-        }
-
-        .section-header {
-            padding: var(--space-6);
-            border-bottom: 1px solid var(--gray-200);
-            background: var(--gray-50);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .section-title {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--gray-900);
-            margin: 0;
-        }
-
-        .section-content {
-            padding: var(--space-6);
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: var(--space-4) var(--space-6);
-            column-gap: var(--space-6);
-        }
-
-        .info-grid::before {
-            content: '';
-            position: absolute;
-            left: 50%;
-            top: 0;
-            bottom: 0;
-            width: 1px;
-            background: var(--gray-200);
-        }
-
-        .section-content {
-            padding: var(--space-6);
-            position: relative;
-        }
-
-        @media (max-width: 768px) {
-            .info-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .info-grid::before {
-                display: none;
-            }
-        }
-
-        .info-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: var(--space-3) 0;
-            border-bottom: 1px solid var(--gray-100);
-        }
-
-        .info-item:last-child {
-            border-bottom: none;
-        }
-
-        .info-item.full-width {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: var(--space-2);
-        }
-
-        .info-label {
-            font-weight: 600;
-            color: var(--gray-700);
-            min-width: 150px;
-        }
-
-        .info-value {
-            color: var(--gray-900);
-            text-align: left;
-        }
-
-        .status-active {
-            color: var(--green-600);
-            font-weight: 500;
-        }
-
-        .status-inactive {
-            color: var(--red-600);
-            font-weight: 500;
-        }
-
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: var(--space-4);
-        }
-
-        .data-table th,
-        .data-table td {
-            padding: var(--space-3);
-            text-align: right;
-            border-bottom: 1px solid var(--gray-200);
-        }
-
-        .data-table th {
-            background: var(--gray-50);
-            font-weight: 600;
-            color: var(--gray-700);
-        }
-
-        .data-table tbody tr:hover {
-            background: var(--gray-50);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: var(--space-8);
-            color: var(--gray-500);
-            font-style: italic;
-        }
-
-        .amount-positive {
-            color: var(--green-600);
-            font-weight: 500;
-        }
-
-        .amount-negative {
-            color: var(--red-600);
-            font-weight: 500;
-        }
-
-        .balance-neutral {
-            color: var(--gray-600);
-        }
-
-        .balance-negative {
-            color: var(--red-600);
-        }
-
-        .table-container {
-            overflow-x: auto;
-        }
-
-        /* Modal Styles */
+        /* Modal styles */
         .modal {
             display: none;
             position: fixed;
@@ -232,183 +37,194 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .modal-content {
-            background-color: white;
-            margin: 5% auto;
+            background-color: #fefefe;
+            margin: auto;
             padding: 0;
-            border-radius: var(--radius-lg);
+            border-radius: 1rem;
             width: 90%;
             max-width: 600px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: var(--shadow-xl);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         }
 
         .modal-header {
-            padding: var(--space-6);
-            border-bottom: 1px solid var(--gray-200);
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: var(--gray-50);
-            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
         }
 
         .modal-header h2 {
             margin: 0;
             font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--gray-900);
+            font-weight: 700;
         }
 
-        .close {
-            color: var(--gray-400);
+        .modal-close {
+            background: none;
+            border: none;
             font-size: 1.5rem;
-            font-weight: bold;
             cursor: pointer;
-            padding: var(--space-2);
-            border-radius: var(--radius);
-            transition: all 0.2s ease;
+            color: #6b7280;
         }
 
-        .close:hover {
-            color: var(--gray-600);
-            background: var(--gray-100);
+        .modal-close:hover {
+            color: #111827;
         }
 
         .modal form {
-            padding: var(--space-6);
+            padding: 1.5rem;
         }
 
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: var(--space-4);
-            margin-bottom: var(--space-4);
+        .modal-actions {
+            padding: 1.5rem;
+            border-top: 1px solid #e5e7eb;
         }
 
-        .form-group {
-            margin-bottom: var(--space-4);
+        /* Form styles for Tailwind compatibility */
+        .form-group-modern {
+            margin-bottom: 1.5rem;
         }
 
-        .form-group label {
+        .form-label-modern {
             display: block;
-            margin-bottom: var(--space-2);
-            font-weight: 500;
-            color: var(--gray-700);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #374151;
         }
 
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
+        .form-input-modern,
+        .form-select-modern,
+        .form-textarea-modern {
             width: 100%;
-            padding: var(--space-3);
-            border: 1px solid var(--gray-300);
-            border-radius: var(--radius);
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
             font-size: 0.875rem;
-            transition: border-color 0.2s ease;
         }
 
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: var(--primary-500);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        .form-textarea-modern {
+            min-height: 100px;
+            resize: vertical;
         }
 
-        .form-help {
-            font-size: 0.75rem;
-            color: var(--gray-500);
-            margin-top: var(--space-1);
-        }
-
-        .radio-group {
-            display: flex;
-            flex-direction: column;
-            gap: var(--space-2);
-        }
-
-        .radio-label {
-            display: flex;
-            align-items: center;
-            gap: var(--space-2);
+        .btn-modern {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
             cursor: pointer;
-            padding: var(--space-2);
-            border-radius: var(--radius);
-            transition: background-color 0.2s ease;
-        }
-
-        .radio-label:hover {
-            background: var(--gray-50);
-        }
-
-        .checkbox-label {
-            display: flex;
+            transition: all 0.2s;
+            border: none;
+            display: inline-flex;
             align-items: center;
-            gap: var(--space-2);
-            cursor: pointer;
-            padding: var(--space-2);
-            border-radius: var(--radius);
-            transition: background-color 0.2s ease;
+            gap: 0.5rem;
         }
 
-        .checkbox-label:hover {
-            background: var(--gray-50);
+        .btn-primary-modern {
+            background-color: #545f73;
+            color: #f6f7ff;
         }
 
-        .project-assignment {
-            border: 1px solid var(--gray-200);
-            border-radius: var(--radius);
-            padding: var(--space-4);
+        .btn-primary-modern:hover {
+            background-color: #485367;
         }
 
-        .projects-list {
-            margin-top: var(--space-3);
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid var(--gray-200);
-            border-radius: var(--radius);
-            padding: var(--space-3);
+        .btn-secondary-modern {
+            background-color: #506076;
+            color: #f7f9ff;
         }
 
-        .form-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: var(--space-3);
-            margin-top: var(--space-6);
-            padding-top: var(--space-4);
-            border-top: 1px solid var(--gray-200);
-        }
-
-        @media (max-width: 768px) {
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-
-            .modal-content {
-                width: 95%;
-                margin: 2% auto;
-            }
-
-            .summary-grid {
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            }
-        }
-
-        /* Fix modal centering in RTL */
-        .modal-content {
-            margin: 0 auto;
+        .btn-secondary-modern:hover {
+            background-color: #44546a;
         }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="css/loaders.css">
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "tertiary-container": "#69f6b8",
+                        "surface-variant": "#d9e4ea",
+                        "primary-dim": "#485367",
+                        "error-dim": "#4e0309",
+                        "surface-container": "#e8eff3",
+                        "on-tertiary-fixed-variant": "#006544",
+                        "surface-dim": "#cfdce3",
+                        "on-surface": "#2a3439",
+                        "secondary-container": "#d3e4fe",
+                        outline: "#717c82",
+                        "on-tertiary-fixed": "#00452d",
+                        secondary: "#506076",
+                        "tertiary-fixed-dim": "#58e7ab",
+                        "on-background": "#2a3439",
+                        "primary-fixed": "#d8e3fb",
+                        "outline-variant": "#a9b4b9",
+                        "error-container": "#fe8983",
+                        "secondary-dim": "#44546a",
+                        "surface-tint": "#545f73",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#f7f9fb",
+                        "on-surface-variant": "#566166",
+                        background: "#f7f9fb",
+                        "on-secondary-fixed-variant": "#4d5d73",
+                        "inverse-surface": "#0b0f10",
+                        "on-tertiary": "#e6ffee",
+                        "tertiary-dim": "#005f40",
+                        primary: "#545f73",
+                        "primary-container": "#d8e3fb",
+                        "on-primary-fixed": "#354053",
+                        "inverse-on-surface": "#9a9d9f",
+                        "on-primary": "#f6f7ff",
+                        "surface-container-low": "#f0f4f7",
+                        "on-primary-fixed-variant": "#515c70",
+                        "secondary-fixed": "#d3e4fe",
+                        "inverse-primary": "#dae6fe",
+                        error: "#9f403d",
+                        "on-tertiary-container": "#005a3c",
+                        "surface-container-high": "#e1e9ee",
+                        "on-secondary-fixed": "#314055",
+                        "on-error-container": "#752121",
+                        "on-secondary-container": "#435368",
+                        "secondary-fixed-dim": "#c5d6f0",
+                        "on-error": "#fff7f6",
+                        "tertiary-fixed": "#69f6b8",
+                        "surface-container-highest": "#d9e4ea",
+                        "on-primary-container": "#475266",
+                        surface: "#f7f9fb",
+                        tertiary: "#006d4a",
+                        "primary-fixed-dim": "#cad5ed",
+                        "on-secondary": "#f7f9ff",
+                    },
+                    fontFamily: {
+                        headline: ["Manrope", "IBM Plex Sans Arabic"],
+                        body: ["Inter", "IBM Plex Sans Arabic"],
+                        label: ["Inter", "IBM Plex Sans Arabic"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.25rem",
+                        lg: "0.5rem",
+                        xl: "0.75rem",
+                        full: "9999px",
+                    },
+                },
+            },
+        };
+    </script>
 </head>
 
-<body>
+<body class="bg-background text-on-surface">
     <!-- Global Loader -->
     <div class="loader-overlay" id="globalLoader">
         <div class="loader-container">
@@ -417,182 +233,243 @@
         </div>
     </div>
 
-
     <div id="sidebar-placeholder"></div>
 
-    <div class="main-content">
-        <div class="page-header">
-            <h1 class="page-title" id="employeeName">تفاصيل الموظف</h1>
-            <button class="btn btn-secondary" onclick="history.back()">
-                <span>←</span> العودة
-            </button>
-        </div>
+    <main class="main-content">
+        <!-- Page Content -->
+        <div class="page-content">
 
-        <!-- Financial Summary Card -->
-        <div class="summary-card">
-            <h2>الملخص المالي</h2>
-            <div class="summary-grid" id="financialSummary">
-                <!-- Financial summary will be populated here -->
-            </div>
-        </div>
-
-        <!-- Employee Info Section -->
-        <div class="section">
-            <div class="section-header">
-                <h3 class="section-title">معلومات الموظف</h3>
-                <button class="btn btn-primary" id="editEmployeeBtn">
-                    <i class="fas fa-edit"></i> تعديل الموظف
+            <!-- Title & Actions -->
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-primary font-headline" id="employeeName">
+                        <span class="material-symbols-outlined" style="color: #0EA5E9; vertical-align: middle; font-size: 32px;">badge</span> تفاصيل الموظف
+                    </h2>
+                    <p class="text-on-surface-variant text-base mt-1">
+                        عرض شامل لجميع المستحقات والمدفوعات
+                    </p>
+                </div>
+                <button id="editEmployeeBtn"
+                    class="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-primary-dim transition-colors shadow-sm active:scale-95">
+                    <span class="material-symbols-outlined" data-icon="edit">edit</span>
+                    تعديل البيانات
                 </button>
             </div>
-            <div class="section-content">
-                <div class="info-grid" id="employeeInfo">
-                    <!-- Employee info will be populated here -->
+
+            <!-- Financial Summary -->
+            <section class="mb-8">
+                <h3 class="text-lg font-bold mb-4 text-primary font-headline flex items-center gap-2">
+                    <span class="w-2 h-6 bg-tertiary rounded-full"></span>
+                    الملخص المالي
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4" id="summaryGrid">
+                    <div class="inline-loader">جاري التحميل...</div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Attendance Section -->
-        <div class="section">
-            <div class="section-header">
-                <h3 class="section-title">سجلات الحضور والغياب</h3>
-                <button class="btn btn-primary" id="addAttendanceBtn">
-                    <i class="fas fa-plus"></i> إضافة سجل شهري
-                </button>
-            </div>
-            <div class="section-content">
-                <div class="table-container">
-                    <table class="data-table" id="attendanceTable">
-                        <thead>
-                            <tr>
-                                <th>الشهر</th>
-                                <th>السنة</th>
-                                <th>أيام الشهر</th>
-                                <th>أيام العمل</th>
-                                <th>أيام الغياب</th>
-                                <th>نوع التسجيل</th>
-                                <th>ملاحظات</th>
-                                <th>الإجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody id="attendanceTableBody">
-                            <!-- Attendance records will be populated here -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Adjustments Section -->
-        <div class="section">
-            <div class="section-header">
-                <h3 class="section-title">التسويات</h3>
-                <button class="btn btn-primary" id="addAdjustmentBtn">
-                    <i class="fas fa-plus"></i> إضافة تسوية
-                </button>
-            </div>
-            <div class="section-content">
-                <div class="table-container">
-                    <table class="data-table" id="adjustmentsTable">
-                        <thead>
-                            <tr>
-                                <th>المبلغ</th>
-                                <th>النوع</th>
-                                <th>التفاصيل</th>
-                                <th>السبب</th>
-                                <th>التاريخ</th>
-                                <th>الإجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adjustmentsTableBody">
-                            <!-- Adjustments will be populated here -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Payments Section -->
-        <div class="section">
-            <div class="section-header">
-                <h3 class="section-title">المدفوعات</h3>
-                <button class="btn btn-primary" id="addPaymentBtn">
-                    <i class="fas fa-plus"></i> إضافة دفعة
-                </button>
-            </div>
-            <div class="section-content">
-                <div class="table-container">
-                    <table class="data-table" id="paymentsTable">
-                        <thead>
-                            <tr>
-                                <th>المبلغ</th>
-                                <th>طريقة الدفع</th>
-                                <th>التفاصيل</th>
-                                <th>ملاحظات</th>
-                                <th>تاريخ الدفع</th>
-                                <th>الإجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody id="paymentsTableBody">
-                            <!-- Payments will be populated here -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Reports Section -->
-        <div class="section">
-            <div class="section-header">
-                <h3 class="section-title">التقارير</h3>
-            </div>
-            <div class="section-content">
-                <div class="reports-grid"
-                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-4);">
-                    <div class="report-card"
-                        style="background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%); color: white; padding: var(--space-6); border-radius: var(--radius-lg); box-shadow: var(--shadow);">
-                        <h4 style="margin: 0 0 var(--space-4) 0; font-size: 1.125rem;">كشف حساب الموظف</h4>
-                        <p style="margin: 0 0 var(--space-4) 0; opacity: 0.9; font-size: 0.875rem;">كشف حساب شامل
-                            بالحضور والمدفوعات والتسويات</p>
-
-                        <div style="margin-bottom: var(--space-4);">
-                            <label
-                                style="display: flex; align-items: center; margin-bottom: var(--space-2); font-size: 0.875rem;">
-                                <input type="checkbox" id="useCustomDateRange" style="margin-left: var(--space-2);"
-                                    onchange="toggleDateRange()">
-                                تحديد فترة زمنية محددة
-                            </label>
-                        </div>
-
-                        <div id="dateRangeInputs" style="display: none; margin-bottom: var(--space-4);">
-                            <div style="display: flex; gap: var(--space-2);">
-                                <input type="date" id="statementFromDate" class="form-input"
-                                    style="flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;"
-                                    placeholder="من تاريخ">
-                                <input type="date" id="statementToDate" class="form-input"
-                                    style="flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;"
-                                    placeholder="إلى تاريخ">
-                            </div>
-                        </div>
-
-                        <button id="generateAccountStatementBtn" class="btn"
-                            style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); width: 100%;">
-                            إنشاء كشف الحساب
-                        </button>
+                <div class="flex gap-3 mt-4">
+                    <div class="bg-surface-container-low px-3 py-1.5 rounded-lg border border-outline-variant/10 text-sm">
+                        <span class="text-on-surface-variant">أيام العمل: </span>
+                        <span class="font-bold" id="totalWorkedDays">0</span>
+                    </div>
+                    <div class="bg-surface-container-low px-3 py-1.5 rounded-lg border border-outline-variant/10 text-sm">
+                        <span class="text-on-surface-variant">سجلات الحضور: </span>
+                        <span class="font-bold" id="attendanceRecordsCount">0</span>
                     </div>
                 </div>
+            </section>
+
+            <!-- Employee Info & Reports Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Employee Information -->
+                <section class="lg:col-span-2">
+                    <div class="bg-surface-container-lowest rounded-2xl p-5 shadow-sm">
+                        <h3 class="text-lg font-bold mb-4 text-primary font-headline">
+                            <i class="fas fa-user-circle"></i> معلومات الموظف
+                        </h3>
+                        <div id="employeeInfo" class="grid grid-cols-2 gap-3">
+                            <div class="inline-loader">جاري التحميل...</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Reports Section -->
+                <section>
+                    <div class="relative overflow-hidden bg-tertiary-container p-6 rounded-3xl group shadow-md h-full">
+                        <div class="relative z-10">
+                            <h4 class="text-lg font-extrabold text-on-tertiary-container mb-2 font-headline">
+                                <i class="fas fa-file-alt"></i> كشف حساب الموظف
+                            </h4>
+                            <p class="text-on-tertiary-container/70 text-xs mb-4">
+                                كشف حساب شامل بالحضور والمدفوعات والتسويات
+                            </p>
+                            <div class="mb-3">
+                                <label class="flex items-center text-xs cursor-pointer">
+                                    <input type="checkbox" id="useCustomDateRange" class="ml-2"
+                                        onchange="toggleDateRange()">
+                                    تحديد فترة زمنية محددة
+                                </label>
+                            </div>
+                            <div id="dateRangeInputs" style="display: none;"
+                                class="flex flex-col gap-2 mb-3">
+                                <div class="bg-white/50 p-2 rounded-lg backdrop-blur-sm border border-white/20">
+                                    <label class="block text-[10px] font-bold text-tertiary mb-1">من تاريخ</label>
+                                    <input class="bg-transparent border-none p-0 text-xs focus:ring-0 w-full" type="date"
+                                        id="statementFromDate">
+                                </div>
+                                <div class="bg-white/50 p-2 rounded-lg backdrop-blur-sm border border-white/20">
+                                    <label class="block text-[10px] font-bold text-tertiary mb-1">إلى تاريخ</label>
+                                    <input class="bg-transparent border-none p-0 text-xs focus:ring-0 w-full" type="date"
+                                        id="statementToDate">
+                                </div>
+                            </div>
+                            <button id="generateAccountStatementBtn"
+                                class="bg-tertiary text-on-tertiary px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-tertiary-dim shadow-lg transition-transform active:scale-95 w-full justify-center">
+                                <span class="material-symbols-outlined text-lg" data-icon="picture_as_pdf">picture_as_pdf</span>
+                                إنشاء كشف PDF
+                            </button>
+                        </div>
+                        <span
+                            class="material-symbols-outlined absolute -bottom-10 -left-10 text-[150px] text-tertiary/5 select-none pointer-events-none"
+                            data-icon="account_balance_wallet">account_balance_wallet</span>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Attendance Section -->
+            <section class="bg-surface-container-lowest rounded-2xl p-5 shadow-sm mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-primary font-headline">
+                        <i class="fas fa-calendar-check"></i> سجلات الحضور والغياب
+                    </h3>
+                    <button
+                        class="bg-primary text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-primary-dim transition-colors"
+                        id="addAttendanceBtn">
+                        <span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                        إضافة سجل شهري
+                    </button>
+                </div>
+                <div id="attendanceContainer">
+                    <div class="inline-loader">جاري التحميل...</div>
+                </div>
+            </section>
+
+            <!-- Bottom Sections Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <!-- Payments Section -->
+                <section class="bg-surface-container-lowest rounded-2xl p-5 shadow-sm">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-primary font-headline">
+                            <i class="fas fa-money-bill-wave"></i> المدفوعات
+                        </h3>
+                        <button
+                            class="bg-tertiary text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-tertiary-dim transition-colors"
+                            id="addPaymentBtn">
+                            <span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                            إضافة دفعة
+                        </button>
+                    </div>
+                    <div class="flex gap-2 mb-3 flex-wrap">
+                        <input type="text"
+                            class="bg-background border-outline-variant/20 rounded-lg pr-2 pl-2 py-1 text-xs focus:ring-1 focus:ring-primary flex-1 min-w-[120px]"
+                            id="paymentsSearch" placeholder="ابحث...">
+                        <div class="flex flex-col">
+                            <label for="paymentsDateFrom" class="text-[10px] font-semibold text-on-surface-variant mb-0.5">من
+                                تاريخ</label>
+                            <input type="date"
+                                class="bg-background border-outline-variant/20 rounded-lg pr-2 pl-2 py-1 text-xs focus:ring-1 focus:ring-primary"
+                                id="paymentsDateFrom">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="paymentsDateTo" class="text-[10px] font-semibold text-on-surface-variant mb-0.5">إلى
+                                تاريخ</label>
+                            <input type="date"
+                                class="bg-background border-outline-variant/20 rounded-lg pr-2 pl-2 py-1 text-xs focus:ring-1 focus:ring-primary"
+                                id="paymentsDateTo">
+                        </div>
+                        <select
+                            class="bg-background border-outline-variant/20 rounded-lg pr-6 pl-2 py-1 text-xs focus:ring-1 focus:ring-primary"
+                            id="paymentsSort">
+                            <option value="date-desc">الأحدث أولاً</option>
+                            <option value="date-asc">الأقدم أولاً</option>
+                            <option value="amount-desc">الأعلى مبلغ</option>
+                            <option value="amount-asc">الأقل مبلغ</option>
+                        </select>
+                        <button
+                            class="bg-secondary text-white px-2 py-1 rounded-lg text-xs font-bold hover:bg-secondary-dim transition-colors"
+                            onclick="clearPaymentsFilters()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div id="paymentsContainer">
+                        <div class="inline-loader">جاري التحميل...</div>
+                    </div>
+                </section>
+
+                <!-- Adjustments Section -->
+                <section class="bg-surface-container-lowest rounded-2xl p-5 shadow-sm">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-primary font-headline">
+                            <i class="fas fa-balance-scale"></i> التسويات والتعديلات
+                        </h3>
+                        <button
+                            class="bg-secondary text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-secondary-dim transition-colors"
+                            id="addAdjustmentBtn">
+                            <span class="material-symbols-outlined text-sm" data-icon="tune">tune</span>
+                            إضافة تسوية
+                        </button>
+                    </div>
+                    <div class="flex gap-2 mb-3 flex-wrap">
+                        <input type="text"
+                            class="bg-background border-outline-variant/20 rounded-lg pr-2 pl-2 py-1 text-xs focus:ring-1 focus:ring-primary flex-1 min-w-[120px]"
+                            id="adjustmentsSearch" placeholder="ابحث...">
+                        <div class="flex flex-col">
+                            <label for="adjustmentsDateFrom"
+                                class="text-[10px] font-semibold text-on-surface-variant mb-0.5">من تاريخ</label>
+                            <input type="date"
+                                class="bg-background border-outline-variant/20 rounded-lg pr-2 pl-2 py-1 text-xs focus:ring-1 focus:ring-primary"
+                                id="adjustmentsDateFrom">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="adjustmentsDateTo"
+                                class="text-[10px] font-semibold text-on-surface-variant mb-0.5">إلى تاريخ</label>
+                            <input type="date"
+                                class="bg-background border-outline-variant/20 rounded-lg pr-2 pl-2 py-1 text-xs focus:ring-1 focus:ring-primary"
+                                id="adjustmentsDateTo">
+                        </div>
+                        <select
+                            class="bg-background border-outline-variant/20 rounded-lg pr-6 pl-2 py-1 text-xs focus:ring-1 focus:ring-primary"
+                            id="adjustmentsSort">
+                            <option value="date-desc">الأحدث أولاً</option>
+                            <option value="date-asc">الأقدم أولاً</option>
+                            <option value="amount-desc">الأعلى مبلغ</option>
+                            <option value="amount-asc">الأقل مبلغ</option>
+                        </select>
+                        <button
+                            class="bg-secondary text-white px-2 py-1 rounded-lg text-xs font-bold hover:bg-secondary-dim transition-colors"
+                            onclick="clearAdjustmentsFilters()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div id="adjustmentsContainer">
+                        <div class="inline-loader">جاري التحميل...</div>
+                    </div>
+                </section>
             </div>
         </div>
-    </div>
+    </main>
+
+    <!-- Modals -->
 
     <!-- Attendance Modal -->
-    <div id="attendanceModal" class="modal">
+    <div class="modal" id="attendanceModal">
         <div class="modal-content">
-            <div class="modal-header">إضافة سجل شهري</div>
-            <div id="attendanceMessage"></div>
+            <div class="modal-header">
+                <h2>إضافة سجل شهري</h2>
+                <button class="modal-close" onclick="closeModal('attendanceModal')">&times;</button>
+            </div>
             <form id="attendanceForm">
-                <div class="form-group">
-                    <label class="form-label" for="attendanceMonth">الشهر *</label>
-                    <select class="form-select" id="attendanceMonth" name="month" required>
+                <div class="form-group-modern">
+                    <label class="form-label-modern">الشهر *</label>
+                    <select class="form-select-modern" id="attendanceMonth" name="month" required>
                         <option value="">اختر الشهر</option>
                         <option value="1">يناير</option>
                         <option value="2">فبراير</option>
@@ -608,107 +485,68 @@
                         <option value="12">ديسمبر</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="attendanceYear">السنة *</label>
-                    <input type="number" class="form-input" id="attendanceYear" name="year" min="2020" max="2030" required>
+                <div class="form-group-modern">
+                    <label class="form-label-modern">السنة *</label>
+                    <input type="number" class="form-input-modern" id="attendanceYear" name="year" min="2020" max="2030"
+                        required>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">نوع التسجيل *</label>
-                    <div class="radio-group">
-                        <label class="radio-label">
-                            <input type="radio" name="record_type" value="attendance" id="recordTypeAttendance"
-                                required>
+                <div class="form-group-modern">
+                    <label class="form-label-modern">نوع التسجيل *</label>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="radio" name="record_type" value="attendance" id="recordTypeAttendance" required>
                             تسجيل أيام الحضور
                         </label>
-                        <label class="radio-label">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
                             <input type="radio" name="record_type" value="absence" id="recordTypeAbsence" required>
                             تسجيل أيام الغياب
                         </label>
                     </div>
                 </div>
-                <div class="form-group" id="attendanceDaysGroup" style="display: none;">
-                    <label class="form-label" for="attendanceDays">أيام الحضور</label>
-                    <input type="number" class="form-input" id="attendanceDays" name="attendance_days" min="0">
-                    <small class="form-help">عدد الأيام التي حضر فيها الموظف</small>
+                <div class="form-group-modern" id="attendanceDaysGroup" style="display: none;">
+                    <label class="form-label-modern">أيام الحضور</label>
+                    <input type="number" class="form-input-modern" id="attendanceDays" name="attendance_days" min="0">
+                    <small style="color: #6b7280; font-size: 0.75rem;">عدد الأيام التي حضر فيها الموظف</small>
                 </div>
-                <div class="form-group" id="absenceDaysGroup" style="display: none;">
-                    <label class="form-label" for="absenceDays">أيام الغياب</label>
-                    <input type="number" class="form-input" id="absenceDays" name="absence_days" min="0">
-                    <small class="form-help">عدد الأيام التي غاب فيها الموظف</small>
+                <div class="form-group-modern" id="absenceDaysGroup" style="display: none;">
+                    <label class="form-label-modern">أيام الغياب</label>
+                    <input type="number" class="form-input-modern" id="absenceDays" name="absence_days" min="0">
+                    <small style="color: #6b7280; font-size: 0.75rem;">عدد الأيام التي غاب فيها الموظف</small>
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="attendanceNotes">ملاحظات</label>
-                    <textarea class="form-textarea" id="attendanceNotes" name="notes"
+                <div class="form-group-modern">
+                    <label class="form-label-modern">ملاحظات</label>
+                    <textarea class="form-textarea-modern" id="attendanceNotes" name="notes"
                         placeholder="أي ملاحظات إضافية عن هذا الشهر"></textarea>
                 </div>
+                <div id="attendanceMessage"></div>
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeAttendanceModal()">إلغاء</button>
-                    <button type="submit" class="btn btn-primary">حفظ</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Adjustment Modal -->
-    <div id="adjustmentModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">إضافة تسوية</div>
-            <div id="adjustmentMessage"></div>
-            <form id="adjustmentForm">
-                <div class="form-group">
-                    <label class="form-label" for="adjustmentAmount">المبلغ *</label>
-                    <input type="number" class="form-input" id="adjustmentAmount" name="amount" step="0.01" required>
-                    <small class="text-gray-500">موجب: يضاف للمستحقات | سالب: يخصم من المستحقات</small>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="adjustmentMethod">طريقة التسوية</label>
-                    <select class="form-select" id="adjustmentMethod" name="method">
-                        <option value="">اختر طريقة التسوية</option>
-                        <option value="نقدي">نقدي</option>
-                        <option value="بنكي">بنكي</option>
-                        <option value="شيك">شيك</option>
-                        <option value="انستاباي">انستاباي</option>
-                        <option value="فودافون كاش">فودافون كاش</option>
-                        <option value="تعديل حسابي">تعديل حسابي</option>
-                    </select>
-                </div>
-                <div class="form-group hidden" id="adjustmentDetailsGroup">
-                    <label class="form-label" for="adjustmentDetails">رقم المعاملة / رقم الشيك</label>
-                    <input type="text" class="form-input" id="adjustmentDetails" name="details"
-                        placeholder="أدخل رقم المعاملة أو رقم الشيك">
-                </div>
-                <div class="form-group hidden" id="adjustmentImageGroup">
-                    <label class="form-label" for="adjustmentImage">صورة التسوية</label>
-                    <input type="file" class="form-input" id="adjustmentImage" accept="image/*">
-                    <small class="form-help">ارفع صورة الإيصال أو الشيك أو المعاملة البنكية</small>
-                    <div id="adjustmentImagePreview"></div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="adjustmentReason">السبب</label>
-                    <textarea class="form-textarea" id="adjustmentReason" name="reason" placeholder="سبب التسوية..."></textarea>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeAdjustmentModal()">إلغاء</button>
-                    <button type="submit" class="btn btn-primary">إضافة</button>
+                    <button type="submit" class="btn-modern btn-primary-modern">حفظ</button>
+                    <button type="button" class="btn-modern btn-secondary-modern"
+                        onclick="closeModal('attendanceModal')">إلغاء</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Payment Modal -->
-    <div id="paymentModal" class="modal">
+    <div class="modal" id="paymentModal">
         <div class="modal-content">
-            <div class="modal-header">إضافة دفعة جديدة</div>
-            <div id="paymentMessage"></div>
+            <div class="modal-header">
+                <h2>إضافة دفعة جديدة</h2>
+                <button class="modal-close" onclick="closeModal('paymentModal')">&times;</button>
+            </div>
             <form id="paymentForm">
-                <div class="form-group">
-                    <label class="form-label" for="paymentAmount">المبلغ *</label>
-                    <input type="number" class="form-input" id="paymentAmount" name="amount" required min="0" step="0.01"
-                        autocomplete="transaction-amount">
+                <div class="form-group-modern">
+                    <label class="form-label-modern">المبلغ *</label>
+                    <input type="number" id="paymentAmount" class="form-input-modern" required step="0.01" min="0">
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="paymentMethod">طريقة الدفع *</label>
-                    <select class="form-select" id="paymentMethod" name="method" required>
+                <div class="form-group-modern">
+                    <label class="form-label-modern">التاريخ *</label>
+                    <input type="date" id="paidAt" class="form-input-modern" required>
+                </div>
+                <div class="form-group-modern">
+                    <label class="form-label-modern">طريقة الدفع *</label>
+                    <select id="paymentMethod" class="form-select-modern" required>
                         <option value="">اختر طريقة الدفع</option>
                         <option value="نقدي">نقدي</option>
                         <option value="بنكي">بنكي</option>
@@ -717,102 +555,154 @@
                         <option value="فودافون كاش">فودافون كاش</option>
                     </select>
                 </div>
-                <div class="form-group hidden" id="paymentDetailsGroup">
-                    <label class="form-label" for="paymentDetails">رقم المعاملة / رقم الشيك</label>
-                    <input type="text" class="form-input" id="paymentDetails" name="details"
-                        placeholder="أدخل رقم المعاملة أو رقم الشيك" autocomplete="off">
+                <div class="form-group-modern" id="paymentDetailsGroup" style="display: none;">
+                    <label class="form-label-modern">التفاصيل *</label>
+                    <input type="text" id="paymentDetails" class="form-input-modern" placeholder="رقم المعاملة">
                 </div>
-                <div class="form-group hidden" id="paymentImageGroup">
-                    <label class="form-label" for="paymentImage">صورة الدفع</label>
-                    <input type="file" class="form-input" id="paymentImage" accept="image/*">
-                    <small class="form-help">ارفع صورة الإيصال أو الشيك أو المعاملة البنكية</small>
-                    <div id="paymentImagePreview"></div>
+                <div class="form-group-modern" id="paymentImageGroup" style="display: none;">
+                    <label class="form-label-modern">صورة الإيصال</label>
+                    <input type="file" id="paymentImage" class="form-input-modern" accept="image/*">
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="paidAt">التاريخ</label>
-                    <input type="date" class="form-input" id="paidAt" name="paid_at" autocomplete="off">
+                <div class="form-group-modern">
+                    <label class="form-label-modern">ملاحظات</label>
+                    <textarea id="paymentNote" class="form-textarea-modern"></textarea>
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="paymentNote">ملاحظات</label>
-                    <textarea class="form-textarea" id="paymentNote" name="note"></textarea>
-                </div>
+                <div id="paymentMessage"></div>
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closePaymentModal()">إلغاء</button>
-                    <button type="submit" class="btn btn-primary">حفظ</button>
+                    <button type="submit" class="btn-modern btn-primary-modern">حفظ الدفعة</button>
+                    <button type="button" class="btn-modern btn-secondary-modern"
+                        onclick="closeModal('paymentModal')">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Adjustment Modal -->
+    <div class="modal" id="adjustmentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>إضافة تسوية جديدة</h2>
+                <button class="modal-close" onclick="closeModal('adjustmentModal')">&times;</button>
+            </div>
+            <form id="adjustmentForm">
+                <div class="form-group-modern">
+                    <label class="form-label-modern">نوع التسوية *</label>
+                    <select id="adjustmentType" class="form-input-modern" required>
+                        <option value="">اختر النوع</option>
+                        <option value="addition">إضافة</option>
+                        <option value="deduction">خصم</option>
+                    </select>
+                </div>
+                <div class="form-group-modern">
+                    <label class="form-label-modern">المبلغ *</label>
+                    <input type="number" id="adjustmentAmount" class="form-input-modern" required step="0.01" min="0">
+                </div>
+                <div class="form-group-modern">
+                    <label class="form-label-modern">السبب *</label>
+                    <textarea id="adjustmentReason" class="form-textarea-modern" required></textarea>
+                </div>
+                <div id="adjustmentMessage"></div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn-modern btn-primary-modern">حفظ التسوية</button>
+                    <button type="button" class="btn-modern btn-secondary-modern"
+                        onclick="closeModal('adjustmentModal')">إلغاء</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Edit Employee Modal -->
-    <div id="editEmployeeModal" class="modal">
+    <div class="modal" id="editEmployeeModal">
         <div class="modal-content">
-            <div class="modal-header">تعديل معلومات الموظف</div>
-            <div id="editEmployeeMessage"></div>
+            <div class="modal-header">
+                <h2>تعديل بيانات الموظف</h2>
+                <button class="modal-close" onclick="closeModal('editEmployeeModal')">&times;</button>
+            </div>
             <form id="editEmployeeForm">
-                <div class="form-group">
-                    <label class="form-label" for="editEmployeeName">اسم الموظف *</label>
-                    <input type="text" class="form-input" id="editEmployeeName" name="name" required>
+                <div class="form-group-modern">
+                    <label class="form-label-modern">اسم الموظف *</label>
+                    <input type="text" name="name" id="editEmployeeName" class="form-input-modern" required>
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="editJobTitle">المسمى الوظيفي</label>
-                    <input type="text" class="form-input" id="editJobTitle" name="job_title">
+                <div class="form-group-modern">
+                    <label class="form-label-modern">المسمى الوظيفي</label>
+                    <input type="text" name="job_title" id="editJobTitle" class="form-input-modern">
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="editPhoneNumber">رقم الهاتف</label>
-                    <input type="tel" class="form-input" id="editPhoneNumber" name="phone_number">
+                <div class="form-group-modern">
+                    <label class="form-label-modern">رقم الهاتف</label>
+                    <input type="tel" name="phone_number" id="editPhoneNumber" class="form-input-modern">
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="editBasicSalary">الراتب الأساسي</label>
-                    <input type="number" class="form-input" id="editBasicSalary" name="basic_salary" step="0.01" min="0">
+                <div class="form-group-modern">
+                    <label class="form-label-modern">الراتب الأساسي</label>
+                    <input type="number" name="basic_salary" id="editBasicSalary" class="form-input-modern" step="0.01"
+                        min="0">
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="editStartWorkingDate">تاريخ بداية العمل</label>
-                    <input type="date" class="form-input" id="editStartWorkingDate" name="start_working_date">
+                <div class="form-group-modern">
+                    <label class="form-label-modern">تاريخ بداية العمل</label>
+                    <input type="date" name="start_working_date" id="editStartWorkingDate" class="form-input-modern">
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="editStatus">الحالة</label>
-                    <select class="form-select" id="editStatus" name="status">
+                <div class="form-group-modern">
+                    <label class="form-label-modern">الحالة</label>
+                    <select name="status" id="editStatus" class="form-select-modern">
                         <option value="Active">نشط</option>
                         <option value="Inactive">غير نشط</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="editAssignedProjects">المشاريع المخصصة</label>
-                    <div class="project-assignment">
-                        <label class="checkbox-label">
+                <div class="form-group-modern">
+                    <label class="form-label-modern">المشاريع المخصصة</label>
+                    <div style="border: 1px solid #d1d5db; border-radius: 0.5rem; padding: 1rem;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
                             <input type="checkbox" id="editAllProjects" name="all_projects">
                             جميع المشاريع
                         </label>
-                        <div id="editProjectsList" class="projects-list" style="display: none;">
+                        <div id="editProjectsList" style="display: none; margin-top: 1rem; max-height: 200px; overflow-y: auto;">
                             <!-- Projects will be loaded here -->
                         </div>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="editNotes">ملاحظات</label>
-                    <textarea class="form-textarea" id="editNotes" name="notes"></textarea>
+                <div class="form-group-modern">
+                    <label class="form-label-modern">ملاحظات</label>
+                    <textarea name="notes" id="editNotes" class="form-textarea-modern"></textarea>
                 </div>
+                <div id="editEmployeeMessage"></div>
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeEditEmployeeModal()">إلغاء</button>
-                    <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+                    <button type="submit" class="btn-modern btn-primary-modern">حفظ التعديلات</button>
+                    <button type="button" class="btn-modern btn-secondary-modern"
+                        onclick="closeModal('editEmployeeModal')">إلغاء</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- Image Modal -->
+    <div class="modal" id="imageModal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2>عرض الصورة</h2>
+                <button class="modal-close" onclick="closeModal('imageModal')">&times;</button>
+            </div>
+            <div style="padding: 1.5rem;">
+                <img id="modalImage" src="" alt="صورة" style="width: 100%; height: auto; border-radius: 0.5rem;">
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/utils/formatters.js"></script>
+    <script src="js/utils/validation.js"></script>
+    <script src="js/utils/dom.js"></script>
+    <script src="js/utils/api.js"></script>
     <script src="js/utils/modals.js"></script>
     <script src="js/utils/crud-buttons.js"></script>
     <script src="js/utils/form-protection.js"></script>
     <script src="js/utils/form-submit.js"></script>
     <script src="js/utils/auto-protect-forms.js"></script>
-    <script src="js/utils/index.js"></script>
     <script src="js/csp-fix.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/sidebar.js"></script>
     <script src="js/employee-details.js"></script>
     <script src="js/utils/loader.js"></script>
+
 </body>
 
 </html>

@@ -22,11 +22,9 @@ function getSupplierIdFromURL() {
 
 function formatCurrency(amount) {
     return Number(amount || 0).toLocaleString('ar-EG', {
-        style: 'currency',
-        currency: 'EGP',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
-    });
+    }) + ' ج.م';
 }
 
 function formatDate(dateStr) {
@@ -54,37 +52,37 @@ function renderSummary(totals) {
     const openingBalance = totals.opening_balance || 0;
 
     // Balance logic for suppliers: Positive = we owe them (مستحق للمورد), Negative = they owe us (مدفوع زائد)
-    const balanceClass = balance > 0 ? 'text-danger' : balance < 0 ? 'text-success' : '';
+    const balanceClass = balance > 0 ? 'text-error' : balance < 0 ? 'text-emerald-600' : '';
     const balanceLabel = balance > 0 ? '(مستحق للمورد)' : balance < 0 ? '(مدفوع زائد)' : '';
 
     // Adjustments logic: Positive = we owe them more (مستحق للمورد), Negative = they owe us (مدفوع زائد)
-    const adjustmentsClass = totalAdjustments > 0 ? 'text-danger' : totalAdjustments < 0 ? 'text-success' : '';
+    const adjustmentsClass = totalAdjustments > 0 ? 'text-error' : totalAdjustments < 0 ? 'text-emerald-600' : '';
     const adjustmentsLabel = totalAdjustments > 0 ? '(مستحق للمورد)' : totalAdjustments < 0 ? '(مدفوع زائد)' : '';
 
     container.innerHTML = `
-        <div class="summary-item">
-            <div class="summary-value text-danger">${formatCurrency(openingBalance)}</div>
-            <div class="summary-label">الرصيد الافتتاحي</div>
+        <div class="bg-surface-container-lowest p-6 rounded-xl border-r-4 border-slate-300 shadow-sm">
+            <p class="text-sm text-on-surface-variant mb-2 text-right">الرصيد الافتتاحي</p>
+            <p class="text-2xl font-manrope font-extrabold text-slate-900 text-right">${formatCurrency(openingBalance).replace('EGP', '').trim()} <span class="text-xs font-arabic text-slate-400">ج.م</span></p>
         </div>
-        <div class="summary-item">
-            <div class="summary-value text-danger">${formatCurrency(totals.total_due || 0)}</div>
-            <div class="summary-label">إجمالي المستحق</div>
+        <div class="bg-surface-container-lowest p-6 rounded-xl border-r-4 border-error shadow-sm">
+            <p class="text-sm text-on-surface-variant mb-2 text-right">إجمالي المستحق</p>
+            <p class="text-2xl font-manrope font-extrabold text-error text-right">${formatCurrency(totals.total_due || 0).replace('EGP', '').trim()} <span class="text-xs font-arabic text-error/50">ج.م</span></p>
         </div>
-        <div class="summary-item">
-            <div class="summary-value text-success">${formatCurrency(totals.total_paid || 0)}</div>
-            <div class="summary-label">إجمالي المدفوع</div>
+        <div class="bg-surface-container-lowest p-6 rounded-xl border-r-4 border-emerald-500 shadow-sm">
+            <p class="text-sm text-on-surface-variant mb-2 text-right">إجمالي المدفوع</p>
+            <p class="text-2xl font-manrope font-extrabold text-emerald-700 text-right">${formatCurrency(totals.total_paid || 0).replace('EGP', '').trim()} <span class="text-xs font-arabic text-emerald-600/50">ج.م</span></p>
         </div>
-        <div class="summary-item">
-            <div class="summary-value ${adjustmentsClass}">${formatCurrency(Math.abs(totalAdjustments))} <small style="font-size: 0.75rem;">${adjustmentsLabel}</small></div>
-            <div class="summary-label">إجمالي التعديلات</div>
+        <div class="bg-surface-container-lowest p-6 rounded-xl border-r-4 ${totalAdjustments >= 0 ? 'border-error' : 'border-emerald-500'} shadow-sm">
+            <p class="text-sm text-on-surface-variant mb-2 text-right">إجمالي التعديلات</p>
+            <p class="text-2xl font-manrope font-extrabold ${adjustmentsClass} text-right">${formatCurrency(Math.abs(totalAdjustments)).replace('EGP', '').trim()} <span class="text-xs font-arabic ${adjustmentsClass}/50">ج.م</span></p>
         </div>
-        <div class="summary-item">
-            <div class="summary-value">${totals.deliveries_count || 0}</div>
-            <div class="summary-label">عدد التسليمات</div>
+        <div class="bg-surface-container-lowest p-6 rounded-xl border-r-4 border-primary shadow-sm">
+            <p class="text-sm text-on-surface-variant mb-2 text-right">عدد التسليمات</p>
+            <p class="text-2xl font-manrope font-extrabold text-slate-900 text-right">${totals.deliveries_count || 0}</p>
         </div>
-        <div class="summary-item">
-            <div class="summary-value ${balanceClass}">${formatCurrency(Math.abs(balance))} <small style="font-size: 0.75rem;">${balanceLabel}</small></div>
-            <div class="summary-label">الرصيد الصافي</div>
+        <div class="${balance > 0 ? 'bg-red-900' : balance < 0 ? 'bg-green-900' : 'bg-slate-900'} p-6 rounded-xl shadow-lg">
+            <p class="text-sm ${balance > 0 ? 'text-red-300' : balance < 0 ? 'text-green-300' : 'text-slate-400'} mb-2 text-right">${balance > 0 ? 'مستحق للمورد' : balance < 0 ? 'مستحق لنا' : 'متوازن'}</p>
+            <p class="text-2xl font-manrope font-extrabold text-white text-right">${formatCurrency(Math.abs(balance)).replace('EGP', '').trim()} <span class="text-xs font-arabic text-slate-500">ج.م</span></p>
         </div>
     `;
 }
@@ -94,8 +92,8 @@ function renderMaterials(materials) {
 
     if (!materials || materials.length === 0) {
         container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon"><i class="fas fa-box"></i></div>
+            <div class="col-span-full text-center py-12 text-slate-500">
+                <span class="material-symbols-outlined text-5xl mb-4 block">inventory_2</span>
                 <div>لا توجد مواد</div>
             </div>
         `;
@@ -105,17 +103,17 @@ function renderMaterials(materials) {
     container.innerHTML = '';
     materials.forEach(material => {
         const card = document.createElement('div');
-        card.className = 'material-card';
-        card.style.position = 'relative';
+        card.className = 'bg-white p-4 rounded-xl border border-slate-100 hover:border-emerald-200 transition-all group';
         card.innerHTML = `
-            <div class="material-title">${material.name}</div>
-            <div class="material-stat">
-                <span>السعر لكل وحدة:</span>
-                <strong>${formatCurrency(material.price_per_unit)}</strong>
-            </div>
+            <p class="text-xs font-medium text-slate-500 text-right mb-1">${material.name}</p>
+            <p class="text-lg font-bold text-slate-900 text-right">${formatCurrency(material.price_per_unit).replace('EGP', '').trim()} <span class="text-[10px] text-slate-400">ج.م/وحدة</span></p>
             <div style="margin-top: 12px; display: flex; gap: 8px; justify-content: flex-end;">
-                <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="material" data-id="${material.id}" title="تعديل"><i class="fas fa-edit"></i></button>
-                <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="material" data-id="${material.id}" title="حذف"><i class="fas fa-trash"></i></button>
+                <button class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded text-xs transition-all crud-btn" data-action="edit" data-type="material" data-id="${material.id}" title="تعديل">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-600 rounded text-xs transition-all crud-btn" data-action="delete" data-type="material" data-id="${material.id}" title="حذف">
+                    <i class="fas fa-trash"></i>
+                </button>
             </div>
         `;
         container.appendChild(card);
@@ -184,21 +182,22 @@ function renderPayments(payments) {
 
     if (!payments || payments.length === 0) {
         container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon"><i class="fas fa-money-bill-wave"></i></div>
-                <div>لا توجد مدفوعات مسجلة</div>
+            <div class="empty-state-modern">
+                <i class="fas fa-money-bill-wave"></i>
+                <h3>لا توجد مدفوعات مسجلة</h3>
+                <p>لم يتم تسجيل أي مدفوعات لهذا المورد بعد</p>
             </div>
         `;
         return;
     }
 
     const table = document.createElement('table');
-    table.className = 'table';
+    table.className = 'table-modern';
 
-    // Header
+    // Header - Reduced columns
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
-    const headers = ['التاريخ', 'المبلغ', 'طريقة الدفع', 'التفاصيل', 'ملاحظات', 'الصورة', 'إجراءات'];
+    const headers = ['التاريخ', 'المبلغ', 'الطريقة', 'التفاصيل', 'إجراءات'];
 
     headers.forEach(header => {
         const th = document.createElement('th');
@@ -213,39 +212,43 @@ function renderPayments(payments) {
     payments.forEach(payment => {
         const row = document.createElement('tr');
 
-        const cells = [
-            formatDate(payment.paid_at),
-            formatCurrency(payment.amount),
-            payment.method || '-',
-            payment.details || '-',
-            payment.note || '-'
-        ];
+        // Date
+        const dateCell = document.createElement('td');
+        dateCell.textContent = formatDate(payment.paid_at);
+        row.appendChild(dateCell);
 
-        cells.forEach(cellText => {
-            const td = document.createElement('td');
-            td.textContent = cellText;
-            row.appendChild(td);
-        });
+        // Amount
+        const amountCell = document.createElement('td');
+        amountCell.textContent = formatCurrency(payment.amount);
+        amountCell.style.fontWeight = '600';
+        amountCell.style.color = 'var(--tertiary)';
+        row.appendChild(amountCell);
 
-        // Image cell
-        const imageCell = document.createElement('td');
-        if (payment.payment_image_url) {
-            imageCell.innerHTML = `
-                <button class="btn btn-sm btn-secondary" data-image="${payment.payment_image_url}" onclick="showImageModal(this.getAttribute('data-image'))" title="عرض الصورة">
-                    <i class="fas fa-image"></i> عرض
-                </button>
-            `;
-        } else {
-            imageCell.textContent = '-';
-        }
-        row.appendChild(imageCell);
+        // Method
+        const methodCell = document.createElement('td');
+        methodCell.textContent = payment.method || '-';
+        row.appendChild(methodCell);
+
+        // Details (combined details and note)
+        const detailsCell = document.createElement('td');
+        detailsCell.textContent = payment.details || payment.note || '-';
+        detailsCell.title = payment.details || payment.note || '-'; // Show full text on hover
+        row.appendChild(detailsCell);
 
         // Actions cell
         const actionsCell = document.createElement('td');
         actionsCell.innerHTML = `
-            <button class="btn btn-sm btn-secondary crud-btn" data-action="view" data-type="payment" data-id="${payment.id}" title="عرض التفاصيل"><i class="fas fa-eye"></i></button>
-            <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="payment" data-id="${payment.id}" title="تعديل"><i class="fas fa-edit"></i></button>
-            <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="payment" data-id="${payment.id}" title="حذف"><i class="fas fa-trash"></i></button>
+            <div class="action-btn-group">
+                <button class="action-btn-modern view crud-btn" data-action="view" data-type="payment" data-id="${payment.id}" title="عرض">
+                    <i class="fas fa-regular fa-image"></i>
+                </button>
+                <button class="action-btn-modern edit crud-btn" data-action="edit" data-type="payment" data-id="${payment.id}" title="تعديل">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="action-btn-modern danger crud-btn" data-action="delete" data-type="payment" data-id="${payment.id}" title="حذف">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
         `;
         row.appendChild(actionsCell);
 
@@ -262,21 +265,22 @@ function renderAdjustments(adjustments) {
 
     if (!adjustments || adjustments.length === 0) {
         container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon"><i class="fas fa-balance-scale"></i></div>
-                <div>لا توجد تسويات مسجلة</div>
+            <div class="empty-state-modern">
+                <i class="fas fa-balance-scale"></i>
+                <h3>لا توجد تسويات مسجلة</h3>
+                <p>لم يتم تسجيل أي تسويات لهذا المورد بعد</p>
             </div>
         `;
         return;
     }
 
     const table = document.createElement('table');
-    table.className = 'table';
+    table.className = 'table-modern';
 
     // Header
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
-    const headers = ['التاريخ', 'المبلغ', 'طريقة التسوية', 'التفاصيل', 'السبب', 'الصورة', 'إجراءات'];
+    const headers = ['التاريخ', 'المبلغ', 'النوع', 'السبب', 'إجراءات'];
 
     headers.forEach(header => {
         const th = document.createElement('th');
@@ -291,51 +295,46 @@ function renderAdjustments(adjustments) {
     adjustments.forEach(adjustment => {
         const row = document.createElement('tr');
 
+        // Date
+        const dateCell = document.createElement('td');
+        dateCell.textContent = formatDate(adjustment.created_at);
+        row.appendChild(dateCell);
+
+        // Amount
         const amountCell = document.createElement('td');
         const amount = adjustment.amount || 0;
+        amountCell.textContent = formatCurrency(Math.abs(amount));
+        amountCell.style.fontWeight = '600';
+        row.appendChild(amountCell);
 
-        // For suppliers: Positive adjustment = we owe them more (مستحق للمورد), Negative adjustment = they owe us (مدفوع زائد)
-        amountCell.className = amount > 0 ? 'text-danger' : amount < 0 ? 'text-success' : '';
-        const label = amount > 0 ? '(مستحق للمورد)' : amount < 0 ? '(مدفوع زائد)' : '';
-        amountCell.innerHTML = `${formatCurrency(Math.abs(amount))} <small style="font-size: 0.75rem;">${label}</small>`;
+        // Type
+        const typeCell = document.createElement('td');
+        const isAddition = amount > 0;
+        typeCell.className = isAddition ? 'text-danger' : 'text-success';
+        typeCell.textContent = isAddition ? 'إضافة (مستحق للمورد)' : 'خصم (مدفوع زائد)';
+        typeCell.style.fontWeight = '600';
+        row.appendChild(typeCell);
 
-        const cells = [
-            formatDate(adjustment.created_at),
-            amountCell,
-            adjustment.method || '-',
-            adjustment.details || '-',
-            adjustment.reason || '-'
-        ];
-
-        cells.forEach((cell, index) => {
-            if (index === 1) {
-                row.appendChild(cell);
-            } else {
-                const td = document.createElement('td');
-                td.textContent = cell;
-                row.appendChild(td);
-            }
-        });
-
-        // Image cell
-        const imageCell = document.createElement('td');
-        if (adjustment.payment_image_url) {
-            imageCell.innerHTML = `
-                <button class="btn btn-sm btn-secondary" data-image="${adjustment.payment_image_url}" onclick="showImageModal(this.getAttribute('data-image'))" title="عرض الصورة">
-                    <i class="fas fa-image"></i> عرض
-                </button>
-            `;
-        } else {
-            imageCell.textContent = '-';
-        }
-        row.appendChild(imageCell);
+        // Reason
+        const reasonCell = document.createElement('td');
+        reasonCell.textContent = adjustment.reason || '-';
+        reasonCell.title = adjustment.reason || '-';
+        row.appendChild(reasonCell);
 
         // Actions cell
         const actionsCell = document.createElement('td');
         actionsCell.innerHTML = `
-            <button class="btn btn-sm btn-secondary crud-btn" data-action="view" data-type="adjustment" data-id="${adjustment.id}" title="عرض التفاصيل"><i class="fas fa-eye"></i></button>
-            <button class="btn btn-sm btn-secondary crud-btn" data-action="edit" data-type="adjustment" data-id="${adjustment.id}" title="تعديل"><i class="fas fa-edit"></i></button>
-            <button class="btn btn-sm btn-danger crud-btn" data-action="delete" data-type="adjustment" data-id="${adjustment.id}" title="حذف"><i class="fas fa-trash"></i></button>
+            <div class="action-btn-group">
+                <button class="action-btn-modern view crud-btn" data-action="view" data-type="adjustment" data-id="${adjustment.id}" title="عرض">
+                    <i class="fas fa-regular fa-image"></i>
+                </button>
+                <button class="action-btn-modern edit crud-btn" data-action="edit" data-type="adjustment" data-id="${adjustment.id}" title="تعديل">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="action-btn-modern danger crud-btn" data-action="delete" data-type="adjustment" data-id="${adjustment.id}" title="حذف">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
         `;
         row.appendChild(actionsCell);
 
@@ -471,7 +470,10 @@ async function editMaterial(materialId) {
         form.dataset.editId = materialId;
 
         // Update modal title
-        document.querySelector('#addMaterialModal .modal-header h2').textContent = 'تعديل المادة';
+        const modalHeader = document.querySelector('#addMaterialModal .modal-header');
+        if (modalHeader) {
+            modalHeader.textContent = 'تعديل المادة';
+        }
 
         showModal('addMaterialModal');
     } catch (error) {
@@ -538,7 +540,10 @@ function resetMaterialForm() {
     delete form.dataset.editId;
 
     // Reset modal title
-    document.querySelector('#addMaterialModal .modal-header h2').textContent = 'إضافة مادة جديدة';
+    const modalHeader = document.querySelector('#addMaterialModal .modal-header');
+    if (modalHeader) {
+        modalHeader.textContent = 'إضافة مادة جديدة';
+    }
 }
 
 // CRUD Functions
@@ -897,21 +902,6 @@ function setupEventHandlers() {
         const imageGroup = document.getElementById('paymentImageGroup');
         
         if (method && method !== 'نقدي') {
-            detailsGroup.classList.remove('hidden');
-            imageGroup.classList.remove('hidden');
-        } else {
-            detailsGroup.classList.add('hidden');
-            imageGroup.classList.add('hidden');
-        }
-    });
-
-    // Adjustment method change handler - show/hide conditional fields
-    document.getElementById('adjustmentMethod').addEventListener('change', (e) => {
-        const method = e.target.value;
-        const detailsGroup = document.getElementById('adjustmentDetailsGroup');
-        const imageGroup = document.getElementById('adjustmentImageGroup');
-        
-        if (method && method !== 'نقدي' && method !== 'تعديل حسابي') {
             detailsGroup.classList.remove('hidden');
             imageGroup.classList.remove('hidden');
         } else {
@@ -1326,20 +1316,41 @@ window.toggleDateRange = function () {
     const checkbox = document.getElementById('useCustomDateRange');
     const dateInputs = document.getElementById('dateRangeInputs');
 
-    if (checkbox.checked) {
-        dateInputs.style.display = 'block';
-        const today = new Date().toISOString().split('T')[0];
-        const firstOfYear = new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0];
-        document.getElementById('statementFromDate').value = firstOfYear;
-        document.getElementById('statementToDate').value = today;
-    } else {
-        dateInputs.style.display = 'none';
+    if (checkbox && dateInputs) {
+        if (checkbox.checked) {
+            dateInputs.style.display = 'flex';
+            const today = new Date().toISOString().split('T')[0];
+            const firstOfYear = new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0];
+            const fromDate = document.getElementById('statementFromDate');
+            const toDate = document.getElementById('statementToDate');
+            if (fromDate) fromDate.value = firstOfYear;
+            if (toDate) toDate.value = today;
+        } else {
+            dateInputs.style.display = 'none';
+        }
     }
 };
 
 // Global functions for modal controls
 window.closeAddMaterialModal = () => closeModal('addMaterialModal');
 window.closeAddPaymentModal = () => closeModal('addPaymentModal');
+
+// Clear filters functions
+window.clearPaymentsFilters = function() {
+    document.getElementById('paymentsSearch').value = '';
+    document.getElementById('paymentsDateFrom').value = '';
+    document.getElementById('paymentsDateTo').value = '';
+    document.getElementById('paymentsSort').value = 'date-desc';
+    loadSupplierDetails(); // Reload to show all payments
+};
+
+window.clearAdjustmentsFilters = function() {
+    document.getElementById('adjustmentsSearch').value = '';
+    document.getElementById('adjustmentsDateFrom').value = '';
+    document.getElementById('adjustmentsDateTo').value = '';
+    document.getElementById('adjustmentsSort').value = 'date-desc';
+    loadSupplierDetails(); // Reload to show all adjustments
+};
 
 
 // ============================================================================
@@ -1381,7 +1392,7 @@ function addEditSupplierOpeningBalanceRow(existingData = null) {
     
     const row = document.createElement('div');
     row.className = 'opening-balance-row';
-    row.style.cssText = 'display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: 10px; margin-bottom: 10px; align-items: start; padding: 15px; background: var(--gray-50); border-radius: var(--radius); border: 1px solid var(--gray-200);';
+    row.style.cssText = 'display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: 12px; margin-bottom: 12px; align-items: start; padding: 16px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;';
     row.dataset.rowId = rowId;
     if (existingData && existingData.id) {
         row.dataset.balanceId = existingData.id;
@@ -1390,10 +1401,12 @@ function addEditSupplierOpeningBalanceRow(existingData = null) {
     // Project column
     const projectCol = document.createElement('div');
     const projectLabel = document.createElement('label');
-    projectLabel.style.cssText = 'display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 500;';
+    projectLabel.style.cssText = 'display: block; margin-bottom: 6px; font-size: 0.875rem; font-weight: 600; color: #334155; text-align: right;';
     projectLabel.textContent = 'في حساب (المشروع/العميل)';
     const projectSelect = document.createElement('select');
-    projectSelect.className = 'form-input supplier-opening-balance-project';
+    projectSelect.className = 'form-input';
+    projectSelect.classList.add('supplier-opening-balance-project');
+    projectSelect.style.cssText = 'width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.875rem; background: white;';
     projectSelect.required = true;
     projectSelect.innerHTML = '<option value="">اختر المشروع/العميل</option>';
     
@@ -1413,12 +1426,14 @@ function addEditSupplierOpeningBalanceRow(existingData = null) {
     // Amount column
     const amountCol = document.createElement('div');
     const amountLabel = document.createElement('label');
-    amountLabel.style.cssText = 'display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 500;';
+    amountLabel.style.cssText = 'display: block; margin-bottom: 6px; font-size: 0.875rem; font-weight: 600; color: #334155; text-align: right;';
     amountLabel.textContent = 'المبلغ';
     const amountInput = document.createElement('input');
     amountInput.type = 'number';
-    amountInput.className = 'form-input supplier-opening-balance-amount';
-    amountInput.placeholder = '0.00';
+    amountInput.className = 'form-input';
+    amountInput.classList.add('supplier-opening-balance-amount');
+    amountInput.style.cssText = 'width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.875rem;';
+    amountInput.placeholder = '0';
     amountInput.step = '0.01';
     amountInput.required = true;
     if (existingData) {
@@ -1427,7 +1442,7 @@ function addEditSupplierOpeningBalanceRow(existingData = null) {
     
     // Add help text
     const amountHelp = document.createElement('small');
-    amountHelp.style.cssText = 'display: block; margin-top: 5px; font-size: 0.75rem; color: var(--gray-600);';
+    amountHelp.style.cssText = 'display: block; margin-top: 6px; font-size: 0.75rem; color: #64748b; text-align: right;';
     amountHelp.textContent = 'موجب = نحن مدينون لهم | سالب = هم مدينون لنا';
     
     // Add event listener to show/hide project field based on amount
@@ -1437,20 +1452,20 @@ function addEditSupplierOpeningBalanceRow(existingData = null) {
             // Positive: we owe them, must select project
             projectCol.style.display = 'block';
             projectSelect.required = true;
-            amountHelp.style.color = 'var(--danger)';
+            amountHelp.style.color = '#dc2626';
             amountHelp.textContent = '⚠️ يجب تحديد المشروع/العميل للرصيد الموجب';
         } else if (amount < 0) {
             // Negative: they owe us, no project needed
             projectCol.style.display = 'none';
             projectSelect.required = false;
             projectSelect.value = '';  // Clear selection
-            amountHelp.style.color = 'var(--success)';
+            amountHelp.style.color = '#16a34a';
             amountHelp.textContent = '✓ رصيد سالب (هم مدينون لنا) - لا يحتاج مشروع';
         } else {
             projectCol.style.display = 'none';
             projectSelect.required = false;
             projectSelect.value = '';
-            amountHelp.style.color = 'var(--gray-600)';
+            amountHelp.style.color = '#64748b';
             amountHelp.textContent = 'موجب = نحن مدينون لهم | سالب = هم مدينون لنا';
         }
     });
@@ -1458,12 +1473,12 @@ function addEditSupplierOpeningBalanceRow(existingData = null) {
     // Initial state based on existing amount
     const initialAmount = parseFloat(amountInput.value) || 0;
     if (initialAmount > 0) {
-        amountHelp.style.color = 'var(--danger)';
+        amountHelp.style.color = '#dc2626';
         amountHelp.textContent = '⚠️ يجب تحديد المشروع/العميل للرصيد الموجب';
     } else if (initialAmount < 0) {
         projectCol.style.display = 'none';
         projectSelect.required = false;
-        amountHelp.style.color = 'var(--success)';
+        amountHelp.style.color = '#16a34a';
         amountHelp.textContent = '✓ رصيد سالب (هم مدينون لنا) - لا يحتاج مشروع';
     } else {
         projectCol.style.display = 'none';
@@ -1477,11 +1492,13 @@ function addEditSupplierOpeningBalanceRow(existingData = null) {
     // Description column
     const descCol = document.createElement('div');
     const descLabel = document.createElement('label');
-    descLabel.style.cssText = 'display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 500;';
+    descLabel.style.cssText = 'display: block; margin-bottom: 6px; font-size: 0.875rem; font-weight: 600; color: #334155; text-align: right;';
     descLabel.textContent = 'الوصف';
     const descInput = document.createElement('input');
     descInput.type = 'text';
-    descInput.className = 'form-input supplier-opening-balance-description';
+    descInput.className = 'form-input';
+    descInput.classList.add('supplier-opening-balance-description');
+    descInput.style.cssText = 'width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.875rem;';
     descInput.placeholder = 'وصف اختياري';
     descInput.maxLength = 500;
     if (existingData && existingData.description) {
@@ -1492,11 +1509,13 @@ function addEditSupplierOpeningBalanceRow(existingData = null) {
     
     // Delete button column
     const deleteCol = document.createElement('div');
-    deleteCol.style.paddingTop = '28px';
+    deleteCol.style.cssText = 'padding-top: 28px; display: flex; align-items: center;';
     const deleteBtn = document.createElement('button');
     deleteBtn.type = 'button';
-    deleteBtn.className = 'btn btn-sm btn-danger';
-    deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+    deleteBtn.style.cssText = 'padding: 10px 14px; background: #fee2e2; color: #dc2626; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: 0.875rem;';
+    deleteBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size: 18px;">delete</span>';
+    deleteBtn.onmouseover = () => deleteBtn.style.background = '#fecaca';
+    deleteBtn.onmouseout = () => deleteBtn.style.background = '#fee2e2';
     deleteBtn.onclick = () => row.remove();
     deleteCol.appendChild(deleteBtn);
     

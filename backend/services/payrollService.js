@@ -124,7 +124,7 @@ class PayrollService {
                     transformedRecord.worked_days = transformedRecord.working_days;
                 }
 
-                // Handle old absence_days logic
+                // Handle old absence_days logic and recalculate worked_days for absence records
                 if (!transformedRecord.record_type) {
                     if (transformedRecord.absence_days > 0) {
                         transformedRecord.record_type = 'absence';
@@ -135,6 +135,9 @@ class PayrollService {
                             transformedRecord.worked_days = transformedRecord.period_days;
                         }
                     }
+                } else if (transformedRecord.record_type === 'absence' && transformedRecord.absence_days !== null && transformedRecord.absence_days !== undefined) {
+                    // CRITICAL FIX: Always recalculate worked_days for absence records
+                    transformedRecord.worked_days = transformedRecord.period_days - transformedRecord.absence_days;
                 }
 
                 // Add to totals for display purposes
@@ -175,7 +178,7 @@ class PayrollService {
                 transformedRecord.worked_days = transformedRecord.working_days;
             }
 
-            // Handle old absence_days logic
+            // Handle old absence_days logic and recalculate worked_days for absence records
             if (!transformedRecord.record_type) {
                 if (transformedRecord.absence_days > 0) {
                     transformedRecord.record_type = 'absence';
@@ -187,6 +190,10 @@ class PayrollService {
                         transformedRecord.worked_days = transformedRecord.period_days;
                     }
                 }
+            } else if (transformedRecord.record_type === 'absence' && transformedRecord.absence_days !== null && transformedRecord.absence_days !== undefined) {
+                // CRITICAL FIX: Always recalculate worked_days for absence records
+                // This fixes cases where worked_days was incorrectly stored as absence_days
+                transformedRecord.worked_days = transformedRecord.period_days - transformedRecord.absence_days;
             }
 
             // Validate the transformed record

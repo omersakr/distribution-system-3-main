@@ -37,7 +37,8 @@ async function loadProjectDetails() {
         'generalExpensesCard',
         'netOperatingProfitCard',
         'netOpeningBalanceCard',
-        'finalFinancialPositionCard'
+        'finalFinancialPositionCard',
+        'cashPositionCard'
     ];
 
     cardIds.forEach(cardId => {
@@ -79,25 +80,50 @@ async function loadProjectDetails() {
 }
 
 function displayClientInfo(client) {
-    document.getElementById('projectName').textContent = `المشروع المالي: ${client.name}`;
+    document.getElementById('projectName').textContent = client.name;
+    
+    // Update created date
+    const createdDateEl = document.getElementById('projectCreatedDate');
+    if (createdDateEl) {
+        createdDateEl.innerHTML = `
+            <span class="material-symbols-outlined text-sm">calendar_today</span>
+            تاريخ الإنشاء: ${formatDate(client.created_at)}
+        `;
+    }
 
-    const infoContainer = document.getElementById('clientInfo');
-    infoContainer.innerHTML = `
-        <div class="info-item">
-            <span class="info-label">اسم العميل:</span>
-            <span class="info-value">${client.name}</span>
+    // Update client info banner
+    const banner = document.getElementById('clientInfoBanner');
+    const openingBalanceClass = (client.opening_balance || 0) < 0 ? 'text-error-container' : 'text-tertiary-fixed';
+    const openingBalanceText = (client.opening_balance || 0) < 0 
+        ? `${formatCurrency(Math.abs(client.opening_balance || 0))}- ج.م` 
+        : `${formatCurrency(client.opening_balance || 0)} ج.م`;
+    
+    banner.innerHTML = `
+        <div class="flex items-center gap-6">
+            <div class="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md">
+                <span class="material-symbols-outlined text-3xl">person</span>
+            </div>
+            <div>
+                <h4 class="font-arabic text-xl font-bold">بيانات العميل الأساسية</h4>
+                <p class="text-white/70 font-arabic text-sm">${client.name} - عميل مميز</p>
+            </div>
         </div>
-        <div class="info-item">
-            <span class="info-label">رقم الهاتف:</span>
-            <span class="info-value">${client.phone || '—'}</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label">الرصيد الافتتاحي:</span>
-            <span class="info-value">${formatCurrency(client.opening_balance || 0)}</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label">تاريخ الإنشاء:</span>
-            <span class="info-value">${formatDate(client.created_at)}</span>
+        <div class="flex gap-12 ml-12">
+            <div>
+                <p class="text-white/60 text-[10px] font-arabic uppercase mb-1">رقم الهاتف</p>
+                <p class="font-headline font-bold">${client.phone || '—'}</p>
+            </div>
+            <div>
+                <p class="text-white/60 text-[10px] font-arabic uppercase mb-1">الرصيد الافتتاحي</p>
+                <p class="font-headline font-bold ${openingBalanceClass}">${openingBalanceText}</p>
+            </div>
+            <div>
+                <p class="text-white/60 text-[10px] font-arabic uppercase mb-1">الحالة</p>
+                <p class="font-arabic font-bold flex items-center gap-1">
+                    <span class="w-2 h-2 bg-tertiary-fixed rounded-full"></span>
+                    نشط
+                </p>
+            </div>
         </div>
     `;
 }
@@ -119,10 +145,16 @@ async function displayDetailedFinancialCards() {
             const matchingProject = projects.find(p => String(p.client_id) === String(currentClientId));
             if (matchingProject) {
                 projectId = matchingProject.id;
-                console.log('<i class="fas fa-clipboard"></i> Found matching Project for this Client:', projectId);
+                console.log('✅ Found matching Project for this Client:', projectId);
+            } else {
+                // Fallback: use currentClientId as projectId
+                projectId = currentClientId;
+                console.log('⚠️ No matching Project found, using Client ID as Project ID:', projectId);
             }
         } catch (error) {
             console.error('Error finding matching project:', error);
+            // Fallback: use currentClientId as projectId
+            projectId = currentClientId;
         }
 
         let materialCosts = 0;
@@ -215,27 +247,27 @@ async function displayDetailedFinancialCards() {
                     });
 
                     if (isAssignedToProject) {
-                        // Use earned salary, not just payments
+                        // Use actual payments, not earned salary
                         const totals = empDetailsData.totals || {};
-                        const earnedSalary = totals.total_earned_salary || 0;
+                        const totalPayments = totals.total_payments || 0;
 
-                        // If employee works on multiple projects, divide salary proportionally
+                        // If employee works on multiple projects, divide payments proportionally
                         if (worksOnAllProjects) {
-                            // Get total number of active projects to divide salary
-                            const projectsData = await apiGet('/projects');
-                            const activeProjects = (projectsData.projects || []).length;
+                            // Get total number of active projects (clients) to divide payments
+                            const clientsData = await apiGet('/clients');
+                            const activeProjects = (clientsData.clients || []).length;
                             if (activeProjects > 0) {
-                                salaries += earnedSalary / activeProjects;
+                                salaries += totalPayments / activeProjects;
                             }
                         } else if (assignedProjects.length > 1) {
                             // Divide by number of assigned projects
-                            salaries += earnedSalary / assignedProjects.length;
+                            salaries += totalPayments / assignedProjects.length;
                         } else {
                             // Employee works only on this project
-                            salaries += earnedSalary;
+                            salaries += totalPayments;
                         }
 
-                        console.log(`Employee ${empDetails.name}: earned=${earnedSalary}, projects=${assignedProjects.length || 'all'}`);
+                        console.log(`Employee ${empDetails.name}: payments=${totalPayments}, projects=${assignedProjects.length || 'all'}`);
                     }
                 } catch (error) {
                     console.error(`Error loading employee ${employee.id} details:`, error);
@@ -340,8 +372,13 @@ async function displayDetailedFinancialCards() {
         const operatingResult = totalRevenue - totalCosts;
         const netProfit = operatingResult - totalExpenses;
 
-        // Net Opening Balance: positive entity balances mean we owe them (subtract from client balance)
-        // If client balance is positive (they owe us) and entity balances are positive (we owe them), net is client - entities
+        // Net Opening Balance calculation:
+        // Client positive = they owe us (add to our position)
+        // Crusher/Supplier positive = we owe them (subtract from our position)
+        // Contractor positive = we owe them (subtract from our position)
+        // Contractor negative = they owe us (add to our position)
+        // Formula: client balance - (crusher + contractor + supplier balances)
+        // This correctly handles negative contractor balances
         const netOpeningBalance = clientOpeningBalance - totalCrusherOpeningBalances - totalContractorOpeningBalances - totalSupplierOpeningBalances;
 
         console.log('═══════════════════════════════════════════════════════');
@@ -384,8 +421,8 @@ async function displayDetailedFinancialCards() {
         const finalFinancialPosition = netProfit + netOpeningBalance + totalAdjustments;
         console.log('  Final Financial Position (Net Profit + Net Opening Balance + Adjustments):', finalFinancialPosition);
 
-        // Net Capital Position = Paid-in Capital - (clientOpeningBalance + Materials + contractor costs + totalExpenses)
-        const netCapitalPosition = totalCapitalInjections - (clientOpeningBalance + materialCosts + contractorCosts + totalExpenses);
+        // Net Capital Position = Paid-in Capital - (|clientOpeningBalance| + Materials + contractor costs + totalExpenses)
+        const netCapitalPosition = totalCapitalInjections - (Math.abs(clientOpeningBalance) + materialCosts + contractorCosts + totalExpenses);
         console.log('  Net Capital Position (Capital - Client Opening - Materials - Contractors - Expenses):', netCapitalPosition);
 
         // Net Profit/Loss Upon Settlement = Final Financial Position - Total Payments
@@ -407,152 +444,298 @@ async function displayDetailedFinancialCards() {
             capitalStatus = 'متوازن'; // Balanced
         }
 
-        // Card 1: Capital Position
-        // Shows how capital was used vs what was injected
-        // All items except capital injection are expenses (reduce capital)
+        // Card 1: Capital Position (موقف رأس المال)
         document.getElementById('capitalCard').innerHTML = `
-            <div class="card-line revenue">
-                <span class="card-line-value positive">${formatCurrency(totalCapitalInjections)}</span>
-                <span class="card-line-label">رأس المال المدفوع</span>
+            <div class="flex justify-between text-sm mb-2">
+                <span class="font-arabic text-on-surface-variant">رأس المال المدفوع:</span>
+                <span class="font-headline font-bold text-base text-success">${formatCurrency(totalCapitalInjections)}</span>
             </div>
-            <div class="card-line expense">
-                <span class="card-line-value negative">${formatCurrency(Math.abs(clientOpeningBalance))}</span>
-                <span class="card-line-label">الرصيد الافتتاحي للعميل</span>
+            <div class="flex justify-between text-sm mb-2">
+                <span class="font-arabic text-on-surface-variant">رصيد افتتاحي:</span>
+                <span class="font-headline font-bold text-base text-error">-${formatCurrency(Math.abs(clientOpeningBalance))}</span>
             </div>
-            <div class="card-line expense">
-                <span class="card-line-value negative">${formatCurrency(materialCosts)}</span>
-                <span class="card-line-label">تكلفة المواد</span>
+            <div class="flex justify-between text-sm mb-2">
+                <span class="font-arabic text-on-surface-variant">تكلفة مواد:</span>
+                <span class="font-headline font-bold text-base text-error">-${formatCurrency(materialCosts)}</span>
             </div>
-            <div class="card-line expense">
-                <span class="card-line-value negative">${formatCurrency(contractorCosts)}</span>
-                <span class="card-line-label">تكلفة المقاولين</span>
+            <div class="flex justify-between text-sm mb-2">
+                <span class="font-arabic text-on-surface-variant">تكلفة مقاولين:</span>
+                <span class="font-headline font-bold text-base text-error">-${formatCurrency(contractorCosts)}</span>
             </div>
-            <div class="card-line expense">
-                <span class="card-line-value negative">${formatCurrency(totalExpenses)}</span>
-                <span class="card-line-label">المصروفات العامة</span>
+            <div class="flex justify-between text-sm mb-2">
+                <span class="font-arabic text-on-surface-variant">مصروفات عامة:</span>
+                <span class="font-headline font-bold text-base text-error">-${formatCurrency(totalExpenses)}</span>
             </div>
-            <div class="card-line total">
-                <span class="card-line-value ${netCapitalPosition >= 0 ? 'positive' : 'negative'}">${formatCurrency(Math.abs(netCapitalPosition))} (${capitalStatus})</span>
-                <span class="card-line-label">صافي موقف رأس المال</span>
+            <div class="pt-3 border-t border-outline-variant/20 flex justify-between items-center ${netCapitalPosition >= 0 ? 'text-success' : 'text-error'}">
+                <span class="font-arabic font-bold text-base">${netCapitalPosition >= 0 ? 'فائض رأس المال' : 'عجز رأس المال'}</span>
+                <span class="font-headline font-extrabold text-2xl">${netCapitalPosition >= 0 ? '' : ''}${formatCurrency(netCapitalPosition)} <span class="text-xs">ج.م</span></span>
             </div>
         `;
 
-        // Card 2: Operating Result
+        // Card 2: Operating Result (نتيجة التشغيل)
         document.getElementById('operatingResultCard').innerHTML = `
-            <div class="card-line revenue">
-                <span class="card-line-value positive">${formatCurrency(totalRevenue)}</span>
-                <span class="card-line-label">إجمالي الإيرادات</span>
+            <div class="flex justify-between text-sm mb-2">
+                <span class="text-on-surface-variant font-arabic">إجمالي الإيرادات</span>
+                <span class="font-headline font-bold text-base">${formatCurrency(totalRevenue)}</span>
             </div>
-            <div class="card-line expense">
-                <span class="card-line-value negative">${formatCurrency(materialCosts)}</span>
-                <span class="card-line-label">تكلفة المواد</span>
+            <div class="flex justify-between text-sm mb-2">
+                <span class="text-on-surface-variant font-arabic">تكلفة المواد</span>
+                <span class="font-headline font-bold text-base">${formatCurrency(materialCosts)}</span>
             </div>
-            <div class="card-line expense">
-                <span class="card-line-value negative">${formatCurrency(contractorCosts)}</span>
-                <span class="card-line-label">تكلفة المقاولين</span>
+            <div class="flex justify-between text-sm mb-2">
+                <span class="text-on-surface-variant font-arabic">تكلفة المقاولين</span>
+                <span class="font-headline font-bold text-base">${formatCurrency(contractorCosts)}</span>
             </div>
-            <div class="card-line total">
-                <span class="card-line-value ${operatingResult >= 0 ? 'positive' : 'negative'}">${formatCurrency(Math.abs(operatingResult))}</span>
-                <span class="card-line-label">نتيجة التشغيل</span>
+            <div class="pt-3 border-t border-outline-variant/20 flex justify-between items-center text-tertiary">
+                <span class="font-arabic font-bold text-base">نتيجة التشغيل</span>
+                <span class="font-headline font-extrabold text-2xl">${formatCurrency(Math.abs(operatingResult))}</span>
             </div>
         `;
 
-        // Card 3: General Expenses
+        // Card 3: General Expenses (المصروفات العامة)
         document.getElementById('generalExpensesCard').innerHTML = `
-            <div class="card-line expense">
-                <span class="card-line-value negative">${formatCurrency(administrativeExpenses)}</span>
-                <span class="card-line-label">المصروفات الإدارية</span>
+            <div class="flex justify-between text-sm mb-2">
+                <span class="text-on-surface-variant font-arabic">المصروفات الإدارية</span>
+                <span class="font-headline font-bold text-base">${formatCurrency(administrativeExpenses)}</span>
             </div>
-            <div class="card-line expense">
-                <span class="card-line-value negative">${formatCurrency(salaries)}</span>
-                <span class="card-line-label">الرواتب</span>
+            <div class="flex justify-between text-sm mb-2">
+                <span class="text-on-surface-variant font-arabic">الرواتب</span>
+                <span class="font-headline font-bold text-base">${formatCurrency(salaries)}</span>
             </div>
-            <div class="card-line expense">
-                <span class="card-line-value negative">${formatCurrency(operationalExpenses)}</span>
-                <span class="card-line-label">المصروفات التشغيلية</span>
+            <div class="flex justify-between text-sm mb-2">
+                <span class="text-on-surface-variant font-arabic">المصروفات التشغيلية</span>
+                <span class="font-headline font-bold text-base">${formatCurrency(operationalExpenses)}</span>
             </div>
-            <div class="card-line total">
-                <span class="card-line-value negative">${formatCurrency(totalExpenses)}</span>
-                <span class="card-line-label">إجمالي المصروفات العامة</span>
+            <div class="pt-3 border-t border-outline-variant/20 flex justify-between items-center text-primary">
+                <span class="font-arabic font-bold text-base">إجمالي المصروفات</span>
+                <span class="font-headline font-extrabold text-2xl">${formatCurrency(totalExpenses)} <span class="text-xs">ج.م</span></span>
             </div>
         `;
 
-        // Card 4: Net Operating Profit
+        // Card 4: Net Operating Profit (صافي الربح التشغيلي)
         document.getElementById('netOperatingProfitCard').innerHTML = `
-            <div class="card-line ${operatingResult >= 0 ? 'revenue' : 'expense'}">
-                <span class="card-line-value ${operatingResult >= 0 ? 'positive' : 'negative'}">${formatCurrency(Math.abs(operatingResult))}</span>
-                <span class="card-line-label">نتيجة التشغيل</span>
+            <div class="space-y-3 mb-6">
+                <div class="flex justify-between text-sm">
+                    <span class="font-arabic text-on-surface-variant">نتيجة التشغيل</span>
+                    <span class="font-headline font-bold text-base">${formatCurrency(Math.abs(operatingResult))}</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="font-arabic text-on-surface-variant">إجمالي المصروفات العامة</span>
+                    <span class="font-headline font-bold text-base">${formatCurrency(totalExpenses)}</span>
+                </div>
             </div>
-            <div class="card-line expense">
-                <span class="card-line-value negative">${formatCurrency(totalExpenses)}</span>
-                <span class="card-line-label">إجمالي المصروفات العامة</span>
-            </div>
-            <div class="card-line total">
-                <span class="card-line-value ${netProfit >= 0 ? 'positive' : 'negative'}">${formatCurrency(Math.abs(netProfit))}</span>
-                <span class="card-line-label">صافي الربح التشغيلي</span>
+            <div class="pt-4 border-t-2 border-dashed border-outline-variant/30 flex flex-col items-center gap-1">
+                <span class="font-arabic text-xs text-on-surface-variant">إجمالي الربح المحقق</span>
+                <span class="font-headline font-extrabold text-4xl text-tertiary">${formatCurrency(Math.abs(netProfit))} <span class="text-base font-arabic">ج.م</span></span>
             </div>
         `;
 
-        // Card 5: Net Opening Balance
+        // Card 5: Net Opening Balance (صافي الرصيد الافتتاحي)
         document.getElementById('netOpeningBalanceCard').innerHTML = `
-            <div class="card-line ${clientOpeningBalance >= 0 ? 'revenue' : 'expense'}">
-                <span class="card-line-value ${clientOpeningBalance >= 0 ? 'positive' : 'negative'}">${formatCurrency(Math.abs(clientOpeningBalance))}</span>
-                <span class="card-line-label">رصيد العميل الافتتاحي</span>
+            <div class="grid grid-cols-1 gap-2 mb-4">
+                <div class="flex justify-between text-sm px-2 py-1 rounded hover:bg-surface-container-low transition-colors">
+                    <span class="font-arabic text-on-surface-variant">رصيد العميل الافتتاحي</span>
+                    <span class="font-headline font-bold text-base ${clientOpeningBalance >= 0 ? 'text-success' : 'text-error'}">${clientOpeningBalance >= 0 ? '' : ''}${formatCurrency(clientOpeningBalance)}</span>
+                </div>
+                <div class="flex justify-between text-sm px-2 py-1 rounded hover:bg-surface-container-low transition-colors">
+                    <span class="font-arabic text-on-surface-variant">أرصدة الكسارات</span>
+                    <span class="font-headline font-bold text-base text-error">-${formatCurrency(Math.abs(totalCrusherOpeningBalances))}</span>
+                </div>
+                <div class="flex justify-between text-sm px-2 py-1 rounded hover:bg-surface-container-low transition-colors">
+                    <span class="font-arabic text-on-surface-variant">أرصدة المقاولين</span>
+                    <span class="font-headline font-bold text-base text-error">-${formatCurrency(Math.abs(totalContractorOpeningBalances))}</span>
+                </div>
+                <div class="flex justify-between text-sm px-2 py-1 rounded hover:bg-surface-container-low transition-colors">
+                    <span class="font-arabic text-on-surface-variant">أرصدة الموردين</span>
+                    <span class="font-headline font-bold text-base text-error">-${formatCurrency(Math.abs(totalSupplierOpeningBalances))}</span>
+                </div>
             </div>
-            <div class="card-line ${totalCrusherOpeningBalances >= 0 ? 'expense' : 'revenue'}">
-                <span class="card-line-value ${totalCrusherOpeningBalances >= 0 ? 'negative' : 'positive'}">${formatCurrency(Math.abs(totalCrusherOpeningBalances))}</span>
-                <span class="card-line-label">أرصدة الكسارات</span>
-            </div>
-            <div class="card-line ${totalContractorOpeningBalances >= 0 ? 'expense' : 'revenue'}">
-                <span class="card-line-value ${totalContractorOpeningBalances >= 0 ? 'negative' : 'positive'}">${formatCurrency(Math.abs(totalContractorOpeningBalances))}</span>
-                <span class="card-line-label">أرصدة المقاولين</span>
-            </div>
-            <div class="card-line ${totalSupplierOpeningBalances >= 0 ? 'expense' : 'revenue'}">
-                <span class="card-line-value ${totalSupplierOpeningBalances >= 0 ? 'negative' : 'positive'}">${formatCurrency(Math.abs(totalSupplierOpeningBalances))}</span>
-                <span class="card-line-label">أرصدة الموردين</span>
-            </div>
-            <div class="card-line total">
-                <span class="card-line-value ${netOpeningBalance >= 0 ? 'positive' : 'negative'}">${formatCurrency(Math.abs(netOpeningBalance))}</span>
-                <span class="card-line-label">صافي الرصيد الافتتاحي</span>
+            <div class="pt-3 border-t border-outline-variant/20 flex justify-between items-center ${netOpeningBalance >= 0 ? 'text-success' : 'text-error'}">
+                <span class="font-arabic font-bold text-base">الصافي الإجمالي</span>
+                <span class="font-headline font-extrabold text-2xl">${netOpeningBalance >= 0 ? '' : ''}${formatCurrency(netOpeningBalance)} <span class="text-xs">ج.م</span></span>
             </div>
         `;
 
-        // Card 6: Final Financial Position
-        // Note: In this card, we show the COMPOSITION of final position
-        // Positive net profit = good (green), negative = bad (red)
-        // Positive opening balance = good (green), negative = bad (red)
-        // Positive adjustments = good (green), negative = bad (red)
-        // Final position: positive = good (green), negative = bad (red)
-        // Payments are always expenses (red)
-        // Net profit/loss upon settlement: positive = profit (green), negative = loss (red)
+        // Card 6: Final Financial Position (الموقف المالي النهائي)
         document.getElementById('finalFinancialPositionCard').innerHTML = `
-            <div class="card-line ${netProfit >= 0 ? 'revenue' : 'expense'}">
-                <span class="card-line-value ${netProfit >= 0 ? 'positive' : 'negative'}">${formatCurrency(Math.abs(netProfit))}</span>
-                <span class="card-line-label">${netProfit >= 0 ? 'صافي الربح التشغيلي' : 'صافي الخسارة التشغيلية'}</span>
+            <div class="space-y-2 text-sm mb-4">
+                <div class="flex justify-between">
+                    <span class="font-arabic text-on-surface-variant">${netProfit >= 0 ? 'صافي ربح تشغيلي' : 'صافي خسارة تشغيلية'}</span>
+                    <span class="font-headline font-bold text-base ${netProfit >= 0 ? 'text-success' : 'text-error'}">${netProfit >= 0 ? '' : ''}${formatCurrency(netProfit)}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="font-arabic text-on-surface-variant">صافي رصيد افتتاحي</span>
+                    <span class="font-headline font-bold text-base ${netOpeningBalance >= 0 ? 'text-success' : 'text-error'}">${netOpeningBalance >= 0 ? '' : ''}${formatCurrency(netOpeningBalance)}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="font-arabic text-on-surface-variant">إجمالي التسويات</span>
+                    <span class="font-headline font-bold text-base ${totalAdjustments >= 0 ? 'text-success' : 'text-error'}">${totalAdjustments >= 0 ? '' : ''}${formatCurrency(totalAdjustments)}</span>
+                </div>
             </div>
-            <div class="card-line ${netOpeningBalance >= 0 ? 'revenue' : 'expense'}">
-                <span class="card-line-value ${netOpeningBalance >= 0 ? 'positive' : 'negative'}">${formatCurrency(Math.abs(netOpeningBalance))}</span>
-                <span class="card-line-label">صافي الرصيد الافتتاحي</span>
+            <div class="bg-primary/5 p-3 rounded-lg flex justify-between items-center ${finalFinancialPosition >= 0 ? 'text-success' : 'text-error'}">
+                <span class="font-arabic font-bold text-base">الموقف المالي (استحقاق)</span>
+                <span class="font-headline font-extrabold text-2xl">${finalFinancialPosition >= 0 ? '' : ''}${formatCurrency(finalFinancialPosition)} <span class="text-xs">ج.م</span></span>
             </div>
-            <div class="card-line ${totalAdjustments >= 0 ? 'revenue' : 'expense'}">
-                <span class="card-line-value ${totalAdjustments >= 0 ? 'positive' : 'negative'}">${formatCurrency(Math.abs(totalAdjustments))}</span>
-                <span class="card-line-label">إجمالي التسويات</span>
+        `;
+
+        // Card 7: Cash Position (الموقف النقدي الفعلي)
+        // Calculate actual cash position by adjusting for unpaid balances
+        const clientBalance = totals.balance || 0; // Positive = client owes us (we haven't collected)
+        
+        // Get entity balances (positive = we owe them, negative = they owe us)
+        let crusherBalances = 0;
+        let supplierBalances = 0;
+        let contractorBalances = 0;
+        let employeeBalances = 0;
+        
+        // Track overpayments (money we paid extra - owed to us)
+        let crusherOverpayments = 0;
+        let supplierOverpayments = 0;
+        let contractorOverpayments = 0;
+        let employeeOverpayments = 0;
+
+        try {
+            // Get crusher balances
+            const crushersData = await apiGet('/crushers');
+            const crushers = crushersData.crushers || [];
+            for (const crusher of crushers) {
+                try {
+                    const crusherDetails = await apiGet(`/crushers/${crusher.id}`);
+                    const crusherTotals = crusherDetails.totals || {};
+                    const net = crusherTotals.net || 0;
+                    if (net > 0) {
+                        crusherBalances += net; // Money we owe them
+                    } else if (net < 0) {
+                        crusherOverpayments += Math.abs(net); // Money they owe us
+                    }
+                } catch (err) {
+                    console.error(`Error loading crusher ${crusher.id}:`, err);
+                }
+            }
+
+            // Get supplier balances
+            const suppliersData = await apiGet('/suppliers');
+            const suppliers = suppliersData.suppliers || [];
+            for (const supplier of suppliers) {
+                try {
+                    const supplierDetails = await apiGet(`/suppliers/${supplier.id}`);
+                    const supplierTotals = supplierDetails.totals || {};
+                    const balance = supplierTotals.balance || 0;
+                    if (balance > 0) {
+                        supplierBalances += balance; // Money we owe them
+                    } else if (balance < 0) {
+                        supplierOverpayments += Math.abs(balance); // Money they owe us
+                    }
+                } catch (err) {
+                    console.error(`Error loading supplier ${supplier.id}:`, err);
+                }
+            }
+
+            // Get contractor balances
+            const contractorsData = await apiGet('/contractors');
+            const contractors = contractorsData.contractors || [];
+            for (const contractor of contractors) {
+                try {
+                    const contractorDetails = await apiGet(`/contractors/${contractor.id}`);
+                    const contractorTotals = contractorDetails.totals || {};
+                    const balance = contractorTotals.balance || 0;
+                    if (balance > 0) {
+                        contractorBalances += balance; // Money we owe them
+                    } else if (balance < 0) {
+                        contractorOverpayments += Math.abs(balance); // Money they owe us
+                    }
+                } catch (err) {
+                    console.error(`Error loading contractor ${contractor.id}:`, err);
+                }
+            }
+
+            // Get employee balances
+            const employeesData = await apiGet('/employees');
+            const employees = employeesData.employees || [];
+            for (const employee of employees) {
+                try {
+                    const employeeDetails = await apiGet(`/employees/${employee.id}`);
+                    const employeeTotals = employeeDetails.totals || {};
+                    const balance = employeeTotals.balance || 0;
+                    if (balance < 0) {
+                        employeeBalances += Math.abs(balance); // Money we owe them
+                    } else if (balance > 0) {
+                        employeeOverpayments += balance; // Money they owe us
+                    }
+                } catch (err) {
+                    console.error(`Error loading employee ${employee.id}:`, err);
+                }
+            }
+        } catch (error) {
+            console.error('Error loading entity balances:', error);
+        }
+
+        // Cash Position = Financial Position - unpaid debts + money we still have (haven't paid yet)
+        // Subtract: money we haven't collected from clients (reduces our cash)
+        // Add: money we owe but haven't paid yet (still in our hands)
+        // Add: overpayments (money entities owe us - already paid extra)
+        const totalDebts = crusherBalances + supplierBalances + contractorBalances + employeeBalances;
+        const totalOverpayments = crusherOverpayments + supplierOverpayments + contractorOverpayments + employeeOverpayments;
+        const cashPosition = finalFinancialPosition - clientBalance + totalDebts + totalOverpayments;
+        const difference = finalFinancialPosition - cashPosition;
+
+        document.getElementById('cashPositionCard').innerHTML = `
+            <div class="space-y-2 text-sm mb-4">
+                <div class="flex justify-between">
+                    <span class="font-arabic text-on-surface-variant">الموقف المالي (استحقاق)</span>
+                    <span class="font-headline font-bold text-base">${formatCurrency(finalFinancialPosition)}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="font-arabic text-on-surface-variant">ديون العميل (لم تُحصّل)</span>
+                    <span class="font-headline font-bold text-base text-error">-${formatCurrency(clientBalance)}</span>
+                </div>
+                ${crusherBalances > 0 ? `
+                <div class="flex justify-between">
+                    <span class="font-arabic text-on-surface-variant">ديون الكسارات (لم تُدفع)</span>
+                    <span class="font-headline font-bold text-base text-success">${formatCurrency(crusherBalances)}</span>
+                </div>` : ''}
+                ${crusherOverpayments > 0 ? `
+                <div class="flex justify-between">
+                    <span class="font-arabic text-on-surface-variant">فلوس زيادة للكسارات (لنا)</span>
+                    <span class="font-headline font-bold text-base text-success">${formatCurrency(crusherOverpayments)}</span>
+                </div>` : ''}
+                ${supplierBalances > 0 ? `
+                <div class="flex justify-between">
+                    <span class="font-arabic text-on-surface-variant">ديون الموردين (لم تُدفع)</span>
+                    <span class="font-headline font-bold text-base text-success">${formatCurrency(supplierBalances)}</span>
+                </div>` : ''}
+                ${supplierOverpayments > 0 ? `
+                <div class="flex justify-between">
+                    <span class="font-arabic text-on-surface-variant">فلوس زيادة للموردين (لنا)</span>
+                    <span class="font-headline font-bold text-base text-success">${formatCurrency(supplierOverpayments)}</span>
+                </div>` : ''}
+                ${contractorBalances > 0 ? `
+                <div class="flex justify-between">
+                    <span class="font-arabic text-on-surface-variant">ديون المقاولين (لم تُدفع)</span>
+                    <span class="font-headline font-bold text-base text-success">${formatCurrency(contractorBalances)}</span>
+                </div>` : ''}
+                ${contractorOverpayments > 0 ? `
+                <div class="flex justify-between">
+                    <span class="font-arabic text-on-surface-variant">فلوس زيادة للمقاولين (لنا)</span>
+                    <span class="font-headline font-bold text-base text-success">${formatCurrency(contractorOverpayments)}</span>
+                </div>` : ''}
+                ${employeeBalances > 0 ? `
+                <div class="flex justify-between">
+                    <span class="font-arabic text-on-surface-variant">ديون الموظفين (لم تُدفع)</span>
+                    <span class="font-headline font-bold text-base text-success">${formatCurrency(employeeBalances)}</span>
+                </div>` : ''}
+                ${employeeOverpayments > 0 ? `
+                <div class="flex justify-between">
+                    <span class="font-arabic text-on-surface-variant">فلوس زيادة للموظفين (لنا)</span>
+                    <span class="font-headline font-bold text-base text-success">${formatCurrency(employeeOverpayments)}</span>
+                </div>` : ''}
             </div>
-            <div class="card-line ${finalFinancialPosition >= 0 ? 'revenue' : 'expense'} highlight">
-                <span class="card-line-value ${finalFinancialPosition >= 0 ? 'positive' : 'negative'}">${formatCurrency(Math.abs(finalFinancialPosition))}</span>
-                <span class="card-line-label">الموقف المالي النهائي للمشروع</span>
+            <div class="bg-tertiary/10 p-3 rounded-lg flex justify-between items-center ${cashPosition >= 0 ? 'text-success' : 'text-error'}">
+                <span class="font-arabic font-bold text-base">الموقف النقدي الفعلي</span>
+                <span class="font-headline font-extrabold text-2xl">${cashPosition >= 0 ? '' : ''}${formatCurrency(cashPosition)} <span class="text-xs">ج.م</span></span>
             </div>
-            <div class="card-line expense">
-                <span class="card-line-value negative">${formatCurrency(totalPayments)}</span>
-                <span class="card-line-label">إجمالي المدفوعات</span>
-            </div>
-            <div class="card-line total">
-                <span class="card-line-value ${netProfitLossUponSettlement >= 0 ? 'positive' : 'negative'}">${formatCurrency(Math.abs(netProfitLossUponSettlement))}</span>
-                <span class="card-line-label">${netProfitLossUponSettlement >= 0 ? 'صافي الربح عند السداد' : 'الخسارة عند السداد'}</span>
-            </div>
-            <div class="card-line total">
-                <span class="card-line-value ${due >= 0 ? 'positive' : 'negative'}">${formatCurrency(Math.abs(due))}</span>
-                <span class="card-line-label">المستحق</span>
+            <div class="mt-2 text-center text-xs text-on-surface-variant font-arabic">
+                الفرق: ${formatCurrency(Math.abs(difference))} ج.م (${difference >= 0 ? 'ديون لنا' : 'ديون علينا'})
             </div>
         `;
 
@@ -578,18 +761,23 @@ function displayExpenses(expenses) {
     if (!expenses || expenses.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="4" class="empty-state">لا توجد مصروفات مرتبطة بهذا المشروع</td>
+                <td colspan="4" class="px-4 py-12 text-center">
+                    <div class="flex flex-col items-center opacity-40">
+                        <span class="material-symbols-outlined text-4xl mb-2">inbox</span>
+                        <p class="font-arabic text-sm">لا توجد مصروفات مرتبطة بهذا المشروع</p>
+                    </div>
+                </td>
             </tr>
         `;
         return;
     }
 
     tbody.innerHTML = expenses.map(expense => `
-        <tr>
-            <td>${formatDateShort(expense.expense_date || expense.date)}</td>
-            <td>${expense.description || '—'}</td>
-            <td>${formatCurrency(expense.amount)}</td>
-            <td>${expense.notes || '—'}</td>
+        <tr class="hover:bg-surface-container-low/30 transition-colors">
+            <td class="px-6 py-4 font-headline text-sm">${formatDateShort(expense.expense_date || expense.date)}</td>
+            <td class="px-6 py-4 font-arabic text-sm">${expense.description || '—'}</td>
+            <td class="px-6 py-4 font-headline font-bold text-primary">${formatCurrency(expense.amount)} <span class="text-[10px] font-arabic font-normal">ج.م</span></td>
+            <td class="px-6 py-4 font-arabic text-sm text-on-surface-variant">${expense.notes || '—'}</td>
         </tr>
     `).join('');
 }
@@ -607,9 +795,14 @@ async function loadCapitalInjections() {
             const matchingProject = projects.find(p => String(p.client_id) === String(currentClientId));
             if (matchingProject) {
                 projectId = matchingProject.id;
+            } else {
+                // Fallback: use currentClientId as projectId
+                projectId = currentClientId;
             }
         } catch (error) {
             console.error('Error finding matching project:', error);
+            // Fallback: use currentClientId as projectId
+            projectId = currentClientId;
         }
 
         // Filter by Project ID (not Client ID)
@@ -631,18 +824,22 @@ function displayCapitalInjections(injections) {
     if (!injections || injections.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="4" class="empty-state">لا توجد حقن رأسمالية</td>
+                <td class="px-4 py-12 text-center" colspan="3">
+                    <div class="flex flex-col items-center opacity-40">
+                        <span class="material-symbols-outlined text-4xl mb-2">inbox</span>
+                        <p class="font-arabic text-sm">لا توجد حقن رأسمالية</p>
+                    </div>
+                </td>
             </tr>
         `;
         return;
     }
 
     tbody.innerHTML = injections.map(injection => `
-        <tr>
-            <td>${formatCurrency(injection.amount)}</td>
-            <td>${injection.administration_name || '—'}</td>
-            <td>${formatDate(injection.date)}</td>
-            <td>${injection.notes || '—'}</td>
+        <tr class="hover:bg-surface-container-low/30 transition-colors">
+            <td class="px-4 py-4 font-headline font-bold text-sm">${formatCurrency(injection.amount)} <span class="text-[10px] font-arabic font-normal">ج.م</span></td>
+            <td class="px-4 py-4 font-arabic text-sm">${injection.administration_name || '—'}</td>
+            <td class="px-4 py-4 font-headline text-sm">${formatDate(injection.date)}</td>
         </tr>
     `).join('');
 }
@@ -660,9 +857,14 @@ async function loadWithdrawals() {
             const matchingProject = projects.find(p => String(p.client_id) === String(currentClientId));
             if (matchingProject) {
                 projectId = matchingProject.id;
+            } else {
+                // Fallback: use currentClientId as projectId
+                projectId = currentClientId;
             }
         } catch (error) {
             console.error('Error finding matching project:', error);
+            // Fallback: use currentClientId as projectId
+            projectId = currentClientId;
         }
 
         // Filter by Project ID (not Client ID)
@@ -684,18 +886,22 @@ function displayWithdrawals(withdrawals) {
     if (!withdrawals || withdrawals.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="4" class="empty-state">لا توجد سحوبات</td>
+                <td class="px-4 py-12 text-center" colspan="3">
+                    <div class="flex flex-col items-center opacity-40">
+                        <span class="material-symbols-outlined text-4xl mb-2">remove_circle_outline</span>
+                        <p class="font-arabic text-sm">لا توجد سحوبات</p>
+                    </div>
+                </td>
             </tr>
         `;
         return;
     }
 
     tbody.innerHTML = withdrawals.map(withdrawal => `
-        <tr>
-            <td>${formatCurrency(withdrawal.amount)}</td>
-            <td>${withdrawal.administration_name || '—'}</td>
-            <td>${formatDate(withdrawal.date)}</td>
-            <td>${withdrawal.notes || '—'}</td>
+        <tr class="hover:bg-surface-container-low/30 transition-colors">
+            <td class="px-4 py-4 font-headline font-bold text-sm">${formatCurrency(withdrawal.amount)} <span class="text-[10px] font-arabic font-normal">ج.م</span></td>
+            <td class="px-4 py-4 font-arabic text-sm">${withdrawal.administration_name || '—'}</td>
+            <td class="px-4 py-4 font-headline text-sm">${formatDate(withdrawal.date)}</td>
         </tr>
     `).join('');
 }
@@ -720,29 +926,45 @@ function displayAssignedEmployees(employees) {
     if (!employees || employees.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="5" class="empty-state">لا توجد موظفين مخصصين لهذا المشروع</td>
+                <td colspan="5" class="px-6 py-12 text-center">
+                    <div class="flex flex-col items-center opacity-40">
+                        <span class="material-symbols-outlined text-4xl mb-2">group_off</span>
+                        <p class="font-arabic text-sm">لا توجد موظفين مخصصين لهذا المشروع</p>
+                    </div>
+                </td>
             </tr>
         `;
         return;
     }
 
-    tbody.innerHTML = employees.map(employee => `
-        <tr>
-            <td>
-                <a href="employee-details.html?id=${employee.id}" class="link">
-                    ${employee.name}
-                </a>
-            </td>
-            <td>${employee.job_title || '—'}</td>
-            <td>${employee.all_projects ? 'جميع المشاريع' : 'مشاريع محددة'}</td>
-            <td>${employee.basic_salary || employee.base_salary ? formatCurrency(employee.basic_salary || employee.base_salary) : '—'}</td>
-            <td>
-                <span class="status-${employee.status.toLowerCase()}">
-                    ${employee.status === 'Active' ? 'نشط' : 'غير نشط'}
-                </span>
-            </td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = employees.map(employee => {
+        const initials = employee.name ? employee.name.charAt(0).toUpperCase() : 'M';
+        return `
+            <tr class="hover:bg-surface-container-low/30 transition-colors">
+                <td class="px-6 py-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-primary-container text-primary flex items-center justify-center font-bold font-headline text-xs">${initials}</div>
+                        <a href="employee-details.html?id=${employee.id}" class="font-arabic font-bold text-sm hover:text-primary">${employee.name}</a>
+                    </div>
+                </td>
+                <td class="px-6 py-4 font-arabic text-sm">${employee.job_title || '—'}</td>
+                <td class="px-6 py-4">
+                    <span class="px-3 py-1 bg-surface-container-high rounded-full text-[10px] font-arabic font-bold text-on-secondary-container">
+                        ${employee.all_projects ? 'جميع المشاريع' : 'مشاريع محددة'}
+                    </span>
+                </td>
+                <td class="px-6 py-4 font-headline font-bold text-sm">
+                    ${employee.basic_salary || employee.base_salary ? formatCurrency(employee.basic_salary || employee.base_salary) + ' <span class="text-[10px] font-arabic font-normal">ج.م</span>' : '—'}
+                </td>
+                <td class="px-6 py-4">
+                    <span class="flex items-center gap-1.5 font-arabic text-xs ${employee.status === 'Active' ? 'text-tertiary' : 'text-error'}">
+                        <span class="w-1.5 h-1.5 rounded-full ${employee.status === 'Active' ? 'bg-tertiary' : 'bg-error'}"></span>
+                        ${employee.status === 'Active' ? 'نشط' : 'غير نشط'}
+                    </span>
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
 // --- Event Listeners ---

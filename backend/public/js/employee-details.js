@@ -1,21 +1,375 @@
 // Utilities are loaded via utils/index.js - no need to redefine common functions
 
-// Utilities are loaded via utils/index.js - no need to redefine common functions
+// State
+let employeeData = null;
+let allAttendance = [];
+let allPayments = [];
+let allAdjustments = [];
+let clientsData = []; // For project assignment
 
-// Global variables
-let currentEmployeeId = null;
-let currentEmployee = null;
-let clientsData = []; // For project assignment (clients = projects)
+// Helpers
+function getEmployeeIdFromURL() {
+    return getUrlParameter('id');
+}
 
-// --- Tab Management --- (REMOVED - using sections instead)
+// Render Functions
+function renderSummary(totals) {
+    const container = document.getElementById('summaryGrid');
+    const balance = totals.balance || 0;
+    const earnedSalary = totals.total_earned_salary || 0;
+    const totalPayments = totals.total_payments || 0;
+    const totalAdjustments = totals.total_adjustments || 0;
 
-// --- Employee Data Loading ---
+    // Balance logic for employees: Negative = we owe them (مستحق للموظف), Positive = they owe us (مدفوع زائد)
+    let balanceClass, balanceLabel;
+    if (earnedSalary === 0) {
+        balanceClass = '';
+        balanceLabel = 'متوازن';
+    } else if (balance > 0) {
+        balanceClass = 'text-warning';
+        balanceLabel = '(مدفوع زائد)';
+    } else if (balance < 0) {
+        balanceClass = 'text-danger';
+        balanceLabel = '(مستحق للموظف)';
+    } else {
+        balanceClass = '';
+        balanceLabel = 'متوازن';
+    }
 
+    container.innerHTML = `
+        <div class="summary-item-modern">
+            <div class="summary-value-modern ${balanceClass}">${formatCurrency(Math.abs(balance))} <small style="font-size: 0.75rem;">${balanceLabel}</small></div>
+            <div class="summary-label-modern">الرصيد الصافي</div>
+        </div>
+        <div class="summary-item-modern">
+            <div class="summary-value-modern text-success">${formatCurrency(earnedSalary)}</div>
+            <div class="summary-label-modern">إجمالي الراتب المستحق</div>
+        </div>
+        <div class="summary-item-modern">
+            <div class="summary-value-modern text-danger">${formatCurrency(totalPayments)}</div>
+            <div class="summary-label-modern">إجمالي المدفوعات</div>
+        </div>
+        <div class="summary-item-modern">
+            <div class="summary-value-modern ${totalAdjustments >= 0 ? 'text-success' : 'text-danger'}">${formatCurrency(Math.abs(totalAdjustments))} <small style="font-size: 0.75rem;">${totalAdjustments >= 0 ? '(إضافة)' : '(خصم)'}</small></div>
+            <div class="summary-label-modern">إجمالي التسويات</div>
+        </div>
+    `;
+
+    // Update additional stats
+    document.getElementById('totalWorkedDays').textContent = totals.total_worked_days || 0;
+    document.getElementById('attendanceRecordsCount').textContent = totals.attendance_records_count || 0;
+}
+
+function renderEmployeeInfo(employee) {
+    const container = document.getElementById('employeeInfo');
+
+    // Get assigned projects display text
+    let assignedProjectsText = '—';
+    if (employee.all_projects) {
+        assignedProjectsText = 'جميع المشاريع';
+    } else if (employee.assigned_projects && employee.assigned_projects.length > 0) {
+        const assignedClientNames = employee.assigned_projects.map(projectId => {
+            const client = clientsData.find(c => c.id === projectId);
+            return client ? client.name : projectId;
+        });
+        assignedProjectsText = assignedClientNames.join(', ');
+    }
+
+    container.innerHTML = `
+        <div class="info-item-modern">
+            <span class="info-label-modern">الاسم</span>
+            <span class="info-value-modern">${employee.name}</span>
+        </div>
+        <div class="info-item-modern">
+            <span class="info-label-modern">المسمى الوظيفي</span>
+            <span class="info-value-modern">${employee.job_title || '—'}</span>
+        </div>
+        <div class="info-item-modern">
+            <span class="info-label-modern">رقم الهاتف</span>
+            <span class="info-value-modern">${employee.phone_number || '—'}</span>
+        </div>
+        <div class="info-item-modern">
+            <span class="info-label-modern">الراتب الأساسي</span>
+            <span class="info-value-modern">${(employee.basic_salary || employee.base_salary) ? formatCurrency(employee.basic_salary || employee.base_salary) : '—'}</span>
+        </div>
+        <div class="info-item-modern">
+            <span class="info-label-modern">تاريخ بداية العمل</span>
+            <span class="info-value-modern">${formatDate(employee.start_working_date)}</span>
+        </div>
+        <div class="info-item-modern">
+            <span class="info-label-modern">تاريخ انتهاء العمل</span>
+            <span class="info-value-modern">${formatDate(employee.end_working_date)}</span>
+        </div>
+        <div class="info-item-modern" style="grid-column: 1 / -1;">
+            <span class="info-label-modern">المشاريع المخصصة</span>
+            <span class="info-value-modern">${assignedProjectsText}</span>
+        </div>
+        ${employee.notes ? `
+        <div class="info-item-modern" style="grid-column: 1 / -1;">
+            <span class="info-label-modern">ملاحظات</span>
+            <span class="info-value-modern">${employee.notes}</span>
+        </div>
+        ` : ''}
+    `;
+}
+
+function renderAttendance(attendance) {
+    const container = document.getElementById('attendanceContainer');
+
+    if (!attendance || attendance.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state-modern">
+                <i class="fas fa-calendar-check"></i>
+                <h3>لا توجد سجلات حضور</h3>
+                <p>لم يتم تسجيل أي سجلات حضور لهذا الموظف بعد</p>
+            </div>
+        `;
+        return;
+    }
+
+    const table = document.createElement('table');
+    table.className = 'table-modern';
+
+    // Header
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    const headers = ['الشهر', 'السنة', 'أيام الشهر', 'أيام العمل', 'أيام الغياب', 'نوع التسجيل', 'ملاحظات', 'إجراءات'];
+
+    headers.forEach(header => {
+        const th = document.createElement('th');
+        th.textContent = header;
+        headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    // Body
+    const tbody = document.createElement('tbody');
+    attendance.forEach(record => {
+        const row = document.createElement('tr');
+
+        // Extract month and year from period_start
+        const startDate = new Date(record.period_start);
+        const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+            'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+        const monthName = monthNames[startDate.getMonth()];
+        const year = startDate.getFullYear();
+        
+        // Calculate absence days correctly
+        const periodDays = record.period_days || 0;
+        const workedDays = record.worked_days || 0;
+        const absenceDays = periodDays - workedDays;
+
+        const cells = [
+            monthName,
+            year,
+            periodDays,
+            workedDays,
+            absenceDays,
+            record.record_type === 'attendance' ? 'حضور' : 'غياب',
+            record.notes || '—'
+        ];
+
+        cells.forEach(cellText => {
+            const td = document.createElement('td');
+            td.textContent = cellText;
+            row.appendChild(td);
+        });
+
+        // Actions cell
+        const actionsCell = document.createElement('td');
+        actionsCell.innerHTML = `
+            <div class="action-btn-group">
+                <button class="action-btn-modern edit crud-btn" data-action="edit" data-type="attendance" data-id="${record.id}" title="تعديل">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="action-btn-modern danger crud-btn" data-action="delete" data-type="attendance" data-id="${record.id}" title="حذف">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+        row.appendChild(actionsCell);
+
+        tbody.appendChild(row);
+    });
+    table.appendChild(tbody);
+
+    container.innerHTML = '';
+    container.appendChild(table);
+}
+
+function renderPayments(payments) {
+    const container = document.getElementById('paymentsContainer');
+
+    if (!payments || payments.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state-modern">
+                <i class="fas fa-money-bill-wave"></i>
+                <h3>لا توجد مدفوعات مسجلة</h3>
+                <p>لم يتم تسجيل أي مدفوعات لهذا الموظف بعد</p>
+            </div>
+        `;
+        return;
+    }
+
+    const table = document.createElement('table');
+    table.className = 'table-modern';
+
+    // Header
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    const headers = ['التاريخ', 'المبلغ', 'الطريقة', 'التفاصيل', 'إجراءات'];
+
+    headers.forEach(header => {
+        const th = document.createElement('th');
+        th.textContent = header;
+        headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    // Body
+    const tbody = document.createElement('tbody');
+    payments.forEach(payment => {
+        const row = document.createElement('tr');
+
+        // Date
+        const dateCell = document.createElement('td');
+        dateCell.textContent = formatDate(payment.paid_at);
+        row.appendChild(dateCell);
+
+        // Amount
+        const amountCell = document.createElement('td');
+        amountCell.textContent = formatCurrency(payment.amount);
+        amountCell.style.fontWeight = '600';
+        amountCell.style.color = 'var(--tertiary)';
+        row.appendChild(amountCell);
+
+        // Method
+        const methodCell = document.createElement('td');
+        methodCell.textContent = payment.method || '—';
+        row.appendChild(methodCell);
+
+        // Details (combined details and note)
+        const detailsCell = document.createElement('td');
+        detailsCell.textContent = payment.details || payment.note || '—';
+        detailsCell.title = payment.details || payment.note || '—';
+        row.appendChild(detailsCell);
+
+        // Actions cell
+        const actionsCell = document.createElement('td');
+        actionsCell.innerHTML = `
+            <div class="action-btn-group">
+                ${payment.payment_image_url ? `<button class="action-btn-modern view" onclick="showImageModal('${payment.payment_image_url}')" title="عرض الصورة">
+                    <i class="fas fa-image"></i>
+                </button>` : ''}
+                <button class="action-btn-modern edit crud-btn" data-action="edit" data-type="payment" data-id="${payment.id}" title="تعديل">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="action-btn-modern danger crud-btn" data-action="delete" data-type="payment" data-id="${payment.id}" title="حذف">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+        row.appendChild(actionsCell);
+
+        tbody.appendChild(row);
+    });
+    table.appendChild(tbody);
+
+    container.innerHTML = '';
+    container.appendChild(table);
+}
+
+function renderAdjustments(adjustments) {
+    const container = document.getElementById('adjustmentsContainer');
+
+    if (!adjustments || adjustments.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state-modern">
+                <i class="fas fa-balance-scale"></i>
+                <h3>لا توجد تسويات مسجلة</h3>
+                <p>لم يتم تسجيل أي تسويات لهذا الموظف بعد</p>
+            </div>
+        `;
+        return;
+    }
+
+    const table = document.createElement('table');
+    table.className = 'table-modern';
+
+    // Header
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    const headers = ['التاريخ', 'المبلغ', 'النوع', 'السبب', 'إجراءات'];
+
+    headers.forEach(header => {
+        const th = document.createElement('th');
+        th.textContent = header;
+        headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    // Body
+    const tbody = document.createElement('tbody');
+    adjustments.forEach(adjustment => {
+        const row = document.createElement('tr');
+
+        // Date
+        const dateCell = document.createElement('td');
+        dateCell.textContent = formatDateTime(adjustment.created_at);
+        row.appendChild(dateCell);
+
+        // Amount
+        const amountCell = document.createElement('td');
+        const amount = parseFloat(adjustment.amount) || 0;
+        const displayAmount = Math.abs(amount);
+        amountCell.textContent = formatCurrency(displayAmount);
+        amountCell.style.fontWeight = '600';
+        row.appendChild(amountCell);
+
+        // Type
+        const typeCell = document.createElement('td');
+        const isPositive = amount >= 0;
+        typeCell.className = isPositive ? 'text-success' : 'text-danger';
+        typeCell.textContent = isPositive ? 'إضافة' : 'خصم';
+        typeCell.style.fontWeight = '600';
+        row.appendChild(typeCell);
+
+        // Reason
+        const reasonCell = document.createElement('td');
+        reasonCell.textContent = adjustment.reason || '—';
+        reasonCell.title = adjustment.reason || '—';
+        row.appendChild(reasonCell);
+
+        // Actions cell
+        const actionsCell = document.createElement('td');
+        actionsCell.innerHTML = `
+            <div class="action-btn-group">
+                <button class="action-btn-modern edit crud-btn" data-action="edit" data-type="adjustment" data-id="${adjustment.id}" title="تعديل">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="action-btn-modern danger crud-btn" data-action="delete" data-type="adjustment" data-id="${adjustment.id}" title="حذف">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+        row.appendChild(actionsCell);
+
+        tbody.appendChild(row);
+    });
+    table.appendChild(tbody);
+
+    container.innerHTML = '';
+    container.appendChild(table);
+}
+
+// Load Data
 async function loadEmployeeDetails() {
-    const urlParams = new URLSearchParams(window.location.search);
-    currentEmployeeId = urlParams.get('id');
+    const employeeId = getEmployeeIdFromURL();
 
-    if (!currentEmployeeId) {
+    if (!employeeId) {
         Swal.fire({
             icon: 'error',
             title: 'خطأ',
@@ -26,21 +380,22 @@ async function loadEmployeeDetails() {
         return;
     }
 
-    // Show loaders in each section
-    showInlineLoader('financialSummary', 'جاري تحميل الملخص المالي...');
-    showInlineLoader('attendanceTableBody', 'جاري تحميل سجلات الحضور...');
-    showInlineLoader('adjustmentsTableBody', 'جاري تحميل التسويات...');
-    showInlineLoader('paymentsTableBody', 'جاري تحميل المدفوعات...');
-
     try {
-        const data = await apiGet(`/employees/${currentEmployeeId}`);
-        currentEmployee = data.employee;
+        const data = await apiGet(`/employees/${employeeId}`);
+        employeeData = data.employee;
+        allAttendance = data.attendance || [];
+        allPayments = data.payments || [];
+        allAdjustments = data.adjustments || [];
 
-        displayEmployeeInfo(data.employee);
-        displayFinancialSummary(data.totals);
-        displayAttendance(data.attendance);
-        displayAdjustments(data.adjustments);
-        displayPayments(data.payments);
+        // Update page title
+        document.getElementById('employeeName').innerHTML = `<i class="fas fa-user-tie"></i> تفاصيل الموظف: ${employeeData.name}`;
+
+        // Render all sections
+        renderSummary(data.totals);
+        renderEmployeeInfo(employeeData);
+        renderAttendance(allAttendance);
+        renderPayments(allPayments);
+        renderAdjustments(allAdjustments);
 
     } catch (error) {
         console.error('Error loading employee details:', error);
@@ -51,753 +406,6 @@ async function loadEmployeeDetails() {
         });
     }
 }
-
-function displayEmployeeInfo(employee) {
-    document.getElementById('employeeName').textContent = `تفاصيل الموظف: ${employee.name}`;
-
-    // Get assigned projects display text
-    let assignedProjectsText = '—';
-    if (employee.all_projects) {
-        assignedProjectsText = 'جميع المشاريع';
-    } else if (employee.assigned_projects && employee.assigned_projects.length > 0) {
-        // Find client names for assigned project IDs
-        const assignedClientNames = employee.assigned_projects.map(projectId => {
-            const client = clientsData.find(c => c.id === projectId);
-            return client ? client.name : projectId;
-        });
-        assignedProjectsText = assignedClientNames.join(', ');
-    }
-
-    const infoContainer = document.getElementById('employeeInfo');
-    infoContainer.innerHTML = `
-        <div class="info-item">
-            <span class="info-label">الاسم:</span>
-            <span class="info-value">${employee.name}</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label">المسمى الوظيفي:</span>
-            <span class="info-value">${employee.job_title || '—'}</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label">رقم الهاتف:</span>
-            <span class="info-value">${employee.phone_number || '—'}</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label">الراتب الأساسي:</span>
-            <span class="info-value">${(employee.basic_salary || employee.base_salary) ? formatCurrency(employee.basic_salary || employee.base_salary) : '—'}</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label">تاريخ بداية العمل:</span>
-            <span class="info-value">${formatDate(employee.start_working_date)}</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label">تاريخ انتهاء العمل:</span>
-            <span class="info-value">${formatDate(employee.end_working_date)}</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label">الحالة:</span>
-            <span class="info-value status-${employee.status.toLowerCase()}">${employee.status === 'Active' ? 'نشط' : 'غير نشط'}</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label">المشاريع المخصصة:</span>
-            <span class="info-value">${assignedProjectsText}</span>
-        </div>
-        ${employee.notes ? `
-        <div class="info-item full-width">
-            <span class="info-label">ملاحظات:</span>
-            <span class="info-value">${employee.notes}</span>
-        </div>
-        ` : ''}
-    `;
-}
-
-function displayFinancialSummary(totals) {
-    const summaryContainer = document.getElementById('financialSummary');
-    const balance = totals.balance || 0;
-    const earnedSalary = totals.total_earned_salary || 0;
-    const totalPayments = totals.total_payments || 0;
-    const totalAdjustments = totals.total_adjustments || 0;
-    const totalWorkedDays = totals.total_worked_days || 0;
-    const attendanceRecordsCount = totals.attendance_records_count || 0;
-
-    // Always show the actual data, but handle balance display based on earned salary
-    let balanceDisplay, balanceLabel;
-
-    if (earnedSalary === 0) {
-        // When no earned salary, show neutral balance
-        balanceDisplay = formatCurrency(0);
-        balanceLabel = 'متوازن';
-    } else {
-        // Normal balance calculation
-        if (balance > 0) {
-            balanceDisplay = formatCurrency(Math.abs(balance));
-            balanceLabel = 'مدفوع زائد';
-        } else if (balance < 0) {
-            balanceDisplay = formatCurrency(Math.abs(balance));
-            balanceLabel = 'مستحق للموظف';
-        } else {
-            balanceDisplay = formatCurrency(0);
-            balanceLabel = 'متوازن';
-        }
-    }
-
-    summaryContainer.innerHTML = `
-        <div class="summary-item">
-            <div class="summary-value" style="color: ${balance > 0 ? '#fbbf24' : balance < 0 ? '#ef4444' : 'white'} !important;">
-                ${balanceDisplay}
-            </div>
-            <div class="summary-label">${balanceLabel}</div>
-        </div>
-        <div class="summary-item">
-            <div class="summary-value">${formatCurrency(earnedSalary)}</div>
-            <div class="summary-label">إجمالي الراتب المستحق</div>
-        </div>
-        <div class="summary-item">
-            <div class="summary-value">${formatCurrency(totalPayments)}</div>
-            <div class="summary-label">إجمالي المدفوعات</div>
-        </div>
-        <div class="summary-item">
-            <div class="summary-value" style="color: ${totalAdjustments >= 0 ? '#10b981' : '#ef4444'} !important;">
-                ${formatCurrency(totalAdjustments)}
-            </div>
-            <div class="summary-label">إجمالي التسويات</div>
-        </div>
-        <div class="summary-item">
-            <div class="summary-value">${totalWorkedDays}</div>
-            <div class="summary-label">أيام العمل</div>
-        </div>
-        <div class="summary-item">
-            <div class="summary-value">${attendanceRecordsCount}</div>
-            <div class="summary-label">سجلات الحضور</div>
-        </div>
-    `;
-}
-
-function displayAttendance(attendance) {
-    const tbody = document.getElementById('attendanceTableBody');
-
-    if (!attendance || attendance.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="8" class="empty-state">لا توجد سجلات حضور</td>
-            </tr>
-        `;
-        return;
-    }
-
-    tbody.innerHTML = attendance.map(record => {
-        // Extract month and year from period_start
-        const startDate = new Date(record.period_start);
-        const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-            'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-        const monthName = monthNames[startDate.getMonth()];
-        const year = startDate.getFullYear();
-        const absenceDays = record.period_days - record.worked_days;
-
-        return `
-            <tr>
-                <td>${monthName}</td>
-                <td>${year}</td>
-                <td>${record.period_days || 0}</td>
-                <td>${record.worked_days || 0}</td>
-                <td>${absenceDays}</td>
-                <td>${record.record_type === 'attendance' ? 'حضور' : 'غياب'}</td>
-                <td>${record.notes || '—'}</td>
-                <td>
-                    <button class="btn btn-sm btn-secondary" onclick="editAttendance('${record.id}')">تعديل</button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteAttendance('${record.id}')">حذف</button>
-                </td>
-            </tr>
-        `;
-    }).join('');
-}
-
-function displayAdjustments(adjustments) {
-    const tbody = document.getElementById('adjustmentsTableBody');
-
-    if (!adjustments || adjustments.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="6" class="empty-state">لا توجد تسويات</td>
-            </tr>
-        `;
-        return;
-    }
-
-    tbody.innerHTML = adjustments.map(adjustment => {
-        const amount = parseFloat(adjustment.amount) || 0;
-        const isPositive = amount >= 0;
-        const displayAmount = Math.abs(amount);
-        const amountClass = isPositive ? 'amount-positive' : 'amount-negative';
-        const amountLabel = isPositive ? '(إضافة)' : '(خصم)';
-
-        return `
-            <tr>
-                <td class="${amountClass}">
-                    ${formatCurrency(displayAmount)}
-                    ${amountLabel}
-                </td>
-                <td>${adjustment.method || '—'}</td>
-                <td>${adjustment.details || '—'}</td>
-                <td>${adjustment.reason || '—'}</td>
-                <td>${formatDateTime(adjustment.created_at)}</td>
-                <td>
-                    <button class="btn btn-sm btn-secondary" onclick="editAdjustment('${adjustment.id}')">تعديل</button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteAdjustment('${adjustment.id}')">حذف</button>
-                </td>
-            </tr>
-        `;
-    }).join('');
-}
-
-function displayPayments(payments) {
-    const tbody = document.getElementById('paymentsTableBody');
-
-    if (!payments || payments.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="6" class="empty-state">لا توجد مدفوعات</td>
-            </tr>
-        `;
-        return;
-    }
-
-    tbody.innerHTML = payments.map(payment => `
-        <tr>
-            <td>${formatCurrency(payment.amount)}</td>
-            <td>${payment.method || '—'}</td>
-            <td>${payment.details || '—'}</td>
-            <td>${payment.note || '—'}</td>
-            <td>${formatDate(payment.paid_at)}</td>
-            <td>
-                <button class="btn btn-sm btn-secondary" onclick="editPayment('${payment.id}')">تعديل</button>
-                <button class="btn btn-sm btn-danger" onclick="deletePayment('${payment.id}')">حذف</button>
-                ${payment.payment_image_url ? `<button class="btn btn-sm btn-info" onclick="viewPaymentImage('${payment.payment_image_url}')">عرض الصورة</button>` : ''}
-            </td>
-        </tr>
-    `).join('');
-}
-
-// --- Modal Management ---
-
-function closeAttendanceModal() {
-    document.getElementById('attendanceModal').style.display = 'none';
-    document.getElementById('attendanceForm').reset();
-    delete document.getElementById('attendanceForm').dataset.attendanceId;
-    document.getElementById('attendanceModalTitle').textContent = 'إضافة سجل شهري';
-
-    // Reset radio selection and hide input groups
-    document.getElementById('attendanceDaysGroup').style.display = 'none';
-    document.getElementById('absenceDaysGroup').style.display = 'none';
-    document.getElementById('attendanceDays').required = false;
-    document.getElementById('absenceDays').required = false;
-
-    // Set default year to current year
-    document.getElementById('attendanceYear').value = new Date().getFullYear();
-}
-
-function closeAdjustmentModal() {
-    document.getElementById('adjustmentModal').style.display = 'none';
-    document.getElementById('adjustmentForm').reset();
-    delete document.getElementById('adjustmentForm').dataset.adjustmentId;
-    document.getElementById('adjustmentModalTitle').textContent = 'إضافة تسوية';
-}
-
-function closePaymentModal() {
-    document.getElementById('paymentModal').style.display = 'none';
-    document.getElementById('paymentForm').reset();
-    delete document.getElementById('paymentForm').dataset.paymentId;
-    document.getElementById('paymentModalTitle').textContent = 'إضافة دفعة';
-}
-
-// --- CRUD Operations ---
-
-// Attendance CRUD
-async function handleAttendanceSubmit(event) {
-    event.preventDefault();
-
-    const form = event.target;
-    const formData = new FormData(form);
-    const attendanceData = Object.fromEntries(formData.entries());
-
-    // Convert month/year to period dates
-    const month = parseInt(attendanceData.month);
-    const year = parseInt(attendanceData.year);
-
-    if (!month || !year) {
-        Swal.fire({
-            icon: 'error',
-            title: 'خطأ في البيانات',
-            text: 'يجب اختيار الشهر والسنة'
-        });
-        return;
-    }
-
-    // Calculate first and last day of the month
-    const periodStart = new Date(year, month - 1, 1);
-    const periodEnd = new Date(year, month, 0); // Last day of the month
-    const periodDays = periodEnd.getDate();
-
-    // Validate days don't exceed month days
-    const recordType = attendanceData.record_type;
-    const daysValue = recordType === 'attendance' ?
-        parseInt(attendanceData.attendance_days) :
-        parseInt(attendanceData.absence_days);
-
-    if (daysValue > periodDays) {
-        Swal.fire({
-            icon: 'error',
-            title: 'خطأ في الأيام',
-            text: `عدد الأيام (${daysValue}) لا يمكن أن يتجاوز أيام الشهر (${periodDays})`
-        });
-        return;
-    }
-
-    // Prepare data for API
-    const apiData = {
-        period_start: periodStart.toISOString().split('T')[0],
-        period_end: periodEnd.toISOString().split('T')[0],
-        record_type: recordType,
-        notes: attendanceData.notes
-    };
-
-    if (recordType === 'attendance') {
-        apiData.attendance_days = parseInt(attendanceData.attendance_days);
-    } else {
-        apiData.absence_days = parseInt(attendanceData.absence_days);
-    }
-
-    const attendanceId = form.dataset.attendanceId;
-    const isEdit = !!attendanceId;
-
-    try {
-        const url = isEdit
-            ? `/employees/${currentEmployeeId}/attendance/${attendanceId}`
-            : `/employees/${currentEmployeeId}/attendance`;
-        const method = isEdit ? 'PUT' : 'POST';
-
-        if (isEdit) {
-            await apiPut(url, apiData);
-        } else {
-            await apiPost(url, apiData);
-        }
-
-        await Swal.fire({
-            icon: 'success',
-            title: 'تم الحفظ',
-            text: isEdit ? 'تم تحديث سجل الحضور بنجاح' : 'تم إضافة سجل الحضور بنجاح'
-        });
-
-        closeAttendanceModal();
-        loadEmployeeDetails();
-    } catch (error) {
-        console.error('Error saving attendance:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'خطأ',
-            text: error.message || 'تعذر حفظ سجل الحضور'
-        });
-    }
-}
-
-async function deleteAttendance(attendanceId) {
-    const result = await Swal.fire({
-        title: 'تأكيد الحذف',
-        text: 'هل أنت متأكد من حذف سجل الحضور؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'نعم، احذف',
-        cancelButtonText: 'إلغاء'
-    });
-
-    if (result.isConfirmed) {
-        try {
-            await apiDelete(`/employees/${currentEmployeeId}/attendance/${attendanceId}`);
-
-            await Swal.fire({
-                icon: 'success',
-                title: 'تم الحذف',
-                text: 'تم حذف سجل الحضور بنجاح'
-            });
-
-            loadEmployeeDetails();
-        } catch (error) {
-            console.error('Error deleting attendance:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'خطأ',
-                text: 'تعذر حذف سجل الحضور'
-            });
-        }
-    }
-}
-
-function editAttendance(attendanceId) {
-    // Find the attendance record from the loaded data
-    let attendanceRecord = null;
-
-    // Look in the attendance table rows to get the data
-    const tableRows = document.querySelectorAll('#attendanceTableBody tr');
-    for (let row of tableRows) {
-        const editButton = row.querySelector(`button[onclick="editAttendance('${attendanceId}')"]`);
-        if (editButton) {
-            const cells = row.querySelectorAll('td');
-            const monthName = cells[0].textContent;
-            const year = cells[1].textContent;
-            const periodDays = parseInt(cells[2].textContent);
-            const workedDays = parseInt(cells[3].textContent);
-            const absenceDays = parseInt(cells[4].textContent);
-            const recordType = cells[5].textContent === 'حضور' ? 'attendance' : 'absence';
-            const notes = cells[6].textContent === '—' ? '' : cells[6].textContent;
-
-            // Convert month name to number
-            const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-                'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-            const monthNumber = monthNames.indexOf(monthName) + 1;
-
-            attendanceRecord = {
-                id: attendanceId,
-                month: monthNumber,
-                year: parseInt(year),
-                period_days: periodDays,
-                worked_days: workedDays,
-                absence_days: absenceDays,
-                record_type: recordType,
-                notes: notes
-            };
-            break;
-        }
-    }
-
-    if (!attendanceRecord) {
-        console.error('Attendance record not found:', attendanceId);
-        return;
-    }
-
-    // Set modal title
-    document.getElementById('attendanceModalTitle').textContent = 'تعديل سجل الحضور';
-
-    // Fill form with existing data
-    document.getElementById('attendanceMonth').value = attendanceRecord.month;
-    document.getElementById('attendanceYear').value = attendanceRecord.year;
-    document.getElementById('attendanceNotes').value = attendanceRecord.notes || '';
-
-    // Set record type and show appropriate field
-    if (attendanceRecord.record_type === 'absence') {
-        document.getElementById('recordTypeAbsence').checked = true;
-        document.getElementById('absenceDaysGroup').style.display = 'block';
-        document.getElementById('attendanceDaysGroup').style.display = 'none';
-        document.getElementById('absenceDays').value = attendanceRecord.absence_days;
-        document.getElementById('absenceDays').required = true;
-        document.getElementById('attendanceDays').required = false;
-    } else {
-        document.getElementById('recordTypeAttendance').checked = true;
-        document.getElementById('attendanceDaysGroup').style.display = 'block';
-        document.getElementById('absenceDaysGroup').style.display = 'none';
-        document.getElementById('attendanceDays').value = attendanceRecord.worked_days;
-        document.getElementById('attendanceDays').required = true;
-        document.getElementById('absenceDays').required = false;
-    }
-
-    // Store attendance ID for update
-    document.getElementById('attendanceForm').dataset.attendanceId = attendanceId;
-
-    // Show modal
-    document.getElementById('attendanceModal').style.display = 'block';
-}
-
-// Adjustment CRUD
-async function handleAdjustmentSubmit(event) {
-    event.preventDefault();
-
-    const form = event.target;
-    const formData = new FormData(form);
-    const adjustmentData = Object.fromEntries(formData.entries());
-
-    // Ensure amount is properly converted to number
-    adjustmentData.amount = parseFloat(adjustmentData.amount) || 0;
-
-    console.log('Submitting adjustment data:', adjustmentData);
-
-    const adjustmentId = form.dataset.adjustmentId;
-    const isEdit = !!adjustmentId;
-
-    try {
-        const url = isEdit
-            ? `/employees/${currentEmployeeId}/adjustments/${adjustmentId}`
-            : `/employees/${currentEmployeeId}/adjustments`;
-
-        if (isEdit) {
-            await apiPut(url, adjustmentData);
-        } else {
-            await apiPost(url, adjustmentData);
-        }
-
-        await Swal.fire({
-            icon: 'success',
-            title: 'تم الحفظ',
-            text: isEdit ? 'تم تحديث التسوية بنجاح' : 'تم إضافة التسوية بنجاح'
-        });
-
-        closeAdjustmentModal();
-        loadEmployeeDetails();
-    } catch (error) {
-        console.error('Error saving adjustment:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'خطأ',
-            text: error.message || 'تعذر حفظ التسوية'
-        });
-    }
-}
-
-async function deleteAdjustment(adjustmentId) {
-    const result = await Swal.fire({
-        title: 'تأكيد الحذف',
-        text: 'هل أنت متأكد من حذف التسوية؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'نعم، احذف',
-        cancelButtonText: 'إلغاء'
-    });
-
-    if (result.isConfirmed) {
-        try {
-            await apiDelete(`/employees/${currentEmployeeId}/adjustments/${adjustmentId}`);
-
-            await Swal.fire({
-                icon: 'success',
-                title: 'تم الحذف',
-                text: 'تم حذف التسوية بنجاح'
-            });
-
-            loadEmployeeDetails();
-        } catch (error) {
-            console.error('Error deleting adjustment:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'خطأ',
-                text: 'تعذر حذف التسوية'
-            });
-        }
-    }
-}
-
-function editAdjustment(adjustmentId) {
-    // Find the adjustment record from the table
-    let adjustmentRecord = null;
-
-    const tableRows = document.querySelectorAll('#adjustmentsTableBody tr');
-    for (let row of tableRows) {
-        const editButton = row.querySelector(`button[onclick="editAdjustment('${adjustmentId}')"]`);
-        if (editButton) {
-            const cells = row.querySelectorAll('td');
-            const amountText = cells[0].textContent;
-            const isAddition = amountText.includes('(إضافة)');
-            const isDeduction = amountText.includes('(خصم)');
-
-            // Extract numeric value
-            const numericValue = amountText.replace(/[^\d.-]/g, '').replace(/[,٬]/g, '');
-            const absoluteAmount = parseFloat(numericValue) || 0;
-
-            // Determine the actual amount based on the display text
-            let actualAmount;
-            if (isAddition) {
-                actualAmount = absoluteAmount; // Positive for additions
-            } else if (isDeduction) {
-                actualAmount = -absoluteAmount; // Negative for deductions
-            } else {
-                // Fallback: try to determine from the CSS class
-                const amountCell = cells[0];
-                if (amountCell.classList.contains('amount-positive')) {
-                    actualAmount = absoluteAmount;
-                } else if (amountCell.classList.contains('amount-negative')) {
-                    actualAmount = -absoluteAmount;
-                } else {
-                    actualAmount = absoluteAmount; // Default to positive
-                }
-            }
-
-            adjustmentRecord = {
-                id: adjustmentId,
-                amount: actualAmount,
-                method: cells[1].textContent === '—' ? '' : cells[1].textContent,
-                details: cells[2].textContent === '—' ? '' : cells[2].textContent,
-                reason: cells[3].textContent === '—' ? '' : cells[3].textContent
-            };
-            break;
-        }
-    }
-
-    if (!adjustmentRecord) {
-        console.error('Adjustment record not found:', adjustmentId);
-        return;
-    }
-
-    // Set modal title
-    document.getElementById('adjustmentModalTitle').textContent = 'تعديل التسوية';
-
-    // Fill form with existing data - use the actual amount (positive or negative)
-    document.getElementById('adjustmentAmount').value = adjustmentRecord.amount;
-    document.getElementById('adjustmentMethod').value = adjustmentRecord.method || '';
-    document.getElementById('adjustmentDetails').value = adjustmentRecord.details || '';
-    document.getElementById('adjustmentReason').value = adjustmentRecord.reason || '';
-
-    // Store adjustment ID for update
-    document.getElementById('adjustmentForm').dataset.adjustmentId = adjustmentId;
-
-    // Show modal
-    document.getElementById('adjustmentModal').style.display = 'block';
-}
-
-// Payment CRUD
-async function handlePaymentSubmit(event) {
-    event.preventDefault();
-
-    const form = event.target;
-    const formData = new FormData(form);
-    const paymentData = Object.fromEntries(formData.entries());
-
-    // Handle image upload
-    const imageFile = document.getElementById('paymentImage').files[0];
-    if (imageFile) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            paymentData.payment_image = e.target.result;
-            submitPayment(paymentData, form.dataset.paymentId);
-        };
-        reader.readAsDataURL(imageFile);
-    } else {
-        submitPayment(paymentData, form.dataset.paymentId);
-    }
-}
-
-async function submitPayment(paymentData, paymentId) {
-    const isEdit = !!paymentId;
-
-    try {
-        const url = isEdit
-            ? `/employees/${currentEmployeeId}/payments/${paymentId}`
-            : `/employees/${currentEmployeeId}/payments`;
-
-        if (isEdit) {
-            await apiPut(url, paymentData);
-        } else {
-            await apiPost(url, paymentData);
-        }
-
-        await Swal.fire({
-            icon: 'success',
-            title: 'تم الحفظ',
-            text: isEdit ? 'تم تحديث الدفعة بنجاح' : 'تم إضافة الدفعة بنجاح'
-        });
-
-        closePaymentModal();
-        loadEmployeeDetails();
-    } catch (error) {
-        console.error('Error saving payment:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'خطأ',
-            text: error.message || 'تعذر حفظ الدفعة'
-        });
-    }
-}
-
-async function deletePayment(paymentId) {
-    const result = await Swal.fire({
-        title: 'تأكيد الحذف',
-        text: 'هل أنت متأكد من حذف الدفعة؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'نعم، احذف',
-        cancelButtonText: 'إلغاء'
-    });
-
-    if (result.isConfirmed) {
-        try {
-            await apiDelete(`/employees/${currentEmployeeId}/payments/${paymentId}`);
-
-            await Swal.fire({
-                icon: 'success',
-                title: 'تم الحذف',
-                text: 'تم حذف الدفعة بنجاح'
-            });
-
-            loadEmployeeDetails();
-        } catch (error) {
-            console.error('Error deleting payment:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'خطأ',
-                text: 'تعذر حذف الدفعة'
-            });
-        }
-    }
-}
-
-function editPayment(paymentId) {
-    // Find the payment record from the table
-    let paymentRecord = null;
-
-    const tableRows = document.querySelectorAll('#paymentsTableBody tr');
-    for (let row of tableRows) {
-        const editButton = row.querySelector(`button[onclick="editPayment('${paymentId}')"]`);
-        if (editButton) {
-            const cells = row.querySelectorAll('td');
-            const amountText = cells[0].textContent.replace(/[^\d.-]/g, '');
-
-            paymentRecord = {
-                id: paymentId,
-                amount: parseFloat(amountText),
-                method: cells[1].textContent === '—' ? '' : cells[1].textContent,
-                details: cells[2].textContent === '—' ? '' : cells[2].textContent,
-                note: cells[3].textContent === '—' ? '' : cells[3].textContent,
-                paid_at: cells[4].textContent
-            };
-            break;
-        }
-    }
-
-    if (!paymentRecord) {
-        console.error('Payment record not found:', paymentId);
-        return;
-    }
-
-    // Set modal title
-    document.getElementById('paymentModalTitle').textContent = 'تعديل الدفعة';
-
-    // Fill form with existing data
-    document.getElementById('paymentAmount').value = paymentRecord.amount;
-    document.getElementById('paymentMethod').value = paymentRecord.method || '';
-    document.getElementById('paymentDetails').value = paymentRecord.details || '';
-    document.getElementById('paymentNote').value = paymentRecord.note || '';
-    document.getElementById('paidAt').value = parseArabicDate(paymentRecord.paid_at);
-
-    // Store payment ID for update
-    document.getElementById('paymentForm').dataset.paymentId = paymentId;
-
-    // Show modal
-    document.getElementById('paymentModal').style.display = 'block';
-}
-
-function viewPaymentImage(imageData) {
-    Swal.fire({
-        title: 'صورة الإيصال',
-        imageUrl: imageData,
-        imageAlt: 'صورة الإيصال',
-        showCloseButton: true,
-        showConfirmButton: false
-    });
-}
-
-// --- Load Clients (Projects) for Assignment ---
 
 async function loadClients() {
     try {
@@ -817,7 +425,11 @@ function populateProjectsList() {
 
     clientsData.forEach(client => {
         const label = document.createElement('label');
-        label.className = 'checkbox-label';
+        label.style.display = 'flex';
+        label.style.alignItems = 'center';
+        label.style.gap = '0.5rem';
+        label.style.cursor = 'pointer';
+        label.style.padding = '0.5rem';
 
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
@@ -830,63 +442,344 @@ function populateProjectsList() {
     });
 }
 
-// --- Edit Employee Modal Functions ---
+// CRUD Functions - Attendance
+async function editAttendance(attendanceId) {
+    try {
+        const attendance = allAttendance.find(a => a.id === attendanceId);
+        if (!attendance) {
+            showAlert('لم يتم العثور على سجل الحضور');
+            return;
+        }
 
-function openEditEmployeeModal() {
-    if (!currentEmployee) return;
+        // Extract month and year
+        const startDate = new Date(attendance.period_start);
+        const month = startDate.getMonth() + 1;
+        const year = startDate.getFullYear();
 
-    // Fill form with current employee data
-    document.getElementById('editEmployeeName').value = currentEmployee.name || '';
-    document.getElementById('editJobTitle').value = currentEmployee.job_title || '';
-    document.getElementById('editPhoneNumber').value = currentEmployee.phone_number || '';
-    document.getElementById('editBasicSalary').value = currentEmployee.basic_salary || currentEmployee.base_salary || '';
-    document.getElementById('editStartWorkingDate').value = currentEmployee.start_working_date ? currentEmployee.start_working_date.split('T')[0] : '';
-    document.getElementById('editStatus').value = currentEmployee.status || 'Active';
-    document.getElementById('editNotes').value = currentEmployee.notes || '';
+        // Populate form
+        document.getElementById('attendanceMonth').value = month;
+        document.getElementById('attendanceYear').value = year;
+        document.getElementById('attendanceNotes').value = attendance.notes || '';
 
-    // Handle project assignment
-    const allProjectsCheckbox = document.getElementById('editAllProjects');
-    const projectsList = document.getElementById('editProjectsList');
+        // Set record type and show appropriate field
+        if (attendance.record_type === 'absence') {
+            document.getElementById('recordTypeAbsence').checked = true;
+            document.getElementById('absenceDaysGroup').style.display = 'block';
+            document.getElementById('attendanceDaysGroup').style.display = 'none';
+            document.getElementById('absenceDays').value = attendance.period_days - attendance.worked_days;
+            document.getElementById('absenceDays').required = true;
+            document.getElementById('attendanceDays').required = false;
+        } else {
+            document.getElementById('recordTypeAttendance').checked = true;
+            document.getElementById('attendanceDaysGroup').style.display = 'block';
+            document.getElementById('absenceDaysGroup').style.display = 'none';
+            document.getElementById('attendanceDays').value = attendance.worked_days;
+            document.getElementById('attendanceDays').required = true;
+            document.getElementById('absenceDays').required = false;
+        }
 
-    if (currentEmployee.all_projects) {
-        allProjectsCheckbox.checked = true;
-        projectsList.style.display = 'none';
+        // Store attendance ID for update
+        const form = document.getElementById('attendanceForm');
+        form.dataset.editId = attendanceId;
+
+        showModal('attendanceModal');
+    } catch (error) {
+        console.error('Error editing attendance:', error);
+        showAlert('حدث خطأ في تحميل بيانات الحضور');
+    }
+}
+
+async function deleteAttendance(attendanceId) {
+    const confirmed = await showConfirmDialog(
+        'تأكيد الحذف',
+        'هل أنت متأكد من حذف سجل الحضور؟',
+        'نعم، احذف',
+        'إلغاء'
+    );
+
+    if (!confirmed) return;
+
+    try {
+        const employeeId = getEmployeeIdFromURL();
+        await apiDelete(`/employees/${employeeId}/attendance/${attendanceId}`);
+        showAlert('تم حذف سجل الحضور بنجاح');
+        loadEmployeeDetails();
+    } catch (error) {
+        console.error('Error deleting attendance:', error);
+        showAlert('حدث خطأ في حذف سجل الحضور');
+    }
+}
+
+// CRUD Functions - Payments
+async function editPayment(paymentId) {
+    try {
+        const payment = allPayments.find(p => p.id === paymentId);
+        if (!payment) {
+            showAlert('لم يتم العثور على الدفعة');
+            return;
+        }
+
+        // Populate form
+        document.getElementById('paymentAmount').value = payment.amount;
+        document.getElementById('paymentMethod').value = payment.method || '';
+        document.getElementById('paymentDetails').value = payment.details || '';
+        document.getElementById('paymentNote').value = payment.note || '';
+        document.getElementById('paidAt').value = payment.paid_at ? payment.paid_at.split('T')[0] : '';
+
+        // Show/hide details field based on method
+        const detailsGroup = document.getElementById('paymentDetailsGroup');
+        const imageGroup = document.getElementById('paymentImageGroup');
+        if (['بنكي', 'شيك', 'انستاباي', 'فودافون كاش'].includes(payment.method)) {
+            detailsGroup.style.display = 'block';
+            imageGroup.style.display = 'block';
+        }
+
+        // Store payment ID for update
+        const form = document.getElementById('paymentForm');
+        form.dataset.editId = paymentId;
+
+        showModal('paymentModal');
+    } catch (error) {
+        console.error('Error editing payment:', error);
+        showAlert('حدث خطأ في تحميل بيانات الدفعة');
+    }
+}
+
+async function deletePayment(paymentId) {
+    const confirmed = await showConfirmDialog(
+        'تأكيد الحذف',
+        'هل أنت متأكد من حذف الدفعة؟',
+        'نعم، احذف',
+        'إلغاء'
+    );
+
+    if (!confirmed) return;
+
+    try {
+        const employeeId = getEmployeeIdFromURL();
+        await apiDelete(`/employees/${employeeId}/payments/${paymentId}`);
+        showAlert('تم حذف الدفعة بنجاح');
+        loadEmployeeDetails();
+    } catch (error) {
+        console.error('Error deleting payment:', error);
+        showAlert('حدث خطأ في حذف الدفعة');
+    }
+}
+
+// CRUD Functions - Adjustments
+async function editAdjustment(adjustmentId) {
+    try {
+        const adjustment = allAdjustments.find(a => a.id === adjustmentId);
+        if (!adjustment) {
+            showAlert('لم يتم العثور على التسوية');
+            return;
+        }
+
+        // Populate form
+        document.getElementById('adjustmentAmount').value = adjustment.amount;
+        document.getElementById('adjustmentReason').value = adjustment.reason || '';
+
+        // Store adjustment ID for update
+        const form = document.getElementById('adjustmentForm');
+        form.dataset.editId = adjustmentId;
+
+        showModal('adjustmentModal');
+    } catch (error) {
+        console.error('Error editing adjustment:', error);
+        showAlert('حدث خطأ في تحميل بيانات التسوية');
+    }
+}
+
+async function deleteAdjustment(adjustmentId) {
+    const confirmed = await showConfirmDialog(
+        'تأكيد الحذف',
+        'هل أنت متأكد من حذف التسوية؟',
+        'نعم، احذف',
+        'إلغاء'
+    );
+
+    if (!confirmed) return;
+
+    try {
+        const employeeId = getEmployeeIdFromURL();
+        await apiDelete(`/employees/${employeeId}/adjustments/${adjustmentId}`);
+        showAlert('تم حذف التسوية بنجاح');
+        loadEmployeeDetails();
+    } catch (error) {
+        console.error('Error deleting adjustment:', error);
+        showAlert('حدث خطأ في حذف التسوية');
+    }
+}
+
+// Form Submissions
+async function handleAttendanceSubmit(e) {
+    e.preventDefault();
+
+    const form = e.target;
+    const formData = new FormData(form);
+    const attendanceData = Object.fromEntries(formData.entries());
+
+    const month = parseInt(attendanceData.month);
+    const year = parseInt(attendanceData.year);
+
+    if (!month || !year) {
+        showMessage('attendanceMessage', 'يجب اختيار الشهر والسنة', 'error');
+        return;
+    }
+
+    // Calculate period dates
+    const periodStart = new Date(year, month - 1, 1);
+    const periodEnd = new Date(year, month, 0);
+    const periodDays = periodEnd.getDate();
+
+    // Validate days
+    const recordType = attendanceData.record_type;
+    const daysValue = recordType === 'attendance' ?
+        parseInt(attendanceData.attendance_days) :
+        parseInt(attendanceData.absence_days);
+
+    if (daysValue > periodDays) {
+        showMessage('attendanceMessage', `عدد الأيام (${daysValue}) لا يمكن أن يتجاوز أيام الشهر (${periodDays})`, 'error');
+        return;
+    }
+
+    // Prepare data for API
+    const apiData = {
+        period_start: periodStart.toISOString().split('T')[0],
+        period_end: periodEnd.toISOString().split('T')[0],
+        record_type: recordType,
+        notes: attendanceData.notes
+    };
+
+    if (recordType === 'attendance') {
+        apiData.attendance_days = parseInt(attendanceData.attendance_days);
     } else {
-        allProjectsCheckbox.checked = false;
-        projectsList.style.display = 'block';
+        apiData.absence_days = parseInt(attendanceData.absence_days);
+    }
 
-        // Clear all project checkboxes first
-        const projectCheckboxes = projectsList.querySelectorAll('input[name="assigned_projects"]');
-        projectCheckboxes.forEach(cb => cb.checked = false);
+    const editId = form.dataset.editId;
+    const employeeId = getEmployeeIdFromURL();
 
-        // Check assigned projects
-        if (currentEmployee.assigned_projects && Array.isArray(currentEmployee.assigned_projects)) {
-            currentEmployee.assigned_projects.forEach(projectId => {
-                const checkbox = projectsList.querySelector(`input[value="${projectId}"]`);
-                if (checkbox) checkbox.checked = true;
+    try {
+        if (editId) {
+            await apiPut(`/employees/${employeeId}/attendance/${editId}`, apiData);
+            showMessage('attendanceMessage', 'تم تحديث سجل الحضور بنجاح', 'success');
+        } else {
+            await apiPost(`/employees/${employeeId}/attendance`, apiData);
+            showMessage('attendanceMessage', 'تم إضافة سجل الحضور بنجاح', 'success');
+        }
+
+        setTimeout(() => {
+            closeModal('attendanceModal');
+            loadEmployeeDetails();
+        }, 1000);
+    } catch (error) {
+        console.error('Error saving attendance:', error);
+        showMessage('attendanceMessage', error.message || 'تعذر حفظ سجل الحضور', 'error');
+    }
+}
+
+async function handlePaymentSubmit(e) {
+    e.preventDefault();
+
+    const form = e.target;
+    const amount = document.getElementById('paymentAmount').value;
+    const paid_at = document.getElementById('paidAt').value;
+    const note = document.getElementById('paymentNote').value;
+    const method = document.getElementById('paymentMethod').value;
+    const details = document.getElementById('paymentDetails').value;
+
+    const paymentData = { amount, paid_at, note, method };
+    if (details) paymentData.details = details;
+
+    // Handle image upload
+    const imageFile = document.getElementById('paymentImage').files[0];
+    if (imageFile) {
+        if (imageFile.size > 5 * 1024 * 1024) {
+            showMessage('paymentMessage', 'حجم الصورة كبير جداً (الحد الأقصى 5 ميجابايت)', 'error');
+            return;
+        }
+
+        if (!imageFile.type.startsWith('image/')) {
+            showMessage('paymentMessage', 'يرجى اختيار ملف صورة صالح', 'error');
+            return;
+        }
+
+        try {
+            const payment_image = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = () => reject(new Error('فشل في قراءة الصورة'));
+                reader.readAsDataURL(imageFile);
             });
+            paymentData.payment_image = payment_image;
+        } catch (error) {
+            showMessage('paymentMessage', 'خطأ في قراءة الصورة: ' + error.message, 'error');
+            return;
         }
     }
 
-    // Show modal
-    document.getElementById('editEmployeeModal').style.display = 'block';
+    const editId = form.dataset.editId;
+    const employeeId = getEmployeeIdFromURL();
+
+    try {
+        if (editId) {
+            await apiPut(`/employees/${employeeId}/payments/${editId}`, paymentData);
+            showMessage('paymentMessage', 'تم تحديث الدفعة بنجاح', 'success');
+        } else {
+            await apiPost(`/employees/${employeeId}/payments`, paymentData);
+            showMessage('paymentMessage', 'تم إضافة الدفعة بنجاح', 'success');
+        }
+
+        setTimeout(() => {
+            closeModal('paymentModal');
+            loadEmployeeDetails();
+        }, 1000);
+    } catch (error) {
+        console.error('Error saving payment:', error);
+        showMessage('paymentMessage', error.message || 'تعذر حفظ الدفعة', 'error');
+    }
 }
 
-function closeEditEmployeeModal() {
-    document.getElementById('editEmployeeModal').style.display = 'none';
-    document.getElementById('editEmployeeForm').reset();
+async function handleAdjustmentSubmit(e) {
+    e.preventDefault();
 
-    // Reset project assignment
-    document.getElementById('editAllProjects').checked = false;
-    document.getElementById('editProjectsList').style.display = 'none';
-    const projectCheckboxes = document.querySelectorAll('input[name="assigned_projects"]');
-    projectCheckboxes.forEach(cb => cb.checked = false);
+    const form = e.target;
+    const type = document.getElementById('adjustmentType').value;
+    const amountValue = parseFloat(document.getElementById('adjustmentAmount').value) || 0;
+    const reason = document.getElementById('adjustmentReason').value;
+
+    // Convert type to positive/negative amount
+    const amount = type === 'addition' ? amountValue : -amountValue;
+
+    const adjustmentData = { amount, reason };
+
+    const editId = form.dataset.editId;
+    const employeeId = getEmployeeIdFromURL();
+
+    try {
+        if (editId) {
+            await apiPut(`/employees/${employeeId}/adjustments/${editId}`, adjustmentData);
+            showMessage('adjustmentMessage', 'تم تحديث التسوية بنجاح', 'success');
+        } else {
+            await apiPost(`/employees/${employeeId}/adjustments`, adjustmentData);
+            showMessage('adjustmentMessage', 'تم إضافة التسوية بنجاح', 'success');
+        }
+
+        setTimeout(() => {
+            closeModal('adjustmentModal');
+            loadEmployeeDetails();
+        }, 1000);
+    } catch (error) {
+        console.error('Error saving adjustment:', error);
+        showMessage('adjustmentMessage', error.message || 'تعذر حفظ التسوية', 'error');
+    }
 }
 
-async function handleEditEmployeeSubmit(event) {
-    event.preventDefault();
+async function handleEditEmployeeSubmit(e) {
+    e.preventDefault();
 
-    const form = event.target;
+    const form = e.target;
     const formData = new FormData(form);
     const employeeData = Object.fromEntries(formData.entries());
 
@@ -902,37 +795,86 @@ async function handleEditEmployeeSubmit(event) {
         employeeData.assigned_projects = checkedProjects;
     }
 
-    // Convert empty strings to null for optional fields
+    // Convert empty strings to null
     Object.keys(employeeData).forEach(key => {
         if (employeeData[key] === '' && key !== 'assigned_projects') {
             employeeData[key] = null;
         }
     });
 
+    const employeeId = getEmployeeIdFromURL();
+
     try {
-        await apiPut(`/employees/${currentEmployeeId}`, employeeData);
+        await apiPut(`/employees/${employeeId}`, employeeData);
+        showMessage('editEmployeeMessage', 'تم تحديث معلومات الموظف بنجاح', 'success');
 
-        await Swal.fire({
-            icon: 'success',
-            title: 'تم الحفظ',
-            text: 'تم تحديث معلومات الموظف بنجاح'
-        });
-
-        closeEditEmployeeModal();
-        loadEmployeeDetails(); // Reload to show updated data
+        setTimeout(() => {
+            closeModal('editEmployeeModal');
+            loadEmployeeDetails();
+        }, 1000);
     } catch (error) {
         console.error('Error updating employee:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'خطأ',
-            text: error.message || 'تعذر تحديث معلومات الموظف'
-        });
+        showMessage('editEmployeeMessage', error.message || 'تعذر تحديث معلومات الموظف', 'error');
     }
 }
 
-// --- Event Listeners ---
+// Edit Employee Modal
+function openEditEmployeeModal() {
+    if (!employeeData) return;
 
-// Toggle date range inputs
+    // Fill form
+    document.getElementById('editEmployeeName').value = employeeData.name || '';
+    document.getElementById('editJobTitle').value = employeeData.job_title || '';
+    document.getElementById('editPhoneNumber').value = employeeData.phone_number || '';
+    document.getElementById('editBasicSalary').value = employeeData.basic_salary || employeeData.base_salary || '';
+    document.getElementById('editStartWorkingDate').value = employeeData.start_working_date ? employeeData.start_working_date.split('T')[0] : '';
+    document.getElementById('editStatus').value = employeeData.status || 'Active';
+    document.getElementById('editNotes').value = employeeData.notes || '';
+
+    // Handle project assignment
+    const allProjectsCheckbox = document.getElementById('editAllProjects');
+    const projectsList = document.getElementById('editProjectsList');
+
+    if (employeeData.all_projects) {
+        allProjectsCheckbox.checked = true;
+        projectsList.style.display = 'none';
+    } else {
+        allProjectsCheckbox.checked = false;
+        projectsList.style.display = 'block';
+
+        // Clear and check assigned projects
+        const projectCheckboxes = projectsList.querySelectorAll('input[name="assigned_projects"]');
+        projectCheckboxes.forEach(cb => cb.checked = false);
+
+        if (employeeData.assigned_projects && Array.isArray(employeeData.assigned_projects)) {
+            employeeData.assigned_projects.forEach(projectId => {
+                const checkbox = projectsList.querySelector(`input[value="${projectId}"]`);
+                if (checkbox) checkbox.checked = true;
+            });
+        }
+    }
+
+    showModal('editEmployeeModal');
+}
+
+// Filter Functions
+function clearPaymentsFilters() {
+    document.getElementById('paymentsSearch').value = '';
+    document.getElementById('paymentsDateFrom').value = '';
+    document.getElementById('paymentsDateTo').value = '';
+    document.getElementById('paymentsSort').value = 'date-desc';
+    renderPayments(allPayments);
+}
+
+function clearAdjustmentsFilters() {
+    document.getElementById('adjustmentsSearch').value = '';
+    document.getElementById('adjustmentsDateFrom').value = '';
+    document.getElementById('adjustmentsDateTo').value = '';
+    document.getElementById('adjustmentsSort').value = 'date-desc';
+    renderAdjustments(allAdjustments);
+}
+
+// Toggle date range
 function toggleDateRange() {
     const checkbox = document.getElementById('useCustomDateRange');
     const dateInputs = document.getElementById('dateRangeInputs');
@@ -942,12 +884,13 @@ function toggleDateRange() {
 // Generate account statement
 function generateAccountStatement() {
     const useCustomRange = document.getElementById('useCustomDateRange').checked;
-    let url = `/api/employees/${currentEmployeeId}/reports/statement`;
-    
+    const employeeId = getEmployeeIdFromURL();
+    let url = `/api/employees/${employeeId}/reports/statement`;
+
     if (useCustomRange) {
         const fromDate = document.getElementById('statementFromDate').value;
         const toDate = document.getElementById('statementToDate').value;
-        
+
         if (!fromDate || !toDate) {
             Swal.fire({
                 icon: 'warning',
@@ -956,25 +899,30 @@ function generateAccountStatement() {
             });
             return;
         }
-        
+
         url += `?from=${fromDate}&to=${toDate}`;
     }
-    
-    // Open in new tab to download PDF
+
     window.open(url, '_blank');
 }
 
+// Show image modal
+function showImageModal(imageUrl) {
+    document.getElementById('modalImage').src = imageUrl;
+    showModal('imageModal');
+}
+
+// Event Listeners
 document.addEventListener('DOMContentLoaded', function () {
-    // Check authentication first
+    // Check authentication
     if (!authManager.checkAuth()) {
         return;
     }
 
-    // Wait for utilities to load before initializing
+    // Wait for utilities to load
     const checkUtilities = setInterval(() => {
         if (typeof apiGet !== 'undefined') {
             clearInterval(checkUtilities);
-            // Load employee details and clients on page load
             loadEmployeeDetails();
             loadClients();
         }
@@ -982,13 +930,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Radio button logic for attendance modal
     const recordTypeRadios = document.querySelectorAll('input[name="record_type"]');
-    const attendanceDaysGroup = document.getElementById('attendanceDaysGroup');
-    const absenceDaysGroup = document.getElementById('absenceDaysGroup');
-    const attendanceDaysInput = document.getElementById('attendanceDays');
-    const absenceDaysInput = document.getElementById('absenceDays');
-
     recordTypeRadios.forEach(radio => {
         radio.addEventListener('change', function () {
+            const attendanceDaysGroup = document.getElementById('attendanceDaysGroup');
+            const absenceDaysGroup = document.getElementById('absenceDaysGroup');
+            const attendanceDaysInput = document.getElementById('attendanceDays');
+            const absenceDaysInput = document.getElementById('absenceDays');
+
             if (this.value === 'attendance') {
                 attendanceDaysGroup.style.display = 'block';
                 absenceDaysGroup.style.display = 'none';
@@ -1006,94 +954,43 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Modal buttons
-    document.getElementById('addAttendanceBtn').addEventListener('click', function () {
-        // Set default year to current year when opening modal
+    document.getElementById('addAttendanceBtn').addEventListener('click', () => {
         document.getElementById('attendanceYear').value = new Date().getFullYear();
-        document.getElementById('attendanceModal').style.display = 'block';
+        showModal('attendanceModal');
     });
 
-    document.getElementById('addAdjustmentBtn').addEventListener('click', function () {
-        // Clear any previous values and show helpful message
-        document.getElementById('adjustmentAmount').value = '';
-        document.getElementById('adjustmentAmount').placeholder = 'مثال: 500 للإضافة، -200 للخصم';
-        document.getElementById('adjustmentModal').style.display = 'block';
-    });
-
-    document.getElementById('addPaymentBtn').addEventListener('click', function () {
-        // Set default date to today
+    document.getElementById('addPaymentBtn').addEventListener('click', () => {
         document.getElementById('paidAt').value = new Date().toISOString().split('T')[0];
-        document.getElementById('paymentModal').style.display = 'block';
+        showModal('paymentModal');
     });
 
-    // Payment method change handler - show/hide conditional fields
-    document.getElementById('paymentMethod').addEventListener('change', function(e) {
-        const method = e.target.value;
+    document.getElementById('addAdjustmentBtn').addEventListener('click', () => {
+        showModal('adjustmentModal');
+    });
+
+    document.getElementById('editEmployeeBtn').addEventListener('click', openEditEmployeeModal);
+
+    // Payment method change handler
+    document.getElementById('paymentMethod').addEventListener('change', (e) => {
         const detailsGroup = document.getElementById('paymentDetailsGroup');
         const imageGroup = document.getElementById('paymentImageGroup');
-        
-        if (method && method !== 'نقدي') {
-            detailsGroup.classList.remove('hidden');
-            imageGroup.classList.remove('hidden');
-        } else {
-            detailsGroup.classList.add('hidden');
-            imageGroup.classList.add('hidden');
-        }
-    });
+        const detailsInput = document.getElementById('paymentDetails');
 
-    // Adjustment method change handler - show/hide conditional fields
-    document.getElementById('adjustmentMethod').addEventListener('change', function(e) {
-        const method = e.target.value;
-        const detailsGroup = document.getElementById('adjustmentDetailsGroup');
-        const imageGroup = document.getElementById('adjustmentImageGroup');
-        
-        if (method && method !== 'نقدي' && method !== 'تعديل حسابي') {
-            detailsGroup.classList.remove('hidden');
-            imageGroup.classList.remove('hidden');
+        if (['بنكي', 'شيك', 'انستاباي', 'فودافون كاش'].includes(e.target.value)) {
+            detailsGroup.style.display = 'block';
+            imageGroup.style.display = 'block';
+            detailsInput.required = true;
         } else {
-            detailsGroup.classList.add('hidden');
-            imageGroup.classList.add('hidden');
+            detailsGroup.style.display = 'none';
+            imageGroup.style.display = 'none';
+            detailsInput.required = false;
         }
     });
 
     // Form submissions
     document.getElementById('attendanceForm').addEventListener('submit', handleAttendanceSubmit);
-    document.getElementById('adjustmentForm').addEventListener('submit', handleAdjustmentSubmit);
     document.getElementById('paymentForm').addEventListener('submit', handlePaymentSubmit);
-
-    // Add real-time feedback for adjustment amount
-    document.getElementById('adjustmentAmount').addEventListener('input', function () {
-        const amount = parseFloat(this.value);
-        const helpText = this.parentElement.querySelector('.form-help');
-
-        if (!isNaN(amount)) {
-            if (amount > 0) {
-                helpText.innerHTML = `
-                    <strong style="color: var(--green-600);">✓ إضافة ${formatCurrency(Math.abs(amount))}</strong> - سيزيد من استحقاق الموظف<br>
-                    <small>المبالغ الموجبة (+): تزيد من استحقاق الموظف (مكافآت، علاوات)<br>
-                    المبالغ السالبة (-): تقلل من استحقاق الموظف (خصومات، غرامات)</small>
-                `;
-            } else if (amount < 0) {
-                helpText.innerHTML = `
-                    <strong style="color: var(--red-600);">✓ خصم ${formatCurrency(Math.abs(amount))}</strong> - سيقلل من استحقاق الموظف<br>
-                    <small>المبالغ الموجبة (+): تزيد من استحقاق الموظف (مكافآت، علاوات)<br>
-                    المبالغ السالبة (-): تقلل من استحقاق الموظف (خصومات، غرامات)</small>
-                `;
-            } else {
-                helpText.innerHTML = `
-                    <strong>المبالغ الموجبة (+):</strong> تزيد من استحقاق الموظف (مكافآت، علاوات)<br>
-                    <strong>المبالغ السالبة (-):</strong> تقلل من استحقاق الموظف (خصومات، غرامات)
-                `;
-            }
-        } else {
-            helpText.innerHTML = `
-                <strong>المبالغ الموجبة (+):</strong> تزيد من استحقاق الموظف (مكافآت، علاوات)<br>
-                <strong>المبالغ السالبة (-):</strong> تقلل من استحقاق الموظف (خصومات، غرامات)
-            `;
-        }
-    });
-
-    // Edit employee button and form
-    document.getElementById('editEmployeeBtn').addEventListener('click', openEditEmployeeModal);
+    document.getElementById('adjustmentForm').addEventListener('submit', handleAdjustmentSubmit);
     document.getElementById('editEmployeeForm').addEventListener('submit', handleEditEmployeeSubmit);
 
     // All projects checkbox toggle
@@ -1101,7 +998,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const projectsList = document.getElementById('editProjectsList');
         if (this.checked) {
             projectsList.style.display = 'none';
-            // Uncheck all project checkboxes
             const projectCheckboxes = projectsList.querySelectorAll('input[name="assigned_projects"]');
             projectCheckboxes.forEach(cb => cb.checked = false);
         } else {
@@ -1109,16 +1005,13 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    // Account statement button
+    document.getElementById('generateAccountStatementBtn').addEventListener('click', generateAccountStatement);
+
     // Close modals when clicking outside
-    window.addEventListener('click', function (event) {
+    window.addEventListener('click', (event) => {
         if (event.target.classList.contains('modal')) {
             event.target.style.display = 'none';
         }
     });
-
-    // Account statement button
-    const generateAccountStatementBtn = document.getElementById('generateAccountStatementBtn');
-    if (generateAccountStatementBtn) {
-        generateAccountStatementBtn.addEventListener('click', generateAccountStatement);
-    }
 });

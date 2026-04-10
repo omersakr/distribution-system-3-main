@@ -8,7 +8,7 @@ const withdrawalSchema = new mongoose.Schema({
     },
     project_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Project',
+        ref: 'Client',
         required: true
     },
     date: {

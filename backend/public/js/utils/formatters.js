@@ -10,11 +10,9 @@
  */
 function formatCurrency(amount) {
     return Number(amount || 0).toLocaleString('ar-EG', {
-        style: 'currency',
-        currency: 'EGP',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
-    });
+    }) + ' ج.م';
 }
 
 /**

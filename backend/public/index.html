@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة التحكم - نظام التوزيع</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="css/modern-theme.css">
@@ -284,7 +285,8 @@
             const smallContainer = document.getElementById('smallStatsGrid');
             
             // Update debts and payables
-            const totalReceivables = metrics.totalReceivables || 0;
+            // Use totalClientBalancesPositive for client debts specifically
+            const totalReceivables = metrics.totalClientBalancesPositive || 0;
             const totalPayables = metrics.totalPayables || 0;
             
             document.getElementById('totalReceivables').textContent = formatCurrency(totalReceivables);

@@ -9,7 +9,8 @@ const path = require('path');
 
 const migrations = [
     'fix-delivery-material-prices.js',
-    'fix-expense-categories.js'
+    'fix-expense-categories.js',
+    'fix-delivery-total-value-calculation.js'
 ];
 
 console.log('🚀 Running all migrations...\n');

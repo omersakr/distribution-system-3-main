@@ -2,303 +2,215 @@
 <html lang="ar" dir="rtl">
 
 <head>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تفاصيل المورد - نظام التوزيع</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-tertiary-fixed": "#00452d",
+                        "secondary-fixed": "#d3e4fe",
+                        "surface-variant": "#d9e4ea",
+                        "on-secondary-fixed-variant": "#4d5d73",
+                        "secondary-container": "#d3e4fe",
+                        secondary: "#506076",
+                        "surface-container-high": "#e1e9ee",
+                        "inverse-surface": "#0b0f10",
+                        "secondary-fixed-dim": "#c5d6f0",
+                        "on-tertiary": "#e6ffee",
+                        "error-container": "#fe8983",
+                        error: "#9f403d",
+                        "inverse-on-surface": "#9a9d9f",
+                        "primary-dim": "#485367",
+                        "primary-fixed-dim": "#cad5ed",
+                        "primary-fixed": "#d8e3fb",
+                        "surface-bright": "#f7f9fb",
+                        "on-tertiary-fixed-variant": "#006544",
+                        "on-surface": "#2a3439",
+                        "on-secondary-fixed": "#314055",
+                        "surface-container-lowest": "#ffffff",
+                        "on-background": "#2a3439",
+                        outline: "#717c82",
+                        "on-primary-container": "#475266",
+                        "tertiary-fixed": "#69f6b8",
+                        tertiary: "#006d4a",
+                        "on-primary-fixed-variant": "#515c70",
+                        "on-primary-fixed": "#354053",
+                        "on-primary": "#f6f7ff",
+                        "surface-dim": "#cfdce3",
+                        surface: "#f7f9fb",
+                        "tertiary-fixed-dim": "#58e7ab",
+                        "outline-variant": "#a9b4b9",
+                        "on-surface-variant": "#566166",
+                        "surface-container": "#e8eff3",
+                        "error-dim": "#4e0309",
+                        "tertiary-container": "#69f6b8",
+                        "surface-container-highest": "#d9e4ea",
+                        "on-tertiary-container": "#005a3c",
+                        "surface-tint": "#545f73",
+                        "tertiary-dim": "#005f40",
+                        "on-secondary": "#f7f9ff",
+                        "primary-container": "#d8e3fb",
+                        "on-error-container": "#752121",
+                        "surface-container-low": "#f0f4f7",
+                        primary: "#545f73",
+                        "on-error": "#fff7f6",
+                        "on-secondary-container": "#435368",
+                        "secondary-dim": "#44546a",
+                        background: "#f7f9fb",
+                        "inverse-primary": "#dae6fe",
+                    },
+                    fontFamily: {
+                        headline: ["Manrope"],
+                        body: ["Inter"],
+                        label: ["Inter"],
+                        arabic: ["IBM Plex Sans Arabic"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.25rem",
+                        lg: "0.5rem",
+                        xl: "0.75rem",
+                        full: "9999px",
+                    },
+                },
+            },
+        };
+    </script>
     <link rel="stylesheet" href="css/modern-theme.css">
     <link rel="stylesheet" href="css/sidebar.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
-        .main-content {
-            margin-right: 225px;
-            padding: var(--space-8);
-            transition: margin-right 0.25s;
+        .material-symbols-outlined {
+            font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
         }
-
-        @media (max-width: 900px) {
-            .main-content {
-                margin-right: 190px;
-            }
+        body {
+            font-family: "IBM Plex Sans Arabic", sans-serif;
         }
-
-        @media (max-width: 700px) {
-            .main-content {
-                margin-right: 0;
-                padding: var(--space-4);
-            }
+        .font-manrope {
+            font-family: "Manrope", sans-serif;
         }
-
-        .page-header {
-            margin-bottom: var(--space-8);
-        }
-
-        .page-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--gray-900);
-            margin-bottom: var(--space-2);
-        }
-
-        .summary-card {
-            background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-800) 100%);
-            color: white;
-            border-radius: var(--radius-xl);
-            padding: var(--space-8);
-            margin-bottom: var(--space-8);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: var(--space-6);
-            margin-top: var(--space-6);
-        }
-
-        .summary-item {
-            text-align: center;
-        }
-
-        .summary-value {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: var(--space-2);
-        }
-
-        .summary-label {
-            font-size: 0.875rem;
-            opacity: 0.9;
-        }
-
-        .section {
-            background: white;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow);
-            border: 1px solid var(--gray-200);
-            margin-bottom: var(--space-6);
-            overflow: hidden;
-        }
-
-        .section-header {
-            padding: var(--space-6);
-            border-bottom: 1px solid var(--gray-200);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--gray-50);
-        }
-
-        .section-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--gray-900);
-            margin: 0;
-        }
-
-        .section-content {
-            padding: var(--space-6);
-        }
-
-        .materials-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: var(--space-4);
-        }
-
-        .material-card {
-            background: linear-gradient(135deg, var(--success-500) 0%, var(--success-600) 100%);
-            color: white;
-            padding: var(--space-6);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow);
-            transition: transform 0.2s ease;
-            position: relative;
-        }
-
-        .material-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .material-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: var(--space-4);
-        }
-
-        .material-stat {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: var(--space-2);
-            font-size: 0.875rem;
-        }
-
-        .table-container {
-            overflow-x: auto;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: var(--space-12);
-            color: var(--gray-500);
-        }
-
-        .empty-icon {
-            font-size: 3rem;
-            margin-bottom: var(--space-4);
-        }
-
-        .controls {
-            display: flex;
-            flex-direction: row;
-            gap: var(--space-4);
-            margin-bottom: var(--space-6);
-            flex-wrap: wrap;
-        }
-
-        .controls .form-input,
-        .controls .form-select {
-            flex: 1 1 150px;
-            min-width: 120px;
-        }
-
-        .balance-positive {
-            color: var(--danger-600) !important;
-        }
-
-        .balance-negative {
-            color: var(--success-600) !important;
-        }
-
-        .text-success {
-            color: var(--success-600) !important;
-        }
-
-        .text-danger {
-            color: var(--danger-600) !important;
-        }
-
-        .loading {
-            text-align: center;
-            padding: var(--space-8);
-            color: var(--gray-500);
-        }
-
-        .btn-sm {
-            padding: var(--space-1) var(--space-2);
-            font-size: 0.75rem;
-            margin: 0 var(--space-1);
-            border-radius: var(--radius-sm);
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-sm:hover {
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-sm);
-        }
-
-        .btn-sm.btn-secondary {
-            background: var(--gray-500);
-            color: white;
-        }
-
-        .btn-sm.btn-secondary:hover {
-            background: var(--gray-600);
-        }
-
-        .btn-sm.btn-danger {
-            background: var(--danger-500);
-            color: white;
-        }
-
-        .btn-sm.btn-danger:hover {
-            background: var(--danger-600);
-        }
-
-        .material-card .btn-sm {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .material-card .btn-sm:hover {
-            background: rgba(255, 255, 255, 0.3);
-            border-color: rgba(255, 255, 255, 0.5);
-        }
-
-        .material-card .btn-sm.btn-danger {
-            background: rgba(220, 38, 38, 0.8);
-            border-color: rgba(220, 38, 38, 0.9);
-        }
-
-        .material-card .btn-sm.btn-danger:hover {
-            background: rgba(220, 38, 38, 1);
-            border-color: rgba(220, 38, 38, 1);
-        }
-
-        .form-help {
-            font-size: 0.75rem;
-            color: var(--gray-500);
-            margin-top: var(--space-1);
-        }
-
-        .image-preview {
-            max-width: 200px;
-            max-height: 150px;
-            border-radius: var(--radius);
-            border: 1px solid var(--gray-300);
-        }
-
-        .image-preview-container {
-            position: relative;
-            display: inline-block;
-        }
-
-        .remove-image {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: var(--danger-500);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 12px;
-            cursor: pointer;
-        }
-
-        /* Adjustment Details Modal Styles */
-        .detail-row {
-            display: grid;
-            grid-template-columns: 120px 1fr;
-            gap: 10px;
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .detail-row:last-child {
-            border-bottom: none;
-        }
-
-        .detail-row strong {
-            color: #333;
-            font-weight: 600;
-        }
-
         /* Fix modal centering in RTL */
         .modal-content {
             margin: 0 auto;
         }
+        
+        /* Modern table styles */
+        .table-modern {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+        
+        .table-modern thead {
+            background-color: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .table-modern th {
+            padding: 0.75rem 1rem;
+            text-align: right;
+            font-weight: 600;
+            color: #475569;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .table-modern tbody tr {
+            border-bottom: 1px solid #f1f5f9;
+            transition: background-color 0.15s;
+        }
+        
+        .table-modern tbody tr:hover {
+            background-color: #f8fafc;
+        }
+        
+        .table-modern td {
+            padding: 0.875rem 1rem;
+            color: #334155;
+        }
+        
+        /* Action buttons */
+        .action-btn-group {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+        
+        .action-btn-modern {
+            padding: 0.375rem 0.625rem;
+            border-radius: 0.375rem;
+            border: 1px solid #e2e8f0;
+            background-color: #f8fafc;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-size: 0.875rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .action-btn-modern:hover {
+            background-color: #f1f5f9;
+            border-color: #cbd5e1;
+            color: #475569;
+        }
+        
+        .action-btn-modern.danger:hover {
+            background-color: #fee2e2;
+            border-color: #fecaca;
+            color: #991b1b;
+        }
+        
+        /* Empty state */
+        .empty-state-modern {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #94a3b8;
+        }
+        
+        .empty-state-modern i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        .empty-state-modern h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 0.5rem;
+        }
+        
+        .empty-state-modern p {
+            font-size: 0.875rem;
+            color: #94a3b8;
+        }
+        
+        /* Text colors */
+        .text-success {
+            color: #059669;
+        }
+        
+        .text-danger {
+            color: #dc2626;
+        }
+    </style>
+    <style class="old-styles">
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="css/loaders.css">
 </head>
 
-<body>
+<body class="bg-background text-on-surface">
     <!-- Global Loader -->
     <div class="loader-overlay" id="globalLoader">
         <div class="loader-container">
@@ -307,211 +219,270 @@
         </div>
     </div>
 
-
     <div id="sidebar-placeholder"></div>
 
-    <div class="main-content">
-        <div class="page-header">
-            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                <h1 class="page-title" id="supplierName">تفاصيل المورد</h1>
-                <button class="btn btn-secondary" id="editSupplierBtn" style="margin-right: auto;">
-                    <i class="fas fa-edit"></i> تعديل البيانات
+    <main class="mr-64 min-h-screen pr-8">
+        <div class="pt-8 pb-12 px-8 max-w-7xl mx-auto space-y-8">
+            <!-- Title & Actions -->
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-primary font-headline" id="supplierName">
+                        <span class="material-symbols-outlined" style="color: #0EA5E9; vertical-align: middle; font-size: 32px;">local_shipping</span> تفاصيل المورد
+                    </h2>
+                    <p class="text-on-surface-variant text-base mt-1">
+                        عرض شامل لجميع المعاملات والحسابات
+                    </p>
+                </div>
+                <button id="editSupplierBtn"
+                    class="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-primary-dim transition-colors shadow-sm active:scale-95">
+                    <span class="material-symbols-outlined" data-icon="edit">edit</span>
+                    تعديل البيانات
                 </button>
             </div>
-        </div>
 
-        <!-- Edit Supplier Modal -->
-        <div id="editSupplierModal" class="modal" style="display: none;">
-            <div class="modal-content">
-                <div class="modal-header">تعديل بيانات المورد</div>
-                <div id="editSupplierMessage"></div>
-                <form id="editSupplierForm">
-                    <div class="form-group">
-                        <label class="form-label" for="editSupplierName">اسم المورد *</label>
-                        <input type="text" class="form-input" id="editSupplierName" name="name" required autocomplete="name">
-                    </div>
+            <!-- Financial Summary (الملخص المالي) -->
+            <section>
+                <h3 class="text-lg font-bold mb-4 text-right">الملخص المالي</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6" id="summaryGrid">
+                    <div class="loading">جاري تحميل البيانات...</div>
+                </div>
+            </section>
 
-                    <div class="form-group">
-                        <label class="form-label" for="editSupplierPhone">رقم الهاتف</label>
-                        <input type="tel" class="form-input" id="editSupplierPhone" name="phone_number" placeholder="اختياري"
-                            autocomplete="tel">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">الأرصدة الافتتاحية (حسب المشروع/العميل)</label>
-                        <div id="editSupplierOpeningBalancesContainer">
-                            <!-- Opening balance rows will be added here dynamically -->
-                        </div>
-                        <button type="button" class="btn btn-secondary" id="addEditSupplierOpeningBalanceBtn" style="margin-top: 10px;">
-                            + إضافة رصيد افتتاحي
-                        </button>
-                        <small class="form-help">الرصيد الافتتاحي لكل مشروع/عميل (موجب = نحن مدينون لهم)</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="editSupplierNotes">ملاحظات</label>
-                        <textarea class="form-textarea" id="editSupplierNotes" name="notes" placeholder="اختياري"></textarea>
-                    </div>
-
-                    <div class="modal-actions">
-                        <button type="button" class="btn btn-secondary modal-close">إلغاء</button>
-                        <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <div class="summary-card" id="summaryCard">
-            <h2 class="text-xl font-semibold mb-4">الملخص المالي</h2>
-            <div class="summary-grid" id="summaryGrid">
-                <div class="loading">جاري تحميل البيانات...</div>
-            </div>
-        </div>
-
-        <div class="section">
-            <div class="section-header">
-                <h3 class="section-title">ملخص المواد</h3>
-                <button class="btn btn-primary" id="addMaterialBtn">+ إضافة مادة</button>
-            </div>
-            <div class="section-content">
-                <div class="materials-grid" id="materialsContainer">
+            <!-- Material Summary (ملخص المواد) -->
+            <section>
+                <div class="flex flex-row-reverse justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-right">ملخص المواد</h3>
+                    <button class="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-bold hover:bg-emerald-100 transition-all" id="addMaterialBtn">
+                        إضافة مادة جديدة
+                    </button>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-6 gap-4" id="materialsContainer">
                     <div class="loading">جاري تحميل المواد...</div>
                 </div>
-            </div>
-        </div>
+            </section>
 
-        <div class="section">
-            <div class="section-header">
-                <h3 class="section-title">التسليمات</h3>
-            </div>
-            <div class="section-content">
-                <div class="controls">
-                    <input type="text" class="form-input search-input" id="deliveriesSearch"
-                        placeholder="ابحث في التسليمات...">
-                    <input type="date" class="form-input" id="deliveriesDateFrom" placeholder="من تاريخ">
-                    <input type="date" class="form-input" id="deliveriesDateTo" placeholder="إلى تاريخ">
-                    <select class="form-select" id="deliveriesSort">
-                        <option value="date-desc">الأحدث أولاً</option>
-                        <option value="date-asc">الأقدم أولاً</option>
-                        <option value="value-desc">الأعلى قيمة</option>
-                        <option value="value-asc">الأقل قيمة</option>
-                    </select>
-                    <button class="btn btn-secondary">مسح الفلاتر</button>
-                </div>
-                <div class="table-container" id="deliveriesContainer">
-                    <div class="loading">جاري تحميل التسليمات...</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="section">
-            <div class="section-header">
-                <h3 class="section-title">المدفوعات</h3>
-                <button class="btn btn-primary" id="addPaymentBtn">+ إضافة دفعة</button>
-            </div>
-            <div class="section-content">
-                <div class="controls">
-                    <input type="text" class="form-input search-input" id="paymentsSearch"
-                        placeholder="ابحث في المدفوعات...">
-                    <input type="date" class="form-input" id="paymentsDateFrom" placeholder="من تاريخ">
-                    <input type="date" class="form-input" id="paymentsDateTo" placeholder="إلى تاريخ">
-                    <select class="form-select" id="paymentsSort">
-                        <option value="date-desc">الأحدث أولاً</option>
-                        <option value="date-asc">الأقدم أولاً</option>
-                        <option value="amount-desc">الأعلى مبلغ</option>
-                        <option value="amount-asc">الأقل مبلغ</option>
-                    </select>
-                    <button class="btn btn-secondary">مسح الفلاتر</button>
-                </div>
-                <div class="table-container" id="paymentsContainer">
-                    <div class="loading">جاري تحميل المدفوعات...</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="section">
-            <div class="section-header">
-                <h3 class="section-title">التسويات والتعديلات</h3>
-                <button class="btn btn-primary" id="addAdjustmentBtn">+ إضافة تسوية</button>
-            </div>
-            <div class="section-content">
-                <div class="controls">
-                    <input type="text" class="form-input search-input" id="adjustmentsSearch"
-                        placeholder="ابحث في التسويات...">
-                    <input type="date" class="form-input" id="adjustmentsDateFrom" placeholder="من تاريخ">
-                    <input type="date" class="form-input" id="adjustmentsDateTo" placeholder="إلى تاريخ">
-                    <select class="form-select" id="adjustmentsSort">
-                        <option value="date-desc">الأحدث أولاً</option>
-                        <option value="date-asc">الأقدم أولاً</option>
-                        <option value="amount-desc">الأعلى مبلغ</option>
-                        <option value="amount-asc">الأقل مبلغ</option>
-                    </select>
-                    <button class="btn btn-secondary">مسح الفلاتر</button>
-                </div>
-                <div class="table-container" id="adjustmentsContainer">
-                    <div class="loading">جاري تحميل التسويات...</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="section">
-            <div class="section-header">
-                <h3 class="section-title">التقارير</h3>
-            </div>
-            <div class="section-content">
-                <div class="reports-grid"
-                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-4);">
-                    <div class="report-card"
-                        style="background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%); color: white; padding: var(--space-6); border-radius: var(--radius-lg); box-shadow: var(--shadow);">
-                        <h4 style="margin: 0 0 var(--space-4) 0; font-size: 1.125rem;">تقرير التوريدات</h4>
-                        <p style="margin: 0 0 var(--space-4) 0; opacity: 0.9; font-size: 0.875rem;">تقرير مفصل بالكميات
-                            المورده حسب نوع المادة</p>
-                        <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4);">
-                            <input type="date" id="deliveriesFromDate" class="form-input"
-                                style="flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;"
-                                placeholder="من تاريخ">
-                            <input type="date" id="deliveriesToDate" class="form-input"
-                                style="flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;"
-                                placeholder="إلى تاريخ">
-                        </div>
-                        <button id="generateDeliveriesReportBtn" class="btn"
-                            style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); width: 100%;">
-                            إنشاء تقرير التوريدات
+            <!-- Deliveries Table (جدول التسليمات) -->
+            <section class="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
+                <div class="p-6 border-b border-slate-50 flex flex-row-reverse justify-between items-center">
+                    <h3 class="text-lg font-bold">سجل التسليمات</h3>
+                    <div class="flex gap-2">
+                        <button class="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors">
+                            <span class="material-symbols-outlined">filter_list</span>
                         </button>
                     </div>
+                </div>
+                <div class="p-6">
+                    <div class="flex gap-2 mb-4 flex-wrap">
+                        <input type="text" class="flex-1 min-w-[200px] px-4 py-2 border border-slate-200 rounded-lg text-sm" id="deliveriesSearch" placeholder="ابحث في التسليمات...">
+                        <input type="date" class="px-4 py-2 border border-slate-200 rounded-lg text-sm" id="deliveriesDateFrom" placeholder="من تاريخ">
+                        <input type="date" class="px-4 py-2 border border-slate-200 rounded-lg text-sm" id="deliveriesDateTo" placeholder="إلى تاريخ">
+                        <select class="px-4 py-2 border border-slate-200 rounded-lg text-sm" id="deliveriesSort">
+                            <option value="date-desc">الأحدث أولاً</option>
+                            <option value="date-asc">الأقدم أولاً</option>
+                            <option value="value-desc">الأعلى قيمة</option>
+                            <option value="value-asc">الأقل قيمة</option>
+                        </select>
+                        <button class="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm hover:bg-slate-200 transition-all">مسح الفلاتر</button>
+                    </div>
+                    <div class="overflow-x-auto" id="deliveriesContainer">
+                        <div class="loading">جاري تحميل التسليمات...</div>
+                    </div>
+                </div>
+            </section>
 
-                    <div class="report-card"
-                        style="background: linear-gradient(135deg, var(--success-500) 0%, var(--success-600) 100%); color: white; padding: var(--space-6); border-radius: var(--radius-lg); box-shadow: var(--shadow);">
-                        <h4 style="margin: 0 0 var(--space-4) 0; font-size: 1.125rem;">كشف حساب المورد</h4>
-                        <p style="margin: 0 0 var(--space-4) 0; opacity: 0.9; font-size: 0.875rem;">كشف حساب شامل
-                            بالتوريدات والمدفوعات والرصيد</p>
-
-                        <div style="margin-bottom: var(--space-4);">
-                            <label
-                                style="display: flex; align-items: center; margin-bottom: var(--space-2); font-size: 0.875rem;">
-                                <input type="checkbox" id="useCustomDateRange" style="margin-left: var(--space-2);">
-                                تحديد فترة زمنية محددة
-                            </label>
+            <!-- Bottom Grid (Payments & Adjustments) -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Payments Table -->
+                <section class="bg-surface-container-lowest rounded-2xl p-6 shadow-sm">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold text-primary font-headline">
+                            <i class="fas fa-money-bill-wave"></i> المدفوعات
+                        </h3>
+                        <button
+                            class="bg-tertiary text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-tertiary-dim transition-colors"
+                            id="addPaymentBtn">
+                            <span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                            إضافة دفعة
+                        </button>
+                    </div>
+                    <div class="flex gap-2 mb-4 flex-wrap">
+                        <input type="text"
+                            class="bg-background border-outline-variant/20 rounded-lg pr-3 pl-3 py-1.5 text-xs focus:ring-1 focus:ring-primary flex-1 min-w-[150px]"
+                            id="paymentsSearch" placeholder="ابحث في المدفوعات...">
+                        <div class="flex flex-col">
+                            <label for="paymentsDateFrom" class="text-xs font-semibold text-on-surface-variant mb-1">من
+                                تاريخ</label>
+                            <input type="date"
+                                class="bg-background border-outline-variant/20 rounded-lg pr-3 pl-3 py-1.5 text-xs focus:ring-1 focus:ring-primary"
+                                id="paymentsDateFrom">
                         </div>
+                        <div class="flex flex-col">
+                            <label for="paymentsDateTo" class="text-xs font-semibold text-on-surface-variant mb-1">إلى
+                                تاريخ</label>
+                            <input type="date"
+                                class="bg-background border-outline-variant/20 rounded-lg pr-3 pl-3 py-1.5 text-xs focus:ring-1 focus:ring-primary"
+                                id="paymentsDateTo">
+                        </div>
+                        <select
+                            class="bg-background border-outline-variant/20 rounded-lg pr-8 pl-3 py-1.5 text-xs focus:ring-1 focus:ring-primary"
+                            id="paymentsSort">
+                            <option value="date-desc">الأحدث أولاً</option>
+                            <option value="date-asc">الأقدم أولاً</option>
+                            <option value="amount-desc">الأعلى مبلغ</option>
+                            <option value="amount-asc">الأقل مبلغ</option>
+                        </select>
+                        <button
+                            class="bg-secondary text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-secondary-dim transition-colors"
+                            onclick="clearPaymentsFilters()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div id="paymentsContainer">
+                        <div class="loading">جاري تحميل المدفوعات...</div>
+                    </div>
+                </section>
 
-                        <div id="dateRangeInputs" style="display: none; margin-bottom: var(--space-4);">
-                            <div style="display: flex; gap: var(--space-2);">
-                                <input type="date" id="statementFromDate" class="form-input"
-                                    style="flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;"
-                                    placeholder="من تاريخ">
-                                <input type="date" id="statementToDate" class="form-input"
-                                    style="flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;"
-                                    placeholder="إلى تاريخ">
+                <!-- Adjustments Table -->
+                <section class="bg-surface-container-lowest rounded-2xl p-6 shadow-sm">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold text-primary font-headline">
+                            <i class="fas fa-balance-scale"></i> التسويات والتعديلات
+                        </h3>
+                        <button
+                            class="bg-secondary text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-secondary-dim transition-colors"
+                            id="addAdjustmentBtn">
+                            <span class="material-symbols-outlined text-sm" data-icon="tune">tune</span>
+                            إضافة تسوية
+                        </button>
+                    </div>
+                    <div class="flex gap-2 mb-4 flex-wrap">
+                        <input type="text"
+                            class="bg-background border-outline-variant/20 rounded-lg pr-3 pl-3 py-1.5 text-xs focus:ring-1 focus:ring-primary flex-1 min-w-[150px]"
+                            id="adjustmentsSearch" placeholder="ابحث في التسويات...">
+                        <div class="flex flex-col">
+                            <label for="adjustmentsDateFrom"
+                                class="text-xs font-semibold text-on-surface-variant mb-1">من تاريخ</label>
+                            <input type="date"
+                                class="bg-background border-outline-variant/20 rounded-lg pr-3 pl-3 py-1.5 text-xs focus:ring-1 focus:ring-primary"
+                                id="adjustmentsDateFrom">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="adjustmentsDateTo"
+                                class="text-xs font-semibold text-on-surface-variant mb-1">إلى تاريخ</label>
+                            <input type="date"
+                                class="bg-background border-outline-variant/20 rounded-lg pr-3 pl-3 py-1.5 text-xs focus:ring-1 focus:ring-primary"
+                                id="adjustmentsDateTo">
+                        </div>
+                        <select
+                            class="bg-background border-outline-variant/20 rounded-lg pr-8 pl-3 py-1.5 text-xs focus:ring-1 focus:ring-primary"
+                            id="adjustmentsSort">
+                            <option value="date-desc">الأحدث أولاً</option>
+                            <option value="date-asc">الأقدم أولاً</option>
+                            <option value="amount-desc">الأعلى مبلغ</option>
+                            <option value="amount-asc">الأقل مبلغ</option>
+                        </select>
+                        <button
+                            class="bg-secondary text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-secondary-dim transition-colors"
+                            onclick="clearAdjustmentsFilters()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div id="adjustmentsContainer">
+                        <div class="loading">جاري تحميل التسويات...</div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Reports Section -->
+            <section class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Report Card 1 -->
+                <div class="relative overflow-hidden bg-primary-container p-8 rounded-3xl group shadow-md">
+                    <div class="relative z-10">
+                        <h4 class="text-xl font-extrabold text-on-primary-container mb-2 font-headline">تقرير التوريدات</h4>
+                        <p class="text-on-primary-container/70 text-sm mb-6">استخرج تقريراً مفصلاً لجميع الكميات والمواد التي تم تسليمها خلال فترة محددة.</p>
+                        <div class="flex flex-wrap gap-4 items-center">
+                            <div class="bg-white/50 p-2 rounded-xl backdrop-blur-sm border border-white/20">
+                                <label class="block text-[10px] font-bold text-primary mb-1">من تاريخ</label>
+                                <input class="bg-transparent border-none p-0 text-sm focus:ring-0" type="date" id="deliveriesFromDate" />
                             </div>
+                            <div class="bg-white/50 p-2 rounded-xl backdrop-blur-sm border border-white/20">
+                                <label class="block text-[10px] font-bold text-primary mb-1">إلى تاريخ</label>
+                                <input class="bg-transparent border-none p-0 text-sm focus:ring-0" type="date" id="deliveriesToDate" />
+                            </div>
+                            <button id="generateDeliveriesReportBtn" class="bg-primary text-on-primary px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-primary-dim shadow-lg transition-transform active:scale-95">
+                                <span class="material-symbols-outlined" data-icon="file_download">file_download</span>
+                                تحميل التقرير
+                            </button>
                         </div>
-
-                        <button id="generateAccountStatementBtn" class="btn"
-                            style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); width: 100%;">
-                            إنشاء كشف الحساب
-                        </button>
                     </div>
+                    <span class="material-symbols-outlined absolute -bottom-10 -left-10 text-[200px] text-primary/5 select-none pointer-events-none" data-icon="receipt_long">receipt_long</span>
                 </div>
-            </div>
+
+                <!-- Report Card 2 -->
+                <div class="relative overflow-hidden bg-tertiary-container p-8 rounded-3xl group shadow-md">
+                    <div class="relative z-10">
+                        <h4 class="text-xl font-extrabold text-on-tertiary-container mb-2 font-headline">كشف حساب المورد</h4>
+                        <p class="text-on-tertiary-container/70 text-sm mb-6">مراجعة كاملة لجميع الحركات المالية من توريدات، دفعات، وتسويات في ملف واحد.</p>
+                        <div class="flex flex-wrap gap-4 items-center">
+                            <div class="bg-white/50 p-2 rounded-xl backdrop-blur-sm border border-white/20">
+                                <label class="block text-[10px] font-bold text-tertiary mb-1">
+                                    <input type="checkbox" id="useCustomDateRange" class="ml-1">
+                                    تحديد فترة زمنية محددة
+                                </label>
+                                <div id="dateRangeInputs" style="display: none;" class="flex gap-2 mt-2">
+                                    <input type="date" id="statementFromDate" class="bg-transparent border-none p-0 text-sm focus:ring-0" placeholder="من تاريخ">
+                                    <input type="date" id="statementToDate" class="bg-transparent border-none p-0 text-sm focus:ring-0" placeholder="إلى تاريخ">
+                                </div>
+                            </div>
+                            <button id="generateAccountStatementBtn" class="bg-tertiary text-on-tertiary px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-tertiary-dim shadow-lg transition-transform active:scale-95">
+                                <span class="material-symbols-outlined" data-icon="picture_as_pdf">picture_as_pdf</span>
+                                إنشاء كشف PDF
+                            </button>
+                        </div>
+                    </div>
+                    <span class="material-symbols-outlined absolute -bottom-10 -left-10 text-[200px] text-tertiary/5 select-none pointer-events-none" data-icon="account_balance_wallet">account_balance_wallet</span>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Edit Supplier Modal -->
+    <div id="editSupplierModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">تعديل بيانات المورد</div>
+            <div id="editSupplierMessage"></div>
+            <form id="editSupplierForm">
+                <div class="form-group">
+                    <label class="form-label" for="editSupplierName">اسم المورد *</label>
+                    <input type="text" class="form-input" id="editSupplierName" name="name" required autocomplete="name">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="editSupplierPhone">رقم الهاتف</label>
+                    <input type="tel" class="form-input" id="editSupplierPhone" name="phone_number" placeholder="اختياري" autocomplete="tel">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">الأرصدة الافتتاحية (حسب المشروع/العميل)</label>
+                    <div id="editSupplierOpeningBalancesContainer">
+                        <!-- Opening balance rows will be added here dynamically -->
+                    </div>
+                    <button type="button" class="btn btn-secondary" id="addEditSupplierOpeningBalanceBtn" style="margin-top: 10px;">
+                        + إضافة رصيد افتتاحي
+                    </button>
+                    <small class="form-help">الرصيد الافتتاحي لكل مشروع/عميل (موجب = نحن مدينون لهم)</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="editSupplierNotes">ملاحظات</label>
+                    <textarea class="form-textarea" id="editSupplierNotes" name="notes" placeholder="اختياري"></textarea>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary modal-close">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -593,32 +564,16 @@
             <div id="adjustmentMessage"></div>
             <form id="adjustmentForm">
                 <div class="form-group">
-                    <label class="form-label" for="adjustmentAmount">المبلغ *</label>
-                    <input type="number" class="form-input" id="adjustmentAmount" required step="0.01">
-                    <small class="text-gray-500">موجب: يضاف للمستحقات | سالب: يخصم من المستحقات</small>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="adjustmentMethod">طريقة التسوية</label>
-                    <select class="form-select" id="adjustmentMethod">
-                        <option value="">اختر طريقة التسوية</option>
-                        <option value="نقدي">نقدي</option>
-                        <option value="بنكي">بنكي</option>
-                        <option value="شيك">شيك</option>
-                        <option value="انستاباي">انستاباي</option>
-                        <option value="فودافون كاش">فودافون كاش</option>
-                        <option value="تعديل حسابي">تعديل حسابي</option>
+                    <label class="form-label" for="adjustmentType">نوع التسوية *</label>
+                    <select class="form-input" id="adjustmentType" required>
+                        <option value="">اختر النوع</option>
+                        <option value="addition">إضافة (مستحق للمورد)</option>
+                        <option value="deduction">خصم (مدفوع زائد)</option>
                     </select>
                 </div>
-                <div class="form-group hidden" id="adjustmentDetailsGroup">
-                    <label class="form-label" for="adjustmentDetails">رقم المعاملة / رقم الشيك</label>
-                    <input type="text" class="form-input" id="adjustmentDetails"
-                        placeholder="أدخل رقم المعاملة أو رقم الشيك">
-                </div>
-                <div class="form-group hidden" id="adjustmentImageGroup">
-                    <label class="form-label" for="adjustmentImage">صورة التسوية</label>
-                    <input type="file" class="form-input" id="adjustmentImage" accept="image/*">
-                    <small class="form-help">ارفع صورة الإيصال أو الشيك أو المعاملة البنكية</small>
-                    <div id="adjustmentImagePreview"></div>
+                <div class="form-group">
+                    <label class="form-label" for="adjustmentAmount">المبلغ *</label>
+                    <input type="number" class="form-input" id="adjustmentAmount" required step="0.01" min="0">
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="adjustmentReason">السبب</label>
@@ -682,6 +637,9 @@
     </div>
 
     <!-- Scripts -->
+    <script>
+        // Toggle date inputs will be handled by supplier-details.js
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="js/utils/modals.js"></script>
     <script src="js/utils/crud-buttons.js"></script>

@@ -24,7 +24,7 @@ function createClientCard(client) {
 
     const detailsBtn = document.createElement('button');
     detailsBtn.className = 'action-btn-modern view';
-    detailsBtn.innerHTML = '<i class="fas fa-chart-line"></i>';
+    detailsBtn.innerHTML = '<i class="fas fa-chart-line"></i> التفاصيل';
     detailsBtn.title = 'عرض التفاصيل';
     detailsBtn.onclick = () => window.location.href = `clients-details.html?id=${client.id}`;
 
@@ -134,8 +134,8 @@ function renderClients(clients) {
             <div class="empty-state">
                 <div class="empty-icon"><i class="fas fa-users"></i></div>
                 <div class="empty-text">لا توجد عملاء مسجلين</div>
-                <button class="btn btn-primary" onclick="showModal('addClientModal')">
-                    إضافة عميل جديد
+                <button class="btn-modern btn-primary-modern" onclick="showModal('addClientModal')">
+                    <i class="fas fa-plus"></i> إضافة عميل جديد
                 </button>
             </div>
         `;

@@ -1,13 +1,15 @@
-const API_BASE = (function () {
-    if (window.__API_BASE__) return window.__API_BASE__;
-    try {
-        const origin = window.location.origin;
-        if (!origin || origin === 'null') return 'http://localhost:5000/api';
-        return origin.replace(/\/$/, '') + '/api';
-    } catch (e) {
-        return 'http://localhost:5000/api';
-    }
-})();
+// Use shared API_BASE or create it
+if (!window.API_BASE) {
+    window.API_BASE = (() => {
+        try {
+            const origin = window.location.origin;
+            if (!origin || origin === 'null') return 'http://localhost:5000/api';
+            return origin.replace(/\/$/, '') + '/api';
+        } catch (e) {
+            return 'http://localhost:5000/api';
+        }
+    })();
+}
 
 // State
 let crushersData = [];
@@ -15,11 +17,9 @@ let crushersData = [];
 // Helpers
 function formatCurrency(amount) {
     return Number(amount || 0).toLocaleString('ar-EG', {
-        style: 'currency',
-        currency: 'EGP',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
-    });
+    }) + ' ج.م';
 }
 
 function formatQuantity(qty) {
@@ -45,22 +45,18 @@ function createCrusherCard(crusher) {
     const actions = document.createElement('div');
     actions.className = 'crusher-actions';
 
-    const editPricesBtn = document.createElement('button');
-    editPricesBtn.className = 'btn btn-sm btn-secondary';
-    editPricesBtn.innerHTML = '<i class="fas fa-money-bill-wave"></i> تعديل الأسعار';
-    editPricesBtn.onclick = () => openEditPricesModal(crusher);
-
     const detailsBtn = document.createElement('button');
-    detailsBtn.className = 'btn btn-sm btn-primary';
+    detailsBtn.className = 'action-btn-modern view';
     detailsBtn.innerHTML = '<i class="fas fa-chart-line"></i> التفاصيل';
+    detailsBtn.title = 'عرض التفاصيل';
     detailsBtn.onclick = () => window.location.href = `crusher-details.html?id=${crusher.id}`;
 
     const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'btn btn-sm btn-danger';
-    deleteBtn.innerHTML = '<i class="fas fa-trash"></i> حذف';
+    deleteBtn.className = 'action-btn-modern danger';
+    deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+    deleteBtn.title = 'حذف';
     deleteBtn.onclick = () => deleteCrusher(crusher.id, crusher.name);
 
-    actions.appendChild(editPricesBtn);
     actions.appendChild(detailsBtn);
     actions.appendChild(deleteBtn);
     header.appendChild(name);
@@ -72,7 +68,7 @@ function createCrusherCard(crusher) {
     pricesSection.className = 'material-prices';
 
     const pricesTitle = document.createElement('h4');
-    pricesTitle.textContent = 'أسعار المواد (جنيه/م³)';
+    pricesTitle.textContent = 'المواد';
     pricesSection.appendChild(pricesTitle);
 
     const pricesGrid = document.createElement('div');
@@ -112,7 +108,7 @@ function createCrusherCard(crusher) {
     summary.className = 'crusher-summary';
 
     const stats = [
-        { label: 'إجمالي الكمية', value: formatQuantity(crusher.totalVolume) + ' م³' },
+        { label: 'عدد المواد', value: 5 },
         { label: 'عدد التسليمات', value: crusher.deliveriesCount || 0 },
         {
             label: 'الرصيد', value: formatCurrency(Math.abs(crusher.net || 0)),
@@ -154,8 +150,8 @@ function renderCrushers(crushers) {
             <div class="empty-state">
                 <div class="empty-icon"><i class="fas fa-industry"></i></div>
                 <div class="empty-text">لا توجد كسارات مسجلة</div>
-                <button class="btn btn-primary" onclick="showModal('addCrusherModal')">
-                    إضافة كسارة جديدة
+                <button class="btn-modern btn-primary-modern" onclick="showAddCrusherModal()">
+                    <i class="fas fa-plus"></i> إضافة كسارة جديدة
                 </button>
             </div>
         `;
@@ -168,18 +164,31 @@ function renderCrushers(crushers) {
 }
 
 // Modal functions
-function showModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.classList.add('active');
-    }
+// Show add crusher modal
+function showAddCrusherModal() {
+    document.getElementById('addCrusherModal').style.display = 'flex';
+    document.getElementById('crusherName').focus();
 }
 
-function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.classList.remove('active');
-    }
+// Close add crusher modal
+function closeAddCrusherModal() {
+    document.getElementById('addCrusherModal').style.display = 'none';
+    document.getElementById('addCrusherForm').reset();
+    document.getElementById('crusherOpeningBalancesContainer').innerHTML = '';
+    document.getElementById('addCrusherMessage').innerHTML = '';
+    crusherOpeningBalanceCounter = 0;
+}
+
+// Show edit prices modal
+function showEditPricesModal() {
+    document.getElementById('editPricesModal').style.display = 'flex';
+}
+
+// Close edit prices modal
+function closeEditPricesModal() {
+    document.getElementById('editPricesModal').style.display = 'none';
+    document.getElementById('editPricesForm').reset();
+    document.getElementById('editPricesMessage').innerHTML = '';
 }
 
 function showMessage(elementId, message, type) {
@@ -199,12 +208,12 @@ function openEditPricesModal(crusher) {
     document.getElementById('editAggregate2Price').value = crusher.aggregate2_price || '';
     document.getElementById('editAggregate3Price').value = crusher.aggregate3_price || '';
     document.getElementById('editAggregate6PowderPrice').value = crusher.aggregate6_powder_price || '';
-    showModal('editPricesModal');
+    showEditPricesModal();
 }
 
 // API functions
 async function fetchCrushers() {
-    const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/crushers`);
+    const response = await authManager.makeAuthenticatedRequest(`${window.API_BASE}/crushers`);
     if (!response.ok) {
         throw new Error('فشل في تحميل بيانات الكسارات');
     }
@@ -214,7 +223,7 @@ async function fetchCrushers() {
 }
 
 async function createCrusher(crusherData) {
-    const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/crushers`, {
+    const response = await authManager.makeAuthenticatedRequest(`${window.API_BASE}/crushers`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(crusherData)
@@ -229,7 +238,7 @@ async function createCrusher(crusherData) {
 }
 
 async function updateCrusherPrices(crusherId, pricesData) {
-    const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/crushers/${crusherId}/prices`, {
+    const response = await authManager.makeAuthenticatedRequest(`${window.API_BASE}/crushers/${crusherId}/prices`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(pricesData)
@@ -244,11 +253,6 @@ async function updateCrusherPrices(crusherId, pricesData) {
 
 // Event handlers
 function setupEventHandlers() {
-    // Add crusher button
-    document.getElementById('addCrusherBtn').addEventListener('click', () => {
-        showModal('addCrusherModal');
-    });
-
     // Add crusher form
     let isSubmittingCrusher = false;
     const addCrusherForm = document.getElementById('addCrusherForm');
@@ -296,9 +300,8 @@ function setupEventHandlers() {
                 timer: 2000
             });
 
-            closeModal('addCrusherModal');
+            closeAddCrusherModal();
             loadCrushers();
-            e.target.reset();
             document.getElementById('crusherOpeningBalancesContainer').innerHTML = '';
             crusherOpeningBalanceCounter = 0;
             
@@ -366,7 +369,7 @@ function setupEventHandlers() {
                 timer: 2000
             });
 
-            closeModal('editPricesModal');
+            closeEditPricesModal();
             loadCrushers();
             
         } catch (error) {
@@ -393,7 +396,11 @@ function setupEventHandlers() {
     document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
-                closeModal(modal.id);
+                if (modal.id === 'addCrusherModal') {
+                    closeAddCrusherModal();
+                } else if (modal.id === 'editPricesModal') {
+                    closeEditPricesModal();
+                }
             }
         });
     });
@@ -448,7 +455,7 @@ async function deleteCrusher(crusherId, crusherName) {
             }
         });
 
-        const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/crushers/${crusherId}`, {
+        const response = await authManager.makeAuthenticatedRequest(`${window.API_BASE}/crushers/${crusherId}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'
@@ -486,17 +493,33 @@ async function deleteCrusher(crusherId, crusherName) {
 }
 
 // Initialize
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // Check authentication first
     if (authManager.checkAuth()) {
+        // Load projects first
+        await loadProjects();
+        
+        // Add crusher button
+        document.getElementById('addCrusherBtn').addEventListener('click', () => {
+            showAddCrusherModal();
+        });
+
+        // Add opening balance button
+        document.getElementById('addCrusherOpeningBalanceBtn').addEventListener('click', addCrusherOpeningBalanceRow);
+        
+        // Setup other event handlers
         setupEventHandlers();
+        
+        // Load crushers
         loadCrushers();
     }
 });
 
 // Make functions available globally
-window.showModal = showModal;
-window.closeModal = closeModal;
+window.showAddCrusherModal = showAddCrusherModal;
+window.closeAddCrusherModal = closeAddCrusherModal;
+window.showEditPricesModal = showEditPricesModal;
+window.closeEditPricesModal = closeEditPricesModal;
 window.deleteCrusher = deleteCrusher;
 
 
@@ -507,35 +530,52 @@ let projectsList = [];
 // Load projects for dropdown
 async function loadProjects() {
     try {
-        const resp = await authManager.makeAuthenticatedRequest(`${API_BASE}/projects`);
-        if (!resp.ok) throw new Error('Failed to load projects');
+        const resp = await authManager.makeAuthenticatedRequest(`${window.API_BASE}/clients`);
+        if (!resp.ok) throw new Error('Failed to load clients');
         const data = await resp.json();
-        projectsList = data.projects || data;
+        console.log('Clients API response:', data);
+        projectsList = data.clients || data;
+        console.log('Clients loaded:', projectsList.length, 'clients');
     } catch (error) {
-        console.error('Error loading projects:', error);
+        console.error('Error loading clients:', error);
         projectsList = [];
     }
 }
 
 // Add opening balance row for crusher
 function addCrusherOpeningBalanceRow() {
+    console.log('Adding opening balance row, projects available:', projectsList.length);
+    
+    if (projectsList.length === 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'تنبيه',
+            text: 'لا توجد عملاء متاحين. يرجى إضافة عميل أولاً من صفحة العملاء.',
+            confirmButtonText: 'حسناً'
+        });
+        return;
+    }
+    
     const container = document.getElementById('crusherOpeningBalancesContainer');
     const rowId = `crusherOpeningBalance_${crusherOpeningBalanceCounter++}`;
 
     const row = document.createElement('div');
     row.className = 'opening-balance-row';
     row.id = rowId;
-    row.style.cssText = 'display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: 10px; margin-bottom: 10px; align-items: start; padding: 15px; background: var(--gray-50); border-radius: var(--radius); border: 1px solid var(--gray-200);';
+    row.style.cssText = 'display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: 0.75rem; align-items: end; padding: 0.75rem; background: #f8fafc; border-radius: 0.5rem; border: 1px solid #e2e8f0;';
 
     // Project dropdown
     const projectCol = document.createElement('div');
     const projectLabel = document.createElement('label');
-    projectLabel.textContent = 'المشروع';
-    projectLabel.style.cssText = 'display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 500;';
+    projectLabel.className = 'form-label-modern';
+    projectLabel.style.fontSize = '0.75rem';
+    projectLabel.textContent = 'العميل';
     const projectSelect = document.createElement('select');
-    projectSelect.className = 'form-input crusher-opening-balance-project';
+    projectSelect.className = 'form-input-modern crusher-opening-balance-project';
+    projectSelect.style.padding = '0.5rem 0.75rem';
+    projectSelect.style.fontSize = '0.8125rem';
     projectSelect.required = true;
-    projectSelect.innerHTML = '<option value="">اختر المشروع</option>';
+    projectSelect.innerHTML = '<option value="">اختر العميل</option>';
     projectsList.forEach(project => {
         const option = document.createElement('option');
         option.value = project.id;
@@ -548,11 +588,14 @@ function addCrusherOpeningBalanceRow() {
     // Amount input
     const amountCol = document.createElement('div');
     const amountLabel = document.createElement('label');
+    amountLabel.className = 'form-label-modern';
+    amountLabel.style.fontSize = '0.75rem';
     amountLabel.textContent = 'المبلغ';
-    amountLabel.style.cssText = 'display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 500;';
     const amountInput = document.createElement('input');
     amountInput.type = 'number';
-    amountInput.className = 'form-input crusher-opening-balance-amount';
+    amountInput.className = 'form-input-modern crusher-opening-balance-amount';
+    amountInput.style.padding = '0.5rem 0.75rem';
+    amountInput.style.fontSize = '0.8125rem';
     amountInput.step = '0.01';
     amountInput.required = true;
     amountInput.placeholder = '0.00';
@@ -562,11 +605,14 @@ function addCrusherOpeningBalanceRow() {
     // Description input
     const descCol = document.createElement('div');
     const descLabel = document.createElement('label');
+    descLabel.className = 'form-label-modern';
+    descLabel.style.fontSize = '0.75rem';
     descLabel.textContent = 'الوصف';
-    descLabel.style.cssText = 'display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 500;';
     const descInput = document.createElement('input');
     descInput.type = 'text';
-    descInput.className = 'form-input crusher-opening-balance-description';
+    descInput.className = 'form-input-modern crusher-opening-balance-description';
+    descInput.style.padding = '0.5rem 0.75rem';
+    descInput.style.fontSize = '0.8125rem';
     descInput.placeholder = 'وصف اختياري';
     descInput.maxLength = 500;
     descCol.appendChild(descLabel);
@@ -574,10 +620,10 @@ function addCrusherOpeningBalanceRow() {
 
     // Remove button
     const removeCol = document.createElement('div');
-    removeCol.style.cssText = 'padding-top: 28px;';
     const removeBtn = document.createElement('button');
     removeBtn.type = 'button';
-    removeBtn.className = 'btn btn-sm btn-danger';
+    removeBtn.className = 'btn-modern btn-danger-modern';
+    removeBtn.style.cssText = 'padding: 0.5rem 0.75rem; font-size: 0.875rem;';
     removeBtn.innerHTML = '<i class="fas fa-trash"></i>';
     removeBtn.onclick = () => document.getElementById(rowId).remove();
     removeCol.appendChild(removeBtn);
@@ -614,18 +660,65 @@ function getCrusherOpeningBalances() {
 }
 
 // Initialize opening balance button for crushers
-document.addEventListener('DOMContentLoaded', async function () {
-    // Load projects first
-    await loadProjects();
-
-    // Add opening balance button
-    const addBtn = document.getElementById('addCrusherOpeningBalanceBtn');
-    if (addBtn) {
-        addBtn.addEventListener('click', addCrusherOpeningBalanceRow);
-    }
-});
+// (Removed - now handled in main DOMContentLoaded)
 
 
 // ============================================================================
 // OPENING BALANCE MANAGEMENT (Project-Based) - ADD FORM
 // ============================================================================
+
+
+// Search functionality
+let currentSearch = '';
+
+function filterCrushers() {
+    const searchTerm = currentSearch.toLowerCase().trim();
+    
+    if (!searchTerm) {
+        renderCrushers(crushersData);
+        return;
+    }
+    
+    const filtered = crushersData.filter(crusher => {
+        return crusher.name && crusher.name.toLowerCase().includes(searchTerm);
+    });
+    
+    renderCrushers(filtered);
+}
+
+// Setup search event listeners
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('crusherSearch');
+    const searchBtn = document.getElementById('searchBtn');
+    const clearBtn = document.getElementById('clearSearchBtn');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            currentSearch = e.target.value;
+            filterCrushers();
+        });
+        
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                currentSearch = e.target.value;
+                filterCrushers();
+            }
+        });
+    }
+    
+    if (searchBtn) {
+        searchBtn.addEventListener('click', () => {
+            currentSearch = searchInput.value;
+            filterCrushers();
+        });
+    }
+    
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            currentSearch = '';
+            if (searchInput) searchInput.value = '';
+            filterCrushers();
+        });
+    }
+});

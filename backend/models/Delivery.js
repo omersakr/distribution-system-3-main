@@ -116,22 +116,22 @@ deliverySchema.pre('save', function () {
     // Calculate net quantity
     this.net_quantity = (this.car_volume || 0) - (this.discount_volume || 0);
 
-    // Calculate total value for client
-    this.total_value = this.net_quantity * (this.price_per_meter || 0);
+    // Calculate total value for client using quantity (not net_quantity)
+    this.total_value = (this.quantity || 0) * (this.price_per_meter || 0);
 
-    // Calculate crusher total cost (if crusher delivery)
+    // Calculate crusher total cost (if crusher delivery) - uses net_quantity
     if (this.crusher_id) {
         this.crusher_total_cost = this.net_quantity * (this.material_price_at_time || 0);
         this.supplier_total_cost = 0;
     }
     
-    // Calculate supplier total cost (if supplier delivery)
+    // Calculate supplier total cost (if supplier delivery) - uses net_quantity
     if (this.supplier_id) {
         this.supplier_total_cost = this.net_quantity * (this.material_price_at_time || 0);
         this.crusher_total_cost = 0;
     }
 
-    // Calculate contractor total charge
+    // Calculate contractor total charge - uses net_quantity
     this.contractor_total_charge = this.net_quantity * (this.contractor_charge_per_meter || 0);
 });
 

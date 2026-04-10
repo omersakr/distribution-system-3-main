@@ -686,7 +686,7 @@ body {
     padding: var(--space-8);
     color: var(--gray-500);
 }
-}
+
 
 .error-details {
     font-size: 0.9rem;
@@ -766,6 +766,74 @@ body {
 .client-actions, .contractor-actions, .crusher-actions {
     display: flex;
     gap: 0.5rem;
+}
+
+/* Action buttons in cards */
+.client-actions .action-btn-modern,
+.contractor-actions .action-btn-modern,
+.crusher-actions .action-btn-modern,
+.employee-actions .action-btn-modern,
+.administration-actions .action-btn-modern {
+    padding: 0.5rem 0.75rem !important;
+    border: none;
+    cursor: pointer;
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-width: 36px;
+    height: 36px;
+    font-weight: 500;
+    box-shadow: none !important;
+}
+
+.client-actions .action-btn-modern:hover,
+.contractor-actions .action-btn-modern:hover,
+.crusher-actions .action-btn-modern:hover,
+.employee-actions .action-btn-modern:hover,
+.administration-actions .action-btn-modern:hover {
+    transform: translateY(-2px);
+}
+
+.client-actions .action-btn-modern.view,
+.contractor-actions .action-btn-modern.view,
+.crusher-actions .action-btn-modern.view,
+.employee-actions .action-btn-modern.view,
+.administration-actions .action-btn-modern.view {
+    background: rgba(14, 165, 233, 0.1) !important;
+    color: var(--primary-600) !important;
+}
+
+.client-actions .action-btn-modern.view:hover,
+.contractor-actions .action-btn-modern.view:hover,
+.crusher-actions .action-btn-modern.view:hover,
+.employee-actions .action-btn-modern.view:hover,
+.administration-actions .action-btn-modern.view:hover {
+    background: var(--primary-600) !important;
+    color: white !important;
+    box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.3) !important;
+}
+
+.client-actions .action-btn-modern.danger,
+.contractor-actions .action-btn-modern.danger,
+.crusher-actions .action-btn-modern.danger,
+.employee-actions .action-btn-modern.danger,
+.administration-actions .action-btn-modern.danger {
+    background: rgba(239, 68, 68, 0.1) !important;
+    color: var(--danger-600) !important;
+}
+
+.client-actions .action-btn-modern.danger:hover,
+.contractor-actions .action-btn-modern.danger:hover,
+.crusher-actions .action-btn-modern.danger:hover,
+.employee-actions .action-btn-modern.danger:hover,
+.administration-actions .action-btn-modern.danger:hover {
+    background: var(--danger-600) !important;
+    color: white !important;
+    box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3) !important;
 }
 
 .client-contact, .contractor-contact {

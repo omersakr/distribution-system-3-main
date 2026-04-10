@@ -1,21 +1,145 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html dir="rtl" lang="ar">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المشاريع</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/modern-theme.css">
-    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>المشاريع - الأفق التحريري</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/modern-pages.css">
+    <link rel="stylesheet" href="css/loaders.css">
     <style>
-        /* Fix modal centering in RTL */
-        .modal-content {
-            margin: 0 auto;
+        body {
+            font-family: 'Cairo', sans-serif;
+        }
+        
+        /* Projects Grid */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        /* Client Card Styles for Projects */
+        .client-card {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f1f5f9;
+            transition: all 0.3s;
+        }
+        
+        .client-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .client-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #f8fafc;
+        }
+        
+        .client-name {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0;
+            flex: 1;
+        }
+        
+        .client-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .client-contact {
+            margin-bottom: 1rem;
+        }
+        
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: #64748b;
+            padding: 0.5rem 0;
+        }
+        
+        .client-financial {
+            background: #f8fafc;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .financial-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .financial-label {
+            font-size: 0.875rem;
+            color: #64748b;
+            font-weight: 600;
+        }
+        
+        .financial-value {
+            font-size: 1.125rem;
+            font-weight: 700;
+        }
+        
+        .text-danger {
+            color: #ef4444;
+        }
+        
+        .text-success {
+            color: #10b981;
+        }
+        
+        .text-muted {
+            color: #94a3b8;
+        }
+        
+        .client-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+        
+        .stat-item {
+            background: white;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid #f1f5f9;
+        }
+        
+        .stat-label {
+            display: block;
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-bottom: 0.25rem;
+            font-weight: 600;
+        }
+        
+        .stat-value {
+            display: block;
+            font-size: 0.9375rem;
+            font-weight: 700;
+            color: #1e293b;
         }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+    <link rel="stylesheet" href="css/sidebar.css">
     <link rel="stylesheet" href="css/loaders.css">
 </head>
 
@@ -28,38 +152,56 @@
         </div>
     </div>
 
-
     <div id="sidebar-placeholder"></div>
 
+    <!-- Main Content -->
     <div class="main-content">
+        <!-- Page Header -->
         <div class="page-header">
-            <h1 class="page-title">المشاريع (العرض المالي للعملاء)</h1>
+            <div>
+                <h1 class="page-title"><i class="fas fa-business-time"></i> المشاريع</h1>
+                <p class="page-subtitle">عرض وإدارة جميع المشاريع والحسابات</p>
+            </div>
         </div>
 
-        <div class="content-section">
-            <div class="search-controls">
-                <div class="search-box">
-                    <input type="text" id="projectSearch" class="form-input" placeholder="ابحث عن مشروع...">
-                    <button id="searchBtn" class="btn btn-secondary"><i class="fas fa-search"></i> بحث</button>
-                    <button id="clearSearchBtn" class="btn btn-secondary"><i class="fas fa-times"></i> مسح</button>
+        <div class="page-content">
+
+            <!-- Search Section -->
+            <div class="search-controls" style="margin-bottom: 2rem;">
+                <div class="search-box" style="display: flex; align-items: center; gap: 1rem; max-width: 600px;">
+                    <input type="text" id="projectSearch" class="form-input-modern" style="flex: 1;"
+                        placeholder="ابحث عن مشروع بالاسم...">
+                    <button id="searchBtn" class="btn-modern btn-secondary-modern">
+                        <i class="fas fa-search"></i> بحث
+                    </button>
+                    <button id="clearSearchBtn" class="btn-modern btn-secondary-modern">
+                        <i class="fas fa-times"></i> مسح
+                    </button>
                 </div>
             </div>
 
-            <div id="projectsContainer" class="clients-grid"></div>
-            <div id="paginationContainer"></div>
+            <!-- Projects Grid -->
+            <div id="projectsContainer" class="projects-grid">
+                <!-- Will be populated by JS -->
+            </div>
+
+            <!-- Pagination -->
+            <div id="paginationContainer" style="margin-top: 3rem; display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
+                <!-- Will be populated by JS -->
+            </div>
         </div>
     </div>
 
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="js/utils/modals.js"></script>
-    <script src="js/utils/crud-buttons.js"></script>
     <script src="js/utils/formatters.js"></script>
     <script src="js/utils/validation.js"></script>
     <script src="js/utils/dom.js"></script>
     <script src="js/utils/api.js"></script>
     <script src="js/utils/modals.js"></script>
-    <script src="js/auth.js"></script>
+    <script src="js/utils/crud-buttons.js"></script>
     <script src="js/csp-fix.js"></script>
+    <script src="js/auth.js"></script>
     <script src="js/sidebar.js"></script>
     <script src="js/projects.js"></script>
     <script src="js/utils/loader.js"></script>

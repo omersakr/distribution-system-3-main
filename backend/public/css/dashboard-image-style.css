@@ -82,7 +82,7 @@ body {
 }
 
 .dashboard-content {
-    padding: 2.5rem;
+    padding: 1.5rem;
     max-width: 1500px;
     margin: 0 auto;
 }
@@ -90,15 +90,15 @@ body {
 /* Top Financial Cards - Modern Design */
 .debts-payables-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 2rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2.5rem;
     margin-bottom: 3rem;
 }
 
 .debt-card {
     background: white;
     border-radius: 1.5rem;
-    padding: 2rem;
+    padding: 2.5rem;
     box-shadow: var(--shadow-soft);
     border: 1px solid #f1f5f9;
     display: flex;
@@ -107,7 +107,7 @@ body {
     position: relative;
     overflow: hidden;
     transition: all 0.3s;
-    min-height: 180px;
+    min-height: 220px;
 }
 
 .debt-card:hover {
@@ -141,15 +141,15 @@ body {
 }
 
 .debt-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 1.75rem;
     flex-shrink: 0;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.75rem;
 }
 
 .debt-card.receivables .debt-icon {
@@ -167,25 +167,25 @@ body {
 }
 
 .debt-value {
-    font-size: 1.875rem;
+    font-size: 2.25rem;
     font-weight: 800;
     color: var(--on-surface);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
     line-height: 1;
     letter-spacing: -0.025em;
 }
 
 .debt-label {
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     color: var(--on-surface-variant);
     font-weight: 700;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.5rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 
 .debt-sublabel {
-    font-size: 0.625rem;
+    font-size: 0.75rem;
     color: var(--tertiary);
     font-weight: 700;
 }
@@ -198,18 +198,18 @@ body {
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
+    gap: 2.5rem;
     margin-bottom: 3rem;
 }
 
 .stats-grid .stat-card {
     background: white;
     border-radius: 1.5rem;
-    padding: 2rem;
+    padding: 2.5rem;
     box-shadow: var(--shadow-soft);
     border: 1px solid #f1f5f9;
     position: relative;
-    min-height: 200px;
+    min-height: 220px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -223,14 +223,14 @@ body {
 }
 
 .stats-grid .stat-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
+    font-size: 1.75rem;
+    margin-bottom: 1.75rem;
 }
 
 .stats-grid .stat-icon.purple {
@@ -268,20 +268,20 @@ body {
 }
 
 .stat-label {
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     color: var(--on-surface-variant);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 
 .stat-value {
-    font-size: 2rem;
+    font-size: 2.25rem;
     font-weight: 800;
     color: var(--on-surface);
     line-height: 1;
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
     letter-spacing: -0.025em;
 }
 
@@ -310,19 +310,19 @@ body {
 .small-stats-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 1.5rem;
-    margin-bottom: 2.5rem;
+    gap: 2rem;
+    margin-bottom: 3rem;
 }
 
 .small-stats-grid .stat-card {
     background: white;
     border-radius: 1rem;
-    padding: 1.5rem;
+    padding: 1.75rem;
     box-shadow: var(--shadow-sm);
     border: 1px solid #f1f5f9;
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 1.25rem;
     transition: all 0.3s;
     cursor: default;
 }
@@ -333,10 +333,10 @@ body {
 }
 
 .small-stats-grid .stat-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 0.75rem;
-    font-size: 1.125rem;
+    width: 48px;
+    height: 48px;
+    border-radius: 0.875rem;
+    font-size: 1.25rem;
     margin-bottom: 0;
     flex-shrink: 0;
     display: flex;
@@ -360,7 +360,7 @@ body {
 }
 
 .small-stats-grid .stat-value {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     font-weight: 800;
     margin-bottom: 0;
     line-height: 1;
@@ -368,7 +368,7 @@ body {
 }
 
 .small-stats-grid .stat-label {
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     margin-bottom: 0;
     color: var(--on-surface-variant);
     font-weight: 700;
@@ -395,14 +395,15 @@ body {
 .quick-actions {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+    width: 100%;
 }
 
 .action-card {
     background: white;
     border-radius: 1.5rem;
-    padding: 2rem 1.5rem;
+    padding: 2.25rem 1.75rem;
     box-shadow: var(--shadow-soft);
     border: 1px solid #f8fafc;
     text-decoration: none;
@@ -412,8 +413,8 @@ body {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    gap: 1rem;
-    min-height: 160px;
+    gap: 1.25rem;
+    min-height: 180px;
 }
 
 .action-card:hover {
@@ -422,13 +423,13 @@ body {
 }
 
 .action-icon {
-    width: 56px;
-    height: 56px;
+    width: 64px;
+    height: 64px;
     border-radius: 1.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 1.75rem;
     transition: all 0.3s;
 }
 
@@ -478,7 +479,7 @@ body {
 }
 
 .action-title {
-    font-size: 0.875rem;
+    font-size: 0.9375rem;
     font-weight: 700;
     color: var(--on-surface);
 }
@@ -510,11 +511,13 @@ body {
 .main-bottom-wrapper {
     display: grid;
     grid-template-columns: 2fr 1fr;
-    gap: 2rem;
+    gap: 2.5rem;
+    width: 100%;
 }
 
 .left-column {
     grid-column: 1;
+    width: 100%;
 }
 
 .right-column {
@@ -522,6 +525,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 2rem;
+    width: 100%;
 }
 
 /* Recent Activity - آخر النشاطات */
@@ -683,7 +687,8 @@ body {
     border-radius: 1.5rem;
     box-shadow: var(--shadow-soft);
     border: 1px solid #f1f5f9;
-    padding: 2rem;
+    padding: 2.5rem;
+    width: 100%;
 }
 
 .cash-flow-header {
@@ -710,7 +715,7 @@ body {
 .cash-flow-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
+    gap: 2rem;
 }
 
 .cash-flow-item {
@@ -723,18 +728,18 @@ body {
 }
 
 .cash-flow-label {
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     color: var(--on-surface-variant);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
 }
 
 .cash-flow-value {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: var(--on-surface);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
     line-height: 1.2;
 }
 

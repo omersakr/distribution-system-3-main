@@ -1,60 +1,36 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>سلة المحذوفات - نظام التوزيع</title>
-    <link rel="stylesheet" href="css/modern-theme.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/modern-pages.css">
+    <link rel="stylesheet" href="css/loaders.css">
     <style>
-        .main-content {
-            margin-right: 225px;
-            padding: var(--space-8);
-            transition: margin-right 0.25s;
-        }
-
-        @media (max-width: 900px) {
-            .main-content {
-                margin-right: 190px;
-            }
-        }
-
-        @media (max-width: 700px) {
-            .main-content {
-                margin-right: 0;
-                padding: var(--space-4);
-            }
-        }
-
-        .filters-section {
-            background: white;
-            border-radius: var(--radius-lg);
-            padding: var(--space-6);
-            margin-bottom: var(--space-6);
-            box-shadow: var(--shadow);
-        }
-
-        .filters-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: var(--space-4);
-            margin-bottom: var(--space-4);
-        }
-
         .recycle-table {
             background: white;
-            border-radius: var(--radius-lg);
+            border-radius: 1.5rem;
             overflow: hidden;
-            box-shadow: var(--shadow);
+            box-shadow: var(--shadow-soft);
         }
 
         .recycle-entry {
-            padding: var(--space-4);
-            border-bottom: 1px solid var(--gray-200);
+            padding: 1.5rem;
+            border-bottom: 1px solid #f8fafc;
             display: grid;
-            grid-template-columns: auto 1fr auto;
-            gap: var(--space-4);
+            grid-template-columns: auto auto 1fr auto;
+            gap: 1.5rem;
             align-items: center;
+            transition: background 0.2s;
+        }
+
+        .recycle-entry:hover {
+            background: #f8fafc;
         }
 
         .recycle-entry:last-child {
@@ -62,15 +38,15 @@
         }
 
         .recycle-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: var(--radius);
+            width: 48px;
+            height: 48px;
+            border-radius: 0.75rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
-            background: var(--danger-100);
-            color: var(--danger-700);
+            font-size: 1.25rem;
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
             flex-shrink: 0;
         }
 
@@ -79,118 +55,30 @@
         }
 
         .recycle-title {
-            font-weight: 600;
-            color: var(--gray-900);
-            margin-bottom: var(--space-1);
+            font-weight: 700;
+            color: var(--on-surface);
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
         }
 
         .recycle-details {
             font-size: 0.875rem;
-            color: var(--gray-600);
-            margin-bottom: var(--space-2);
+            color: var(--on-surface-variant);
+            margin-bottom: 0.5rem;
         }
 
         .recycle-meta {
             font-size: 0.75rem;
-            color: var(--gray-500);
+            color: var(--on-surface-variant);
+            opacity: 0.7;
         }
 
         .recycle-actions {
             display: flex;
-            gap: var(--space-2);
+            gap: 0.75rem;
             flex-shrink: 0;
         }
-
-        .restore-btn {
-            background: var(--success-600);
-            color: white;
-            border: none;
-            padding: var(--space-2) var(--space-3);
-            border-radius: var(--radius);
-            cursor: pointer;
-            font-size: 0.75rem;
-        }
-
-        .restore-btn:hover {
-            background: var(--success-700);
-        }
-
-        .delete-btn {
-            background: var(--danger-600);
-            color: white;
-            border: none;
-            padding: var(--space-2) var(--space-3);
-            border-radius: var(--radius);
-            cursor: pointer;
-            font-size: 0.75rem;
-        }
-
-        .delete-btn:hover {
-            background: var(--danger-700);
-        }
-
-        .loading {
-            text-align: center;
-            padding: var(--space-8);
-            color: var(--gray-500);
-        }
-
-        .error {
-            text-align: center;
-            padding: var(--space-8);
-            color: var(--danger-600);
-            background: var(--danger-50);
-            border-radius: var(--radius);
-            border: 1px solid var(--danger-200);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: var(--space-8);
-            color: var(--gray-500);
-        }
-
-        .empty-state .icon {
-            font-size: 4rem;
-            margin-bottom: var(--space-4);
-        }
-
-        .bulk-actions {
-            display: flex;
-            gap: var(--space-3);
-            margin-bottom: var(--space-4);
-        }
-
-        .bulk-actions button {
-            padding: var(--space-2) var(--space-4);
-            border: none;
-            border-radius: var(--radius);
-            cursor: pointer;
-            font-size: 0.875rem;
-        }
-
-        .bulk-restore {
-            background: var(--success-600);
-            color: white;
-        }
-
-        .bulk-delete {
-            background: var(--danger-600);
-            color: white;
-        }
-
-        .bulk-actions button:hover {
-            opacity: 0.9;
-        }
-
-        .bulk-actions button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="css/loaders.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 <body>
     <!-- Global Loader -->
@@ -206,55 +94,69 @@
 
     <div class="main-content">
         <div class="page-header">
-            <h1 class="page-title">سلة المحذوفات</h1>
-            <p class="page-subtitle">استعادة أو حذف العناصر المحذوفة نهائياً</p>
+            <div>
+                <h1 class="page-title"><i class="fas fa-trash-restore"></i> سلة المحذوفات</h1>
+                <p class="page-subtitle">استعادة أو حذف العناصر المحذوفة نهائياً</p>
+            </div>
         </div>
 
-        <div class="filters-section">
-            <h3>تصفية العناصر المحذوفة</h3>
-            <div class="filters-grid">
-                <div class="form-group">
-                    <label>نوع العنصر</label>
-                    <select id="entityFilter">
-                        <option value="">جميع الأنواع</option>
-                        <option value="clients">العملاء</option>
-                        <option value="crushers">الكسارات</option>
-                        <option value="contractors">المقاولين</option>
-                        <option value="employees">الموظفين</option>
-                        <option value="deliveries">التسليمات</option>
-                        <option value="administration">الإدارة</option>
-                        <option value="suppliers">الموردين</option>
-                    </select>
+        <div class="page-content mb-8">
+            <div class="card-modern">
+                <h3 style="margin-bottom: 1.5rem; font-weight: 700;">تصفية العناصر المحذوفة</h3>
+                <div style="display: grid; grid-template-columns: 1fr 180px 180px; gap: 1.5rem; margin-bottom: 1.5rem;">
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">نوع العنصر</label>
+                        <select id="entityFilter" class="form-input-modern">
+                            <option value="">جميع الأنواع</option>
+                            <option value="clients">العملاء</option>
+                            <option value="crushers">الكسارات</option>
+                            <option value="contractors">المقاولين</option>
+                            <option value="employees">الموظفين</option>
+                            <option value="deliveries">التسليمات</option>
+                            <option value="administration">الإدارة</option>
+                            <option value="suppliers">الموردين</option>
+                        </select>
+                    </div>
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">من تاريخ الحذف</label>
+                        <input type="date" id="dateFromFilter" class="form-input-modern">
+                    </div>
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">إلى تاريخ الحذف</label>
+                        <input type="date" id="dateToFilter" class="form-input-modern">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>من تاريخ الحذف</label>
-                    <input type="date" id="dateFromFilter">
+                <div style="display: flex; gap: 1rem;">
+                    <button class="btn-modern btn-primary-modern" onclick="loadDeletedItems()">
+                        <i class="fas fa-filter"></i> تطبيق التصفية
+                    </button>
+                    <button class="btn-modern btn-secondary-modern" onclick="clearFilters()">
+                        <i class="fas fa-times"></i> مسح التصفية
+                    </button>
                 </div>
-                <div class="form-group">
-                    <label>إلى تاريخ الحذف</label>
-                    <input type="date" id="dateToFilter">
-                </div>
-            </div>
-            <div>
-                <button class="btn btn-primary" onclick="loadDeletedItems()">تطبيق التصفية</button>
-                <button class="btn btn-outline-secondary" onclick="clearFilters()">مسح التصفية</button>
             </div>
         </div>
 
         <div class="recycle-table">
-            <div class="card-header">
-                <h3 class="card-title">العناصر المحذوفة</h3>
-                <div id="itemCount" class="text-muted"></div>
+            <div style="padding: 1.5rem; border-bottom: 1px solid #f8fafc; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; font-weight: 700;">العناصر المحذوفة</h3>
+                <div id="itemCount" style="color: var(--on-surface-variant); font-size: 0.875rem;"></div>
             </div>
             
-            <div class="bulk-actions" id="bulkActions" style="display: none; padding: var(--space-4);" data-role="manager">
-                <button class="bulk-restore" onclick="bulkRestore()">استعادة المحدد</button>
-                <button class="bulk-delete" onclick="bulkDelete()">حذف نهائي للمحدد</button>
-                <span id="selectedCount" class="text-muted"></span>
+            <div id="bulkActions" style="display: none; padding: 1.5rem; border-bottom: 1px solid #f8fafc; gap: 1rem;" data-role="manager">
+                <button class="btn-modern btn-success-modern" onclick="bulkRestore()">
+                    <i class="fas fa-undo"></i> استعادة المحدد
+                </button>
+                <button class="btn-modern btn-danger-modern" onclick="bulkDelete()">
+                    <i class="fas fa-trash"></i> حذف نهائي للمحدد
+                </button>
+                <span id="selectedCount" style="color: var(--on-surface-variant); font-size: 0.875rem;"></span>
             </div>
 
             <div id="deletedItems">
-                <div class="loading">جاري تحميل العناصر المحذوفة...</div>
+                <div style="text-align: center; padding: 4rem 2rem; color: var(--on-surface-variant);">
+                    جاري تحميل العناصر المحذوفة...
+                </div>
             </div>
         </div>
     </div>
@@ -351,10 +253,14 @@
             
             if (!items || items.length === 0) {
                 container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icon"><i class="fas fa-trash-alt"></i></div>
-                        <h3>سلة المحذوفات فارغة</h3>
-                        <p>لا توجد عناصر محذوفة للعرض</p>
+                    <div style="text-align: center; padding: 4rem 2rem;">
+                        <div style="font-size: 4rem; color: var(--on-surface-variant); opacity: 0.3; margin-bottom: 1rem;">
+                            <i class="fas fa-trash-alt"></i>
+                        </div>
+                        <h3 style="font-size: 1.125rem; font-weight: 600; color: var(--on-surface); margin-bottom: 0.5rem;">
+                            سلة المحذوفات فارغة
+                        </h3>
+                        <p style="color: var(--on-surface-variant);">لا توجد عناصر محذوفة للعرض</p>
                     </div>
                 `;
                 return;
@@ -367,7 +273,7 @@
                     ${canRestore ? `
                         <input type="checkbox" 
                                onchange="toggleSelection('${item.entity_type}', '${item.id}')"
-                               style="margin-left: 10px;">
+                               style="width: 20px; height: 20px; cursor: pointer;">
                     ` : ''}
                     <div class="recycle-icon">
                         ${getEntityIcon(item.entity_type)}
@@ -385,11 +291,11 @@
                     </div>
                     <div class="recycle-actions">
                         ${canRestore ? `
-                            <button class="restore-btn" onclick="restoreItem('${item.entity_type}', '${item.id}')">
-                                استعادة
+                            <button class="btn-modern btn-success-modern" style="font-size: 0.875rem; padding: 0.5rem 1rem;" onclick="restoreItem('${item.entity_type}', '${item.id}')">
+                                <i class="fas fa-undo"></i> استعادة
                             </button>
-                            <button class="delete-btn" onclick="permanentDelete('${item.entity_type}', '${item.id}')">
-                                حذف نهائي
+                            <button class="btn-modern btn-danger-modern" style="font-size: 0.875rem; padding: 0.5rem 1rem;" onclick="permanentDelete('${item.entity_type}', '${item.id}')">
+                                <i class="fas fa-trash"></i> حذف نهائي
                             </button>
                         ` : ''}
                     </div>
@@ -421,7 +327,18 @@
         }
 
         async function restoreItem(entityType, id) {
-            if (!confirm('هل أنت متأكد من استعادة هذا العنصر؟')) {
+            const result = await Swal.fire({
+                title: 'استعادة العنصر',
+                text: 'هل أنت متأكد من استعادة هذا العنصر؟',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'نعم، استعادة',
+                cancelButtonText: 'إلغاء',
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#6b7280'
+            });
+
+            if (!result.isConfirmed) {
                 return;
             }
 
@@ -435,17 +352,40 @@
                     throw new Error('فشل في استعادة العنصر');
                 }
 
-                alert('تم استعادة العنصر بنجاح');
+                await Swal.fire({
+                    title: 'تم الاستعادة',
+                    text: 'تم استعادة العنصر بنجاح',
+                    icon: 'success',
+                    confirmButtonText: 'حسناً',
+                    confirmButtonColor: '#10b981'
+                });
                 loadDeletedItems();
 
             } catch (error) {
                 console.error('Error restoring item:', error);
-                alert('خطأ في استعادة العنصر: ' + error.message);
+                await Swal.fire({
+                    title: 'خطأ',
+                    text: 'خطأ في استعادة العنصر: ' + error.message,
+                    icon: 'error',
+                    confirmButtonText: 'حسناً',
+                    confirmButtonColor: '#ef4444'
+                });
             }
         }
 
         async function permanentDelete(entityType, id) {
-            if (!confirm('تحذير: سيتم حذف هذا العنصر نهائياً ولن يمكن استعادته. هل أنت متأكد؟')) {
+            const result = await Swal.fire({
+                title: 'تحذير',
+                text: 'سيتم حذف هذا العنصر نهائياً ولن يمكن استعادته. هل أنت متأكد؟',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'نعم، حذف نهائي',
+                cancelButtonText: 'إلغاء',
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280'
+            });
+
+            if (!result.isConfirmed) {
                 return;
             }
 
@@ -459,22 +399,51 @@
                     throw new Error('فشل في الحذف النهائي');
                 }
 
-                alert('تم الحذف النهائي بنجاح');
+                await Swal.fire({
+                    title: 'تم الحذف',
+                    text: 'تم الحذف النهائي بنجاح',
+                    icon: 'success',
+                    confirmButtonText: 'حسناً',
+                    confirmButtonColor: '#10b981'
+                });
                 loadDeletedItems();
 
             } catch (error) {
                 console.error('Error permanently deleting item:', error);
-                alert('خطأ في الحذف النهائي: ' + error.message);
+                await Swal.fire({
+                    title: 'خطأ',
+                    text: 'خطأ في الحذف النهائي: ' + error.message,
+                    icon: 'error',
+                    confirmButtonText: 'حسناً',
+                    confirmButtonColor: '#ef4444'
+                });
             }
         }
 
         async function bulkRestore() {
             if (selectedItems.size === 0) {
-                alert('يرجى تحديد عناصر للاستعادة');
+                await Swal.fire({
+                    title: 'تنبيه',
+                    text: 'يرجى تحديد عناصر للاستعادة',
+                    icon: 'info',
+                    confirmButtonText: 'حسناً',
+                    confirmButtonColor: '#3b82f6'
+                });
                 return;
             }
 
-            if (!confirm(`هل أنت متأكد من استعادة ${selectedItems.size} عنصر؟`)) {
+            const result = await Swal.fire({
+                title: 'استعادة متعددة',
+                text: `هل أنت متأكد من استعادة ${selectedItems.size} عنصر؟`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'نعم، استعادة الكل',
+                cancelButtonText: 'إلغاء',
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#6b7280'
+            });
+
+            if (!result.isConfirmed) {
                 return;
             }
 
@@ -497,23 +466,52 @@
                     throw new Error('فشل في الاستعادة المجمعة');
                 }
 
-                alert('تم استعادة العناصر بنجاح');
+                await Swal.fire({
+                    title: 'تم الاستعادة',
+                    text: 'تم استعادة العناصر بنجاح',
+                    icon: 'success',
+                    confirmButtonText: 'حسناً',
+                    confirmButtonColor: '#10b981'
+                });
                 selectedItems.clear();
                 loadDeletedItems();
 
             } catch (error) {
                 console.error('Error bulk restoring:', error);
-                alert('خطأ في الاستعادة المجمعة: ' + error.message);
+                await Swal.fire({
+                    title: 'خطأ',
+                    text: 'خطأ في الاستعادة المجمعة: ' + error.message,
+                    icon: 'error',
+                    confirmButtonText: 'حسناً',
+                    confirmButtonColor: '#ef4444'
+                });
             }
         }
 
         async function bulkDelete() {
             if (selectedItems.size === 0) {
-                alert('يرجى تحديد عناصر للحذف');
+                await Swal.fire({
+                    title: 'تنبيه',
+                    text: 'يرجى تحديد عناصر للحذف',
+                    icon: 'info',
+                    confirmButtonText: 'حسناً',
+                    confirmButtonColor: '#3b82f6'
+                });
                 return;
             }
 
-            if (!confirm(`تحذير: سيتم حذف ${selectedItems.size} عنصر نهائياً ولن يمكن استعادتها. هل أنت متأكد؟`)) {
+            const result = await Swal.fire({
+                title: 'تحذير',
+                text: `سيتم حذف ${selectedItems.size} عنصر نهائياً ولن يمكن استعادتها. هل أنت متأكد؟`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'نعم، حذف نهائي',
+                cancelButtonText: 'إلغاء',
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280'
+            });
+
+            if (!result.isConfirmed) {
                 return;
             }
 
@@ -536,13 +534,25 @@
                     throw new Error('فشل في الحذف النهائي المجمع');
                 }
 
-                alert('تم الحذف النهائي للعناصر بنجاح');
+                await Swal.fire({
+                    title: 'تم الحذف',
+                    text: 'تم الحذف النهائي للعناصر بنجاح',
+                    icon: 'success',
+                    confirmButtonText: 'حسناً',
+                    confirmButtonColor: '#10b981'
+                });
                 selectedItems.clear();
                 loadDeletedItems();
 
             } catch (error) {
                 console.error('Error bulk deleting:', error);
-                alert('خطأ في الحذف النهائي المجمع: ' + error.message);
+                await Swal.fire({
+                    title: 'خطأ',
+                    text: 'خطأ في الحذف النهائي المجمع: ' + error.message,
+                    icon: 'error',
+                    confirmButtonText: 'حسناً',
+                    confirmButtonColor: '#ef4444'
+                });
             }
         }
 

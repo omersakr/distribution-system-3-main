@@ -1,60 +1,37 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>سجل العمليات - نظام التوزيع</title>
-    <link rel="stylesheet" href="css/modern-theme.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/modern-pages.css">
+    <link rel="stylesheet" href="css/loaders.css">
     <style>
-        .main-content {
-            margin-right: 225px;
-            padding: var(--space-8);
-            transition: margin-right 0.25s;
-        }
-
-        @media (max-width: 900px) {
-            .main-content {
-                margin-right: 190px;
-            }
-        }
-
-        @media (max-width: 700px) {
-            .main-content {
-                margin-right: 0;
-                padding: var(--space-4);
-            }
-        }
-
-        .filters-section {
-            background: white;
-            border-radius: var(--radius-lg);
-            padding: var(--space-6);
-            margin-bottom: var(--space-6);
-            box-shadow: var(--shadow);
-        }
-
-        .filters-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: var(--space-4);
-            margin-bottom: var(--space-4);
-        }
-
         .audit-table {
             background: white;
-            border-radius: var(--radius-lg);
+            border-radius: 1.5rem;
             overflow: hidden;
-            box-shadow: var(--shadow);
+            box-shadow: var(--shadow-soft);
+            margin-bottom: 2rem;
         }
 
         .audit-entry {
-            padding: var(--space-4);
-            border-bottom: 1px solid var(--gray-200);
+            padding: 1.5rem;
+            border-bottom: 1px solid #f8fafc;
             display: grid;
             grid-template-columns: auto 1fr auto;
-            gap: var(--space-4);
+            gap: 1.5rem;
             align-items: start;
+            transition: background 0.2s;
+        }
+
+        .audit-entry:hover {
+            background: #f8fafc;
         }
 
         .audit-entry:last-child {
@@ -62,113 +39,53 @@
         }
 
         .audit-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: var(--radius);
+            width: 48px;
+            height: 48px;
+            border-radius: 0.75rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
+            font-size: 1.25rem;
             flex-shrink: 0;
         }
 
-        .audit-icon.create { background: var(--success-100); color: var(--success-700); }
-        .audit-icon.update { background: var(--warning-100); color: var(--warning-700); }
-        .audit-icon.delete { background: var(--danger-100); color: var(--danger-700); }
-        .audit-icon.login { background: var(--primary-100); color: var(--primary-700); }
-        .audit-icon.logout { background: var(--gray-100); color: var(--gray-700); }
-        .audit-icon.blocked_attempt { background: var(--danger-100); color: var(--danger-700); }
+        .audit-icon.create { background: rgba(34, 197, 94, 0.1); color: #16a34a; }
+        .audit-icon.update { background: rgba(251, 191, 36, 0.1); color: #d97706; }
+        .audit-icon.delete { background: rgba(239, 68, 68, 0.1); color: #dc2626; }
+        .audit-icon.login { background: rgba(14, 165, 233, 0.1); color: #0284c7; }
+        .audit-icon.logout { background: rgba(148, 163, 184, 0.1); color: #64748b; }
+        .audit-icon.blocked_attempt { background: rgba(239, 68, 68, 0.1); color: #dc2626; }
 
         .audit-content {
             flex: 1;
         }
 
         .audit-title {
-            font-weight: 600;
-            color: var(--gray-900);
-            margin-bottom: var(--space-1);
+            font-weight: 700;
+            color: var(--on-surface);
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
         }
 
         .audit-details {
             font-size: 0.875rem;
-            color: var(--gray-600);
-            margin-bottom: var(--space-2);
+            color: var(--on-surface-variant);
+            margin-bottom: 0.5rem;
         }
 
         .audit-meta {
             font-size: 0.75rem;
-            color: var(--gray-500);
+            color: var(--on-surface-variant);
+            opacity: 0.7;
         }
 
         .audit-timestamp {
-            font-size: 0.75rem;
-            color: var(--gray-500);
-            text-align: left;
-        }
-
-        .loading {
-            text-align: center;
-            padding: var(--space-8);
-            color: var(--gray-500);
-        }
-
-        .error {
-            text-align: center;
-            padding: var(--space-8);
-            color: var(--danger-600);
-            background: var(--danger-50);
-            border-radius: var(--radius);
-            border: 1px solid var(--danger-200);
-        }
-
-        .export-btn {
-            background: var(--success-600);
-            color: white;
-            border: none;
-            padding: var(--space-3) var(--space-4);
-            border-radius: var(--radius);
-            cursor: pointer;
             font-size: 0.875rem;
-        }
-
-        .export-btn:hover {
-            background: var(--success-700);
-        }
-
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: var(--space-2);
-            margin-top: var(--space-6);
-        }
-
-        .pagination button {
-            padding: var(--space-2) var(--space-3);
-            border: 1px solid var(--gray-300);
-            background: white;
-            cursor: pointer;
-            border-radius: var(--radius);
-        }
-
-        .pagination button:hover {
-            background: var(--gray-50);
-        }
-
-        .pagination button.active {
-            background: var(--primary-600);
-            color: white;
-            border-color: var(--primary-600);
-        }
-
-        .pagination button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+            color: var(--on-surface-variant);
+            text-align: left;
+            white-space: nowrap;
         }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="css/loaders.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 <body>
     <!-- Global Loader -->
@@ -184,75 +101,85 @@
 
     <div class="main-content">
         <div class="page-header">
-            <h1 class="page-title">سجل العمليات</h1>
-            <p class="page-subtitle">تتبع جميع العمليات والأنشطة في النظام</p>
+            <div>
+                <h1 class="page-title"><i class="fas fa-clipboard-list"></i> سجل العمليات</h1>
+                <p class="page-subtitle">تتبع جميع العمليات والأنشطة في النظام</p>
+            </div>
+            <button class="btn-modern btn-success-modern" onclick="exportAuditLogs()">
+                <i class="fas fa-download"></i> تصدير السجلات
+            </button>
         </div>
 
-        <div class="filters-section">
-            <h3>تصفية السجلات</h3>
-            <div class="filters-grid">
-                <div class="form-group">
-                    <label>نوع العملية</label>
-                    <select id="actionFilter">
-                        <option value="">جميع العمليات</option>
-                        <option value="create">إنشاء</option>
-                        <option value="update">تحديث</option>
-                        <option value="delete">حذف</option>
-                        <option value="login">تسجيل دخول</option>
-                        <option value="logout">تسجيل خروج</option>
-                        <option value="blocked_attempt">محاولة محظورة</option>
-                    </select>
+        <div class="page-content mb-8">
+            <div class="card-modern">
+                <h3 style="margin-bottom: 1.5rem; font-weight: 700;">تصفية السجلات</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 180px 180px; gap: 1.5rem; margin-bottom: 1.5rem;">
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">نوع العملية</label>
+                        <select id="actionFilter" class="form-input-modern" >
+                            <option value="">جميع العمليات</option>
+                            <option value="create">إنشاء</option>
+                            <option value="update">تحديث</option>
+                            <option value="delete">حذف</option>
+                            <option value="login">تسجيل دخول</option>
+                            <option value="logout">تسجيل خروج</option>
+                            <option value="blocked_attempt">محاولة محظورة</option>
+                        </select>
+                    </div>
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">نوع الكيان</label>
+                        <select id="entityFilter" class="form-input-modern">
+                            <option value="">جميع الكيانات</option>
+                            <option value="Client">العملاء</option>
+                            <option value="Crusher">الكسارات</option>
+                            <option value="Contractor">المقاولين</option>
+                            <option value="Employee">الموظفين</option>
+                            <option value="Delivery">التسليمات</option>
+                            <option value="User">المستخدمين</option>
+                        </select>
+                    </div>
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">المستخدم</label>
+                        <select id="userFilter" class="form-input-modern">
+                            <option value="">جميع المستخدمين</option>
+                        </select>
+                    </div>
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">من تاريخ</label>
+                        <input type="date" id="dateFromFilter" class="form-input-modern">
+                    </div>
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">إلى تاريخ</label>
+                        <input type="date" id="dateToFilter" class="form-input-modern">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>نوع الكيان</label>
-                    <select id="entityFilter">
-                        <option value="">جميع الكيانات</option>
-                        <option value="Client">العملاء</option>
-                        <option value="Crusher">الكسارات</option>
-                        <option value="Contractor">المقاولين</option>
-                        <option value="Employee">الموظفين</option>
-                        <option value="Delivery">التسليمات</option>
-                        <option value="User">المستخدمين</option>
-                    </select>
+                <div style="display: flex; gap: 1rem;">
+                    <button class="btn-modern btn-primary-modern" onclick="loadAuditLogs()">
+                        <i class="fas fa-filter"></i> تطبيق التصفية
+                    </button>
+                    <button class="btn-modern btn-secondary-modern" onclick="clearFilters()">
+                        <i class="fas fa-times"></i> مسح التصفية
+                    </button>
                 </div>
-                <div class="form-group">
-                    <label>المستخدم</label>
-                    <select id="userFilter">
-                        <option value="">جميع المستخدمين</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>من تاريخ</label>
-                    <input type="date" id="dateFromFilter">
-                </div>
-                <div class="form-group">
-                    <label>إلى تاريخ</label>
-                    <input type="date" id="dateToFilter">
-                </div>
-            </div>
-            <div style="display: flex; gap: var(--space-3); justify-content: space-between; align-items: center;">
-                <div>
-                    <button class="btn btn-primary" onclick="loadAuditLogs()">تطبيق التصفية</button>
-                    <button class="btn btn-outline-secondary" onclick="clearFilters()">مسح التصفية</button>
-                </div>
-                <button class="export-btn" onclick="exportAuditLogs()">تصدير السجلات</button>
             </div>
         </div>
 
         <div class="audit-table">
-            <div class="card-header">
-                <h3 class="card-title">سجل العمليات</h3>
-                <div id="auditCount" class="text-muted"></div>
+            <div style="padding: 1.5rem; border-bottom: 1px solid #f8fafc; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; font-weight: 700;">سجل العمليات</h3>
+                <div id="auditCount" style="color: var(--on-surface-variant); font-size: 0.875rem;"></div>
             </div>
             <div id="auditLogs">
-                <div class="loading">جاري تحميل سجل العمليات...</div>
+                <div style="text-align: center; padding: 4rem 2rem; color: var(--on-surface-variant);">
+                    جاري تحميل سجل العمليات...
+                </div>
             </div>
         </div>
 
-        <div class="pagination" id="pagination" style="display: none;">
-            <button id="prevPage" onclick="changePage(-1)">السابق</button>
-            <span id="pageInfo">صفحة 1 من 1</span>
-            <button id="nextPage" onclick="changePage(1)">التالي</button>
+        <div class="pagination" id="pagination" style="display: none; justify-content: center; align-items: center; gap: 1rem; margin-top: 2rem;">
+            <button id="prevPage" class="btn-modern btn-secondary-modern" onclick="changePage(-1)">السابق</button>
+            <span id="pageInfo" style="color: var(--on-surface-variant); font-weight: 600;">صفحة 1 من 1</span>
+            <button id="nextPage" class="btn-modern btn-secondary-modern" onclick="changePage(1)">التالي</button>
         </div>
     </div>
 
@@ -370,7 +297,7 @@
             const container = document.getElementById('auditLogs');
             
             if (!logs || logs.length === 0) {
-                container.innerHTML = '<div class="loading">لا توجد سجلات للعرض</div>';
+                container.innerHTML = '<div style="text-align: center; padding: 4rem 2rem; color: var(--on-surface-variant);">لا توجد سجلات للعرض</div>';
                 return;
             }
 
@@ -454,6 +381,15 @@
                     if (!filters[key]) delete filters[key];
                 });
 
+                Swal.fire({
+                    title: 'جاري التصدير...',
+                    text: 'يرجى الانتظار',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
                 const queryString = new URLSearchParams(filters).toString();
                 const response = await authManager.makeAuthenticatedRequest(`${API_BASE}/audit-logs/export?${queryString}`);
                 
@@ -471,9 +407,22 @@
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
 
+                Swal.fire({
+                    icon: 'success',
+                    title: 'تم التصدير بنجاح',
+                    text: 'تم تنزيل ملف السجلات',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
             } catch (error) {
                 console.error('Error exporting audit logs:', error);
-                alert('خطأ في تصدير السجلات: ' + error.message);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'خطأ في التصدير',
+                    text: error.message,
+                    confirmButtonText: 'موافق'
+                });
             }
         }
 

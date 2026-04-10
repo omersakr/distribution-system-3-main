@@ -285,7 +285,7 @@ function renderAdjustments(adjustments) {
     // Header
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
-    const headers = ['التاريخ', 'المبلغ', 'طريقة التسوية', 'التفاصيل', 'السبب', 'إجراءات'];
+    const headers = ['التاريخ', 'المبلغ', 'النوع', 'السبب', 'إجراءات'];
 
     headers.forEach(header => {
         const th = document.createElement('th');
@@ -300,30 +300,31 @@ function renderAdjustments(adjustments) {
     adjustments.forEach(adjustment => {
         const row = document.createElement('tr');
 
+        // Date
+        const dateCell = document.createElement('td');
+        dateCell.textContent = formatDate(adjustment.created_at);
+        row.appendChild(dateCell);
+
+        // Amount
         const amountCell = document.createElement('td');
         const amount = adjustment.amount || 0;
-        // Positive = we owe them more (مستحق للمقاول), Negative = they owe us (مستحق لنا)
-        amountCell.className = amount >= 0 ? 'text-danger' : 'text-success';
-        const label = amount >= 0 ? '(مستحق للمقاول)' : '(مستحق لنا)';
-        amountCell.innerHTML = `${formatCurrency(Math.abs(amount))} <small style="font-size: 0.75rem;">${label}</small>`;
+        amountCell.textContent = formatCurrency(Math.abs(amount));
+        amountCell.style.fontWeight = '600';
+        row.appendChild(amountCell);
 
-        const cells = [
-            formatDate(adjustment.created_at),
-            amountCell,
-            adjustment.method || '-',
-            adjustment.details || '-',
-            adjustment.reason || '-'
-        ];
+        // Type
+        const typeCell = document.createElement('td');
+        const isAddition = amount >= 0;
+        typeCell.className = isAddition ? 'text-danger' : 'text-success';
+        typeCell.textContent = isAddition ? 'إضافة (مستحق للمقاول)' : 'خصم (مستحق لنا)';
+        typeCell.style.fontWeight = '600';
+        row.appendChild(typeCell);
 
-        cells.forEach((cell, index) => {
-            if (index === 1) {
-                row.appendChild(cell);
-            } else {
-                const td = document.createElement('td');
-                td.textContent = cell;
-                row.appendChild(td);
-            }
-        });
+        // Reason
+        const reasonCell = document.createElement('td');
+        reasonCell.textContent = adjustment.reason || '-';
+        reasonCell.title = adjustment.reason || '-';
+        row.appendChild(reasonCell);
 
         // Actions cell
         const actionsCell = document.createElement('td');
@@ -663,8 +664,12 @@ function setupEventHandlers() {
         e.preventDefault();
 
         const contractorId = getContractorIdFromURL();
-        const amount = document.getElementById('adjustmentAmount').value;
+        const type = document.getElementById('adjustmentType').value;
+        const amountValue = parseFloat(document.getElementById('adjustmentAmount').value);
         const reason = document.getElementById('adjustmentReason').value;
+
+        // Convert type to positive/negative amount
+        const amount = type === 'addition' ? amountValue : -amountValue;
 
         const adjustmentData = { amount, reason };
 
@@ -991,19 +996,8 @@ async function openEditContractorModal() {
 
     // Fill form with current data
     document.getElementById('editContractorName').value = contractor.name || '';
-
-    // Load projects first
-    await loadProjectsForEdit();
-
-    // Clear and load opening balances
-    const container = document.getElementById('editContractorOpeningBalancesContainer');
-    container.innerHTML = '';
-    
-    if (contractorData.opening_balances && contractorData.opening_balances.length > 0) {
-        contractorData.opening_balances.forEach(balance => {
-            addEditContractorOpeningBalanceRow(balance);
-        });
-    }
+    document.getElementById('editClientPhone').value = contractor.phone || '';
+    document.getElementById('editOpeningBalance').value = contractor.opening_balance || 0;
 
     console.log('Showing contractor edit modal...');
     // Show modal
@@ -1668,3 +1662,28 @@ document.addEventListener('click', function (e) {
         return; // Exit early to prevent other handlers
     }
 });
+
+
+// Toggle date range inputs for account statement
+function toggleDateRange() {
+    const checkbox = document.getElementById('useCustomDateRange');
+    const dateInputs = document.getElementById('dateRangeInputs');
+
+    if (checkbox && dateInputs) {
+        if (checkbox.checked) {
+            dateInputs.style.display = 'flex';
+            // Set default dates
+            const today = new Date().toISOString().split('T')[0];
+            const firstOfYear = new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0];
+            const fromDate = document.getElementById('statementFromDate');
+            const toDate = document.getElementById('statementToDate');
+            if (fromDate) fromDate.value = firstOfYear;
+            if (toDate) toDate.value = today;
+        } else {
+            dateInputs.style.display = 'none';
+        }
+    }
+}
+
+// Make function available globally
+window.toggleDateRange = toggleDateRange;

@@ -6,40 +6,55 @@ let currentPage = 1;
 let currentSearch = '';
 let totalPages = 1;
 
-// Create project card (based on client data)
+// Render stats bar
+function renderStatsBar(clients) {
+    // Stats bar removed - no longer needed
+}
+
+// Create project card with modern design
 function createProjectCard(client) {
     const card = document.createElement('div');
-    card.className = 'client-card';
+    card.className = 'client-card'; // Using same class as clients
 
-    // Header with client name and actions
+    // Header with name and actions
     const header = document.createElement('div');
     header.className = 'client-header';
 
     const name = document.createElement('h3');
     name.className = 'client-name';
-    name.textContent = `مشروع: ${client.name}`;
+    name.textContent = client.name || '—';
 
     const actions = document.createElement('div');
     actions.className = 'client-actions';
 
     const detailsBtn = document.createElement('button');
-    detailsBtn.className = 'btn btn-sm btn-primary';
-    detailsBtn.innerHTML = '<i class="fas fa-chart-line"></i> التفاصيل المالية';
+    detailsBtn.className = 'action-btn-modern view';
+    detailsBtn.innerHTML = '<i class="fas fa-chart-line"></i> التفاصيل';
+    detailsBtn.title = 'عرض التفاصيل';
     detailsBtn.onclick = () => window.location.href = `project-details.html?client_id=${client.id}`;
 
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'action-btn-modern danger';
+    deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+    deleteBtn.title = 'حذف';
+    deleteBtn.onclick = () => {
+        // Delete functionality would go here
+    };
+
     actions.appendChild(detailsBtn);
+    actions.appendChild(deleteBtn);
     header.appendChild(name);
     header.appendChild(actions);
     card.appendChild(header);
 
-    // Client info section
+    // Contact info section
     if (client.phone) {
         const contactSection = document.createElement('div');
         contactSection.className = 'client-contact';
 
         const phoneItem = document.createElement('div');
         phoneItem.className = 'contact-item';
-        phoneItem.innerHTML = `<span class="contact-icon">📱</span> ${client.phone}`;
+        phoneItem.innerHTML = `<i class="fas fa-solid fa-mobile"></i> ${client.phone}`;
 
         contactSection.appendChild(phoneItem);
         card.appendChild(contactSection);
@@ -49,13 +64,12 @@ function createProjectCard(client) {
     const financialSection = document.createElement('div');
     financialSection.className = 'client-financial';
 
-    // Client balance (from deliveries and payments)
     const balanceItem = document.createElement('div');
     balanceItem.className = 'financial-item';
 
     const balanceLabel = document.createElement('span');
     balanceLabel.className = 'financial-label';
-    balanceLabel.textContent = 'رصيد العميل:';
+    balanceLabel.textContent = 'الرصيد الحالي:';
 
     const balanceValue = document.createElement('span');
     balanceValue.className = 'financial-value';
@@ -85,15 +99,13 @@ function createProjectCard(client) {
     financialSection.appendChild(balanceItem);
     card.appendChild(financialSection);
 
-    // Project financial stats
+    // Stats section
     const stats = document.createElement('div');
     stats.className = 'client-stats';
 
     const statsItems = [
         { label: 'إجمالي التسليمات', value: formatCurrency(client.totalDeliveries || 0) },
-        { label: 'إجمالي المدفوعات', value: formatCurrency(client.totalPayments || 0) },
-        { label: 'المصروفات المرتبطة', value: formatCurrency(client.totalExpenses || 0) },
-        { label: 'الحقن الرأسمالية', value: formatCurrency(client.totalCapitalInjections || 0) }
+        { label: 'إجمالي المدفوعات', value: formatCurrency(client.totalPayments || 0) }
     ];
 
     statsItems.forEach(stat => {
@@ -117,7 +129,7 @@ function createProjectCard(client) {
     return card;
 }
 
-// Render projects grid (based on clients)
+// Render projects grid
 function renderProjects(clients) {
     const container = document.getElementById('projectsContainer');
     if (!container) return;
@@ -126,13 +138,16 @@ function renderProjects(clients) {
 
     if (!clients || clients.length === 0) {
         container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon"><i class="fas fa-chart-line"></i></div>
-                <div class="empty-text">لا توجد مشاريع (عملاء) مسجلة</div>
-                <p>المشاريع تُنشأ تلقائياً عند إضافة عملاء جدد</p>
-                <button class="btn btn-primary" onclick="window.location.href='clients.html'">
-                    إدارة العملاء
-                </button>
+            <div class="col-span-full bg-surface-container-lowest p-16 rounded-xl border-2 border-dashed border-outline-variant/30 text-center">
+                <div class="flex flex-col items-center">
+                    <span class="material-symbols-outlined text-6xl text-outline-variant opacity-30 mb-4">business</span>
+                    <h3 class="text-xl font-bold text-on-surface mb-2 font-arabic">لا توجد مشاريع (عملاء) مسجلة</h3>
+                    <p class="text-on-surface-variant mb-6 font-arabic">المشاريع تُنشأ تلقائياً عند إضافة عملاء جدد</p>
+                    <button onclick="window.location.href='clients.html'" class="bg-primary text-white px-6 py-3 rounded-xl font-arabic font-bold hover:opacity-90 transition-opacity flex items-center gap-2">
+                        <span class="material-symbols-outlined">group_add</span>
+                        إدارة العملاء
+                    </button>
+                </div>
             </div>
         `;
         return;
@@ -143,7 +158,7 @@ function renderProjects(clients) {
     });
 }
 
-// Render pagination
+// Render pagination with new design
 function renderPagination(pagination) {
     const container = document.getElementById('paginationContainer');
     if (!container || !pagination) return;
@@ -152,32 +167,69 @@ function renderPagination(pagination) {
 
     if (pagination.pages <= 1) return;
 
-    const nav = document.createElement('nav');
-    nav.className = 'pagination';
+    const nav = document.createElement('div');
+    nav.className = 'flex items-center gap-2';
 
     // Previous button
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'w-10 h-10 rounded-lg border border-outline-variant/20 flex items-center justify-center text-slate-400 hover:bg-emerald-50 hover:text-emerald-700 transition-colors';
+    prevBtn.innerHTML = '<span class="material-symbols-outlined">chevron_right</span>';
+    prevBtn.disabled = pagination.page === 1;
     if (pagination.page > 1) {
-        const prevBtn = document.createElement('button');
-        prevBtn.textContent = 'السابق';
-        prevBtn.className = 'btn btn-secondary btn-sm';
         prevBtn.addEventListener('click', () => loadProjects(pagination.page - 1));
-        nav.appendChild(prevBtn);
+    } else {
+        prevBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+    nav.appendChild(prevBtn);
+
+    // Page numbers
+    const maxPagesToShow = 5;
+    let startPage = Math.max(1, pagination.page - 2);
+    let endPage = Math.min(pagination.pages, startPage + maxPagesToShow - 1);
+
+    if (endPage - startPage < maxPagesToShow - 1) {
+        startPage = Math.max(1, endPage - maxPagesToShow + 1);
     }
 
-    // Page info
-    const pageInfo = document.createElement('span');
-    pageInfo.className = 'pagination-info';
-    pageInfo.textContent = `صفحة ${pagination.page} من ${pagination.pages}`;
-    nav.appendChild(pageInfo);
+    for (let i = startPage; i <= endPage; i++) {
+        const pageBtn = document.createElement('button');
+        if (i === pagination.page) {
+            pageBtn.className = 'w-10 h-10 rounded-lg bg-tertiary text-white font-bold font-headline';
+        } else {
+            pageBtn.className = 'w-10 h-10 rounded-lg border border-outline-variant/20 flex items-center justify-center text-slate-600 hover:bg-emerald-50 transition-colors font-headline';
+        }
+        pageBtn.textContent = i;
+        pageBtn.addEventListener('click', () => loadProjects(i));
+        nav.appendChild(pageBtn);
+    }
+
+    // Show ellipsis and last page if needed
+    if (endPage < pagination.pages) {
+        if (endPage < pagination.pages - 1) {
+            const ellipsis = document.createElement('span');
+            ellipsis.className = 'px-2 text-slate-400';
+            ellipsis.textContent = '...';
+            nav.appendChild(ellipsis);
+        }
+
+        const lastPageBtn = document.createElement('button');
+        lastPageBtn.className = 'w-10 h-10 rounded-lg border border-outline-variant/20 flex items-center justify-center text-slate-600 hover:bg-emerald-50 transition-colors font-headline';
+        lastPageBtn.textContent = pagination.pages;
+        lastPageBtn.addEventListener('click', () => loadProjects(pagination.pages));
+        nav.appendChild(lastPageBtn);
+    }
 
     // Next button
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'w-10 h-10 rounded-lg border border-outline-variant/20 flex items-center justify-center text-slate-400 hover:bg-emerald-50 hover:text-emerald-700 transition-colors';
+    nextBtn.innerHTML = '<span class="material-symbols-outlined">chevron_left</span>';
+    nextBtn.disabled = pagination.page === pagination.pages;
     if (pagination.page < pagination.pages) {
-        const nextBtn = document.createElement('button');
-        nextBtn.textContent = 'التالي';
-        nextBtn.className = 'btn btn-secondary btn-sm';
         nextBtn.addEventListener('click', () => loadProjects(pagination.page + 1));
-        nav.appendChild(nextBtn);
+    } else {
+        nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
     }
+    nav.appendChild(nextBtn);
 
     container.appendChild(nav);
 }
@@ -196,6 +248,7 @@ async function loadProjects(page = 1) {
         const result = await apiGet(`/clients?${params}`);
         projectsData = result.clients || result.data || [];
 
+        renderStatsBar(projectsData);
         renderProjects(projectsData);
         if (result.pagination) {
             renderPagination(result.pagination);
@@ -206,11 +259,16 @@ async function loadProjects(page = 1) {
         console.error('Error loading projects:', error);
         const container = document.getElementById('projectsContainer');
         container.innerHTML = `
-            <div class="error-state">
-                <div class="error-icon"><i class="fas fa-times-circle"></i></div>
-                <div class="error-text">خطأ في تحميل بيانات المشاريع</div>
-                <div class="error-details">${error.message}</div>
-                <button class="btn btn-primary" onclick="loadProjects()">إعادة المحاولة</button>
+            <div class="col-span-full bg-surface-container-lowest p-16 rounded-xl border border-error/20 text-center">
+                <div class="flex flex-col items-center">
+                    <span class="material-symbols-outlined text-6xl text-error opacity-50 mb-4">error</span>
+                    <h3 class="text-xl font-bold text-error mb-2 font-arabic">خطأ في تحميل بيانات المشاريع</h3>
+                    <p class="text-on-surface-variant mb-6 font-arabic">${error.message}</p>
+                    <button onclick="loadProjects()" class="bg-primary text-white px-6 py-3 rounded-xl font-arabic font-bold hover:opacity-90 transition-opacity flex items-center gap-2">
+                        <span class="material-symbols-outlined">refresh</span>
+                        إعادة المحاولة
+                    </button>
+                </div>
             </div>
         `;
     }
@@ -232,11 +290,10 @@ function setupEventHandlers() {
         }
     }
 
-    // Search button click handler
+    // Search button handler
     if (searchBtn) {
         searchBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            e.stopPropagation();
             performSearch();
         });
     }
