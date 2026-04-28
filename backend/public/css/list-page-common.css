@@ -231,3 +231,67 @@
     color: var(--on-surface-variant);
     font-weight: 600;
 }
+
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    /* Search Controls */
+    .search-controls {
+        margin-bottom: 1rem;
+    }
+    
+    .search-box {
+        flex-direction: column;
+        gap: 0.75rem;
+        max-width: 100%;
+    }
+    
+    .search-box .form-input-modern {
+        width: 100%;
+    }
+    
+    .search-box button {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* Card Grid */
+    .entity-grid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+        padding: 0 0.5rem;
+    }
+    
+    /* Entity Card */
+    .entity-card {
+        padding: 0.75rem;
+        border-radius: 1rem;
+        max-width: 100%;
+    }
+    
+    .entity-card-header {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: flex-start;
+    }
+    
+    .entity-card-title {
+        font-size: 1.125rem;
+    }
+    
+    .entity-card-actions {
+        width: 100%;
+        justify-content: flex-end;
+        gap: 0.5rem;
+    }
+    
+    .entity-card-actions button {
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    .entity-card-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+}

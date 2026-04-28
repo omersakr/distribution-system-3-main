@@ -64,3 +64,29 @@ if (document.readyState === 'loading') {
 
 // Export initialization function
 window.initializeUtils = initializeUtils;
+
+
+/**
+ * Prevent scroll wheel from changing number input values
+ * This prevents accidental value changes when scrolling
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Prevent wheel event on number inputs
+    document.addEventListener('wheel', function(e) {
+        if (e.target.type === 'number' && document.activeElement === e.target) {
+            e.preventDefault();
+            e.target.blur(); // Remove focus to prevent further changes
+            setTimeout(() => e.target.focus(), 0); // Restore focus
+        }
+    }, { passive: false });
+
+    // Also prevent on input event
+    document.addEventListener('input', function(e) {
+        if (e.target.type === 'number') {
+            // Ensure the input doesn't change via scroll
+            e.target.addEventListener('wheel', function(evt) {
+                evt.preventDefault();
+            }, { passive: false });
+        }
+    });
+});

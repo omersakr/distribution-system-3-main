@@ -125,9 +125,10 @@ function renderDeliveries(deliveries) {
 
     if (!deliveries || deliveries.length === 0) {
         container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">🚚</div>
-                <div>لا توجد تسليمات مسجلة</div>
+            <div class="empty-state-modern">
+                <i class="fas fa-truck-loading"></i>
+                <h3>لا توجد تسليمات مسجلة</h3>
+                <p>لم يتم تسجيل أي تسليمات لهذا المورد بعد</p>
             </div>
         `;
         return;

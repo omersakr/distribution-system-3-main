@@ -170,18 +170,27 @@
 .hamburger {
     display: none;
     position: fixed;
-    right: 16px;
-    top: 14px;
-    width: 40px;
-    height: 40px;
+    right: 1rem;
+    top: 1rem;
+    width: 48px;
+    height: 48px;
     z-index: 310;
     background: white;
     border-radius: 0.75rem;
     cursor: pointer;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.07);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     border: 1px solid #e2e8f0;
+    transition: all 0.2s;
+}
+
+.hamburger:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.hamburger:active {
+    transform: scale(0.95);
 }
 
 .hamburger span,
@@ -229,23 +238,82 @@
 
 @media (max-width: 900px) {
     .sidebar {
-        width: 240px;
+        width: 260px;
+    }
+    
+    .main-content {
+        margin-right: 260px;
     }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 768px) {
+    /* Hide sidebar by default on mobile */
     .sidebar {
-        right: -260px;
-        width: 240px;
+        right: -100%;
+        width: 280px;
         box-shadow: none;
+        transition: right 0.3s ease-in-out;
     }
 
+    /* Show sidebar when open class is added */
     .sidebar.open {
         right: 0;
         box-shadow: -2px 0 20px rgba(0, 0, 0, 0.15);
     }
 
+    /* Show hamburger button */
     .hamburger {
         display: flex;
+    }
+    
+    /* Adjust main content */
+    .main-content {
+        margin-right: 0 !important;
+        padding-top: 5rem !important;
+    }
+    
+    /* Overlay */
+    .sidebar-overlay {
+        display: none;
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+    }
+    
+    .sidebar-overlay.active {
+        display: block;
+        opacity: 1;
+    }
+    
+    /* Prevent body scroll when sidebar is open */
+    body.sidebar-open {
+        overflow: hidden;
+    }
+}
+
+@media (max-width: 375px) {
+    .sidebar {
+        width: 260px;
+    }
+    
+    .hamburger {
+        right: 0.5rem;
+        top: 0.5rem;
+        width: 44px;
+        height: 44px;
+    }
+    
+    .hamburger span,
+    .hamburger span:before,
+    .hamburger span:after {
+        width: 20px;
+        height: 2px;
+    }
+    
+    .hamburger span:before {
+        top: -6px;
+    }
+    
+    .hamburger span:after {
+        top: 6px;
     }
 }

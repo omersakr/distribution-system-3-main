@@ -26,6 +26,14 @@ function initSidebar() {
     const hamburger = document.getElementById('sidebarHamburger');
     const overlay = document.getElementById('sidebarOverlay');
     
+    // Ensure sidebar is closed on mobile by default
+    if (window.innerWidth <= 768) {
+        sidebar.classList.remove('open');
+        if (overlay) {
+            overlay.classList.remove('active');
+        }
+    }
+    
     if (hamburger && sidebar && overlay) {
         hamburger.addEventListener('click', function (e) {
             e.preventDefault();
@@ -49,7 +57,7 @@ function initSidebar() {
 
         // Close sidebar when clicking outside on mobile
         document.addEventListener('click', function (e) {
-            if (window.innerWidth <= 700 && sidebar.classList.contains('open')) {
+            if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
                 if (!sidebar.contains(e.target) && e.target !== hamburger && !hamburger.contains(e.target)) {
                     closeSidebar();
                 }
@@ -58,7 +66,10 @@ function initSidebar() {
 
         // Close sidebar on window resize
         window.addEventListener('resize', function () {
-            if (window.innerWidth > 700) {
+            if (window.innerWidth > 768) {
+                closeSidebar();
+            } else if (window.innerWidth <= 768) {
+                // Ensure sidebar is closed when resizing to mobile
                 closeSidebar();
             }
         });
@@ -91,6 +102,11 @@ function openSidebar() {
     if (overlay) {
         overlay.classList.add('active');
     }
+    
+    // Prevent body scroll on mobile
+    if (window.innerWidth <= 768) {
+        document.body.style.overflow = 'hidden';
+    }
 }
 
 function closeSidebar() {
@@ -103,6 +119,9 @@ function closeSidebar() {
     if (overlay) {
         overlay.classList.remove('active');
     }
+    
+    // Restore body scroll
+    document.body.style.overflow = '';
 }
 
 function initUserInfo() {
@@ -169,3 +188,89 @@ function setActiveLink() {
         }
     });
 }
+
+
+// ============================================
+// Prevent scroll wheel AND arrow keys from changing number input values
+// ============================================
+(function() {
+    'use strict';
+
+    console.log('🔒 Number input scroll and arrow prevention loaded');
+
+    function preventNumberInputScroll() {
+        // Get all number inputs on the page
+        const numberInputs = document.querySelectorAll('input[type="number"]');
+        
+        console.log(`🔒 Protecting ${numberInputs.length} number inputs from scroll and arrows`);
+        
+        numberInputs.forEach(function(input) {
+            // Remove any existing listeners first
+            input.removeEventListener('wheel', preventWheel);
+            input.removeEventListener('mousewheel', preventWheel);
+            input.removeEventListener('keydown', preventArrows);
+            
+            // Add new listeners
+            input.addEventListener('wheel', preventWheel, { passive: false });
+            input.addEventListener('mousewheel', preventWheel, { passive: false });
+            input.addEventListener('keydown', preventArrows);
+        });
+    }
+
+    function preventWheel(e) {
+        console.log('🚫 Scroll wheel blocked on number input');
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+    }
+
+    function preventArrows(e) {
+        // Prevent arrow up (38) and arrow down (40) keys
+        if (e.keyCode === 38 || e.keyCode === 40) {
+            console.log('🚫 Arrow key blocked on number input');
+            e.preventDefault();
+            return false;
+        }
+    }
+
+    // Run on page load
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', preventNumberInputScroll);
+    } else {
+        preventNumberInputScroll();
+    }
+
+    // Re-run when modals or dynamic content is added
+    const observer = new MutationObserver(function(mutations) {
+        let shouldUpdate = false;
+        mutations.forEach(function(mutation) {
+            if (mutation.addedNodes.length) {
+                mutation.addedNodes.forEach(function(node) {
+                    if (node.nodeType === 1) { // Element node
+                        if (node.tagName === 'INPUT' || node.querySelector('input[type="number"]')) {
+                            shouldUpdate = true;
+                        }
+                    }
+                });
+            }
+        });
+        if (shouldUpdate) {
+            preventNumberInputScroll();
+        }
+    });
+
+    // Start observing when body is ready
+    if (document.body) {
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    } else {
+        document.addEventListener('DOMContentLoaded', function() {
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+        });
+    }
+})();
